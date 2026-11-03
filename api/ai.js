@@ -158,6 +158,7 @@ module.exports = async (req, res) => {
         "- JANGAN memakai format daftar produk dengan tanda \"•\" dan JANGAN menutup dengan nomor WhatsApp atau alamat website diulang di baris sendiri seperti brosur — itu semua sudah otomatis muncul rapi di footer email, jadi tidak perlu ditulis lagi di isi pesan.\n" +
         "- Sebut paling banyak 2-3 jenis produk saja, disebut mengalir dalam kalimat biasa (bukan daftar), dipilih dari daftar produk di FAKTA.\n" +
         "- Panjang wajar untuk email personal: sekitar 4-7 kalimat pendek. Nada hangat, sopan, to the point, terasa ditulis khusus untuk tempat itu, bukan pesan massal yang disalin-tempel.\n" +
+        "- JANGAN tulis sebagai satu paragraf panjang. Pecah jadi 2-4 paragraf pendek (1-3 kalimat per paragraf), dipisah baris kosong (\\n\\n), supaya enak dibaca.\n" +
         "- Boleh menyebut nama brand pengirim dan mengajak membalas email ini kalau tertarik, tapi jangan mengarang nama orang yang menulis kalau tidak diminta.\n" +
         "- Fakta (jenis produk, brand) hanya boleh diambil dari FAKTA di bawah. Jangan mengarang harga, diskon, sertifikat, jumlah minimum order, nomor WhatsApp, atau klaim lain, kecuali PERMINTAAN PENGGUNA menyebutkannya.\n" +
         "- Baris pertama isi email harus tepat diawali \"Hi!\" (sistem otomatis menggantinya dengan nama tempat). Jangan memakai placeholder seperti [nama].\n" +

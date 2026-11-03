@@ -1566,6 +1566,14 @@ $("emkclear").onclick=function(){if(confirm("Hapus pengaturan email yang tersimp
 $("emks").onchange=function(){$("k5").type=this.checked?"text":"password"};
 // Pratinjau email: meniru pembungkus HTML (header+footer) yang dipakai saat kirim sungguhan (lihat api/send.js)
 var EMBRAND={name:"EMAHAIRSHOP",tagline:"Human hair supplier from Indonesia",phone:"+62 895-3799-94528",waLink:"https://wa.me/6289537994528",website:"https://emahairshop.com/"};
+function emPrevSplit(line){
+  if(line.length<=200)return[line];
+  var sentences=(line.match(/[^.!?]+[.!?]+(?:\s+|$)|[^.!?]+$/g)||[line]).map(function(s){return s.trim()}).filter(Boolean);
+  if(sentences.length<3)return[line];
+  var paras=[];
+  for(var i=0;i<sentences.length;i+=2)paras.push(sentences.slice(i,i+2).join(" "));
+  return paras;
+}
 function emPrevBody(text){
   var lines=String(text||"").split(/\n/),html="",inList=false;
   function add(l){html+=l}
@@ -1577,7 +1585,7 @@ function emPrevBody(text){
       add('<li style="margin:0 0 6px">'+esc(line.replace(/^[•-]\s+/,""))+"</li>");
     }else{
       if(inList){add("</ul>");inList=false}
-      add('<p style="margin:0 0 14px">'+esc(line)+"</p>");
+      emPrevSplit(line).forEach(function(p){add('<p style="margin:0 0 14px">'+esc(p)+"</p>")});
     }
   });
   if(inList)add("</ul>");
@@ -1588,13 +1596,13 @@ function emPrevHtml(text){
   return '<!doctype html><html><body style="margin:0;padding:0;background:#f3efe7;font-family:Arial,Helvetica,sans-serif">'+
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3efe7;padding:24px 0"><tr><td align="center">'+
     '<table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border-radius:10px;overflow:hidden" cellpadding="0" cellspacing="0"><tr><td>'+
-    '<div style="background:#1f4d3d;padding:22px 28px">'+
+    '<div style="background:#000000;padding:22px 28px">'+
     '<span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:.02em">'+esc(EMBRAND.name)+'</span><br>'+
-    '<span style="color:#cfe3da;font-size:12px">'+esc(EMBRAND.tagline)+'</span></div>'+
+    '<span style="color:#cfcfcf;font-size:12px">'+esc(EMBRAND.tagline)+'</span></div>'+
     '<div style="padding:28px;color:#2a2a2a;font-size:15px;line-height:1.55">'+emPrevBody(text)+'</div>'+
-    '<div style="padding:18px 28px;background:#f6f3ec;border-top:1px solid #e7e1d4;font-size:12.5px;color:#6b6b6b">'+
+    '<div style="padding:18px 28px;background:#f6f3ec;border-top:1px solid #e7e1d4;font-size:12.5px;color:#4a4a4a">'+
     '<div style="margin-bottom:6px"><b>'+esc(EMBRAND.name)+'</b> — '+esc(EMBRAND.tagline)+'</div>'+
-    '<div>WhatsApp: <a href="'+esc(EMBRAND.waLink)+'" style="color:#1f4d3d;text-decoration:none">'+esc(EMBRAND.phone)+'</a> &nbsp;·&nbsp; Website: <a href="'+esc(EMBRAND.website)+'" style="color:#1f4d3d;text-decoration:none">'+esc(siteLabel)+'</a></div></div>'+
+    '<div>Website: <a href="'+esc(EMBRAND.website)+'" style="color:#000000;text-decoration:underline">'+esc(siteLabel)+'</a></div></div>'+
     '</td></tr></table></td></tr></table></body></html>';
 }
 $("emprevbtn").onclick=function(){

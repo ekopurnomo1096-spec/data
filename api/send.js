@@ -28,6 +28,16 @@ const clean = (v, n) => String(v == null ? "" : v).replace(/[\r\n\t]+/g, " ").re
 // email tidak terasa seperti pesan WA yang disalin-tempel. Paragraf dipisah baris kosong;
 // baris yang diawali "•" atau "-" otomatis jadi daftar bertitik.
 const escHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// Kalau satu paragraf terlalu panjang (banyak kalimat jadi satu blok), pecah otomatis
+// setiap 2 kalimat jadi paragraf sendiri supaya tidak terasa seperti satu kalimat raksasa.
+function splitLong(line) {
+  if (line.length <= 200) return [line];
+  const sentences = (line.match(/[^.!?]+[.!?]+(?:\s+|$)|[^.!?]+$/g) || [line]).map(s => s.trim()).filter(Boolean);
+  if (sentences.length < 3) return [line];
+  const paras = [];
+  for (let i = 0; i < sentences.length; i += 2) paras.push(sentences.slice(i, i + 2).join(" "));
+  return paras;
+}
 function textToHtmlBody(text) {
   const lines = String(text || "").split(/\n/);
   let html = "", inList = false;
@@ -39,7 +49,7 @@ function textToHtmlBody(text) {
       html += '<li style="margin:0 0 6px">' + escHtml(line.replace(/^[•-]\s+/, "")) + "</li>";
     } else {
       if (inList) { html += "</ul>"; inList = false; }
-      html += '<p style="margin:0 0 14px">' + escHtml(line) + "</p>";
+      for (const p of splitLong(line)) html += '<p style="margin:0 0 14px">' + escHtml(p) + "</p>";
     }
   }
   if (inList) html += "</ul>";
@@ -50,13 +60,13 @@ function buildHtml(text) {
   return '<!doctype html><html><body style="margin:0;padding:0;background:#f3efe7;font-family:Arial,Helvetica,sans-serif">' +
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3efe7;padding:24px 0"><tr><td align="center">' +
     '<table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border-radius:10px;overflow:hidden" cellpadding="0" cellspacing="0"><tr><td>' +
-    '<div style="background:#1f4d3d;padding:22px 28px">' +
+    '<div style="background:#000000;padding:22px 28px">' +
     '<span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:.02em">' + escHtml(BRAND.name) + "</span><br>" +
-    '<span style="color:#cfe3da;font-size:12px">' + escHtml(BRAND.tagline) + "</span></div>" +
+    '<span style="color:#cfcfcf;font-size:12px">' + escHtml(BRAND.tagline) + "</span></div>" +
     '<div style="padding:28px;color:#2a2a2a;font-size:15px;line-height:1.55">' + textToHtmlBody(text) + "</div>" +
-    '<div style="padding:18px 28px;background:#f6f3ec;border-top:1px solid #e7e1d4;font-size:12.5px;color:#6b6b6b">' +
+    '<div style="padding:18px 28px;background:#f6f3ec;border-top:1px solid #e7e1d4;font-size:12.5px;color:#4a4a4a">' +
     "<div style=\"margin-bottom:6px\"><b>" + escHtml(BRAND.name) + "</b> — " + escHtml(BRAND.tagline) + "</div>" +
-    "<div>WhatsApp: <a href=\"" + escHtml(BRAND.waLink) + "\" style=\"color:#1f4d3d;text-decoration:none\">" + escHtml(BRAND.phone) + "</a> &nbsp;·&nbsp; Website: <a href=\"" + escHtml(BRAND.website) + "\" style=\"color:#1f4d3d;text-decoration:none\">" + siteLabel + "</a></div></div>" +
+    "<div>Website: <a href=\"" + escHtml(BRAND.website) + "\" style=\"color:#000000;text-decoration:underline\">" + siteLabel + "</a></div></div>" +
     "</td></tr></table></td></tr></table></body></html>";
 }
 // Template email dikosongkan: subjek dan isi harus ditulis sendiri sebelum kirim
