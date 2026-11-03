@@ -15,7 +15,10 @@ html{scroll-padding-top:env(safe-area-inset-top,0px);overflow-y:scroll;scrollbar
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
 .wrap{max-width:1240px;margin:0 auto;padding:0 20px}
 .top{background:var(--surf);border-bottom:1px solid var(--line)}
-.head{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:flex-end;justify-content:space-between;padding-top:22px}
+.head{display:flex;flex-wrap:wrap;gap:0 12px;align-items:flex-start;padding-top:22px}
+.head>div:first-child{flex:1 1 auto}
+.hbtns{display:flex;gap:8px}
+.head .tabs{flex:0 0 100%}
 h1{font:700 clamp(1.5rem,3vw,2rem)/1.15 "Instrument Sans",system-ui,sans-serif;letter-spacing:-.01em;margin:0}
 .sub{margin:6px 0 14px;color:var(--mute);font-size:.9rem}
 .tabs{display:flex;gap:4px}
@@ -29,7 +32,7 @@ main.wrap{padding:24px 20px 64px}
 @media (max-width:560px){.form{grid-template-columns:1fr}}
 .combo{position:relative}
 .f label{display:block;font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:5px}
-input[type=text],input[type=search],select{width:100%;height:42px;font:inherit;font-size:.92rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:0 12px}
+input[type=text],input[type=search],input[type=password],select{width:100%;height:42px;font:inherit;font-size:.92rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:0 12px}
 input::placeholder{color:var(--mute);opacity:.8}
 .go{align-self:end;height:42px;background:var(--acc);color:var(--onacc);border:0;border-radius:8px;padding:0 22px;font:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px}
 .go[disabled]{opacity:.7;cursor:progress}
@@ -130,13 +133,32 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .seg span{color:var(--mute);font-size:.9rem}
 .seg .ghost{margin-top:10px}
 @media (prefers-reduced-motion:reduce){.spin,.sk{animation:none}}
+#login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.lbox{width:min(400px,100%);display:grid;gap:14px;padding:24px}
+.lbox h1{font-size:1.35rem}
+.lbox .sub{margin:0}
+.lbox .go,.lbox .err{margin:0}
+#sbody{padding:20px}
+.sf{margin-top:16px}
+.hint2{color:var(--mute);font-size:.8rem;margin:5px 0 0}
+.btn.primary{background:var(--acc);color:var(--onacc);border-color:var(--acc)}
+.btn.primary:hover{color:var(--onacc);opacity:.9}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
+<section id="login" hidden><form id="lform" class="panel lbox">
+  <h1>Pencari prospek hair extension</h1>
+  <p class="sub">Halaman pribadi. Masukkan kata sandi untuk melanjutkan.</p>
+  <div class="f"><label for="pw">Kata sandi</label><input type="password" id="pw" autocomplete="current-password" required></div>
+  <p class="err" id="lerr" hidden></p>
+  <button class="go" id="lgo" type="submit">Masuk</button>
+</form></section>
+<div id="app" hidden>
 <header class="top"><div class="wrap head">
   <div><h1>Pencari prospek hair extension</h1>
   <p class="sub">Salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya.</p></div>
+  <div class="hbtns"><button class="ghost" id="setb" type="button">Pengaturan</button><button class="ghost" id="outb" type="button">Keluar</button></div>
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" id="t1" aria-selected="true">Cari tempat</button>
     <button class="tab" role="tab" id="t2" aria-selected="false">Siapa yang membeli?</button>
@@ -191,6 +213,16 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 </section>
 </main>
 <dialog id="dlg" aria-label="Detail tempat"><div id="dbody"></div></dialog>
+<dialog id="setd" aria-label="Pengaturan"><div id="sbody">
+  <div class="dh"><div><h2>Pengaturan</h2><p class="dr">API key disimpan hanya di browser ini, tidak di Vercel.</p></div><button class="x" id="sx" type="button" aria-label="Tutup">✕</button></div>
+  <div class="sf f"><label for="k1">API key SerpApi (Google Maps)</label><input type="password" id="k1" autocomplete="off" placeholder="Tempel key di sini"><p class="hint2">Buat di <a class="lk" href="https://serpapi.com" target="_blank" rel="noopener">serpapi.com</a>. Dipakai untuk sumber Google Maps.</p></div>
+  <div class="sf f"><label for="k2">API key Geoapify (opsional)</label><input type="password" id="k2" autocomplete="off" placeholder="Tempel key di sini"><p class="hint2">Buat di <a class="lk" href="https://geoapify.com" target="_blank" rel="noopener">geoapify.com</a>. Dipakai untuk sumber OpenStreetMap.</p></div>
+  <label class="chk sf"><input type="checkbox" id="ks"> Tampilkan key</label>
+  <div class="acts"><button class="btn primary" id="ksave" type="button">Simpan</button><button class="btn" id="kclear" type="button">Hapus dari browser ini</button></div>
+  <p class="info" id="kmsg" hidden></p>
+  <p class="hint2" style="margin-top:14px">Key dikirim ke server lewat HTTPS setiap pencarian, dipakai sekali, dan tidak disimpan di server. Siapa pun yang memakai browser ini bisa melihatnya, jadi jangan disimpan di komputer umum.</p>
+</div></dialog>
+</div>
 <script>
 (function(){
 var $=function(i){return document.getElementById(i)};
@@ -447,14 +479,17 @@ async function run(){
   if(!city){say("err","Tulis nama kota dulu, misalnya London atau Purwokerto.");$("city").focus();return}
   loading(true);
   try{
-    var r=await fetch("/api/places?city="+encodeURIComponent(city)+"&kind="+kind+"&source="+$("source").value),tx=await r.text(),j;
+    var r=await fetch("/api/places?city="+encodeURIComponent(city)+"&kind="+kind+"&source="+$("source").value,{headers:authHeaders()}),tx=await r.text(),j;
+    if(r.status===401){loading(false);return showLogin("Sesi habis, silakan masuk lagi.")}
     try{j=JSON.parse(tx)}catch(x){throw new Error("server membalas error ("+r.status+"). Cek Logs di dashboard Vercel.")}
     if(!r.ok)throw new Error(j.error||"Gagal");
     rows=j.results;loading(false);
     if(!rows.length)return say("info","Tidak ada data "+LABEL[kind]+" di "+esc(city)+" dari sumber ini. Coba kota lain, jenis tempat lain, atau ganti sumber data.");
     lastQ=LABEL[kind]+" di "+city;lastCountry=$("country").value;sKey="";sDir=1;
     render();
-  }catch(e){loading(false);say("err","Pencarian gagal: "+esc(e.message.replace(/\.$/,""))+". Server peta gratis kadang sibuk, jadi coba lagi beberapa saat.")}
+  }catch(e){loading(false);var m=e.message.replace(/\.$/,"");
+    if(/Pengaturan/.test(m)){say("err",esc(m)+". <button class='ghost' id='goset' type='button'>Buka Pengaturan</button>");$("goset").onclick=openSet}
+    else say("err","Pencarian gagal: "+esc(m)+". Server peta gratis kadang sibuk, jadi coba lagi beberapa saat.")}
 }
 $("sortsel").onchange=function(){sKey=this.value;sDir=sKey==="name"?1:-1;render()};
 $("run").onclick=run;$("onlyc").onchange=render;$("onlye").onchange=render;$("q").oninput=render;
@@ -491,7 +526,7 @@ function waOf(x){
 }
 function findMail(x){
   var b=$("dmail");b.disabled=true;b.textContent="Mencari…";
-  fetch("/api/email?url="+encodeURIComponent(x.website)).then(function(r){return r.json()}).then(function(j){
+  fetch("/api/email?url="+encodeURIComponent(x.website)).then(function(r){if(r.status===401){$("dlg").close();showLogin("Sesi habis, silakan masuk lagi.");throw new Error("401")}return r.json()}).then(function(j){
     var m=j.emails||[],w=(j.whatsapp||[])[0];
     x.looked=true;
     if(m.length){x.emails=m;x.email=m[0]}
@@ -524,11 +559,36 @@ function openD(x){
 $("tb").onclick=function(e){if(e.target.closest("a"))return;var tr=e.target.closest("tr[data-i]");if(tr)openD(rows[+tr.getAttribute("data-i")])};
 $("tb").onkeydown=function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr[data-i]")){e.preventDefault();openD(rows[+e.target.getAttribute("data-i")])}};
 $("dlg").onclick=function(e){if(e.target===this)this.close()};
+function lsGet(k){try{return localStorage.getItem(k)||""}catch(e){return""}}
+function lsSet(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k);return true}catch(e){return false}}
+function authHeaders(){var h={},a=lsGet("hl_serp"),b=lsGet("hl_geo");if(a)h["x-serpapi-key"]=a;if(b)h["x-geoapify-key"]=b;return h}
+function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
+function showLogin(msg){$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
+function showApp(){$("login").hidden=true;$("app").hidden=false}
+function openSet(){$("k1").value=lsGet("hl_serp");$("k2").value=lsGet("hl_geo");$("kmsg").hidden=true;$("setd").showModal()}
+function kmsg(t){$("kmsg").textContent=t;$("kmsg").hidden=false}
+$("lform").onsubmit=function(e){
+  e.preventDefault();var b=$("lgo");b.disabled=true;$("lerr").hidden=true;
+  fetch("/api/session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:$("pw").value})})
+    .then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})})
+    .then(function(o){b.disabled=false;if(o.ok){$("pw").value="";showApp()}else lmsg(o.j.error||"Gagal masuk")})
+    .catch(function(){b.disabled=false;lmsg("Tidak bisa menghubungi server.")});
+};
+$("setb").onclick=openSet;
+$("sx").onclick=function(){$("setd").close()};
+$("setd").onclick=function(e){if(e.target===this)this.close()};
+$("ks").onchange=function(){var t=this.checked?"text":"password";$("k1").type=t;$("k2").type=t};
+$("ksave").onclick=function(){var a=lsSet("hl_serp",$("k1").value.trim()),b=lsSet("hl_geo",$("k2").value.trim());kmsg(a&&b?"Tersimpan di browser ini.":"Gagal menyimpan: penyimpanan browser diblokir.")};
+$("kclear").onclick=function(){lsSet("hl_serp","");lsSet("hl_geo","");$("k1").value="";$("k2").value="";kmsg("Dihapus dari browser ini.")};
+$("outb").onclick=function(){fetch("/api/session",{method:"DELETE"}).then(function(){location.reload()},function(){location.reload()})};
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"],["Importir dan distributor di luar negeri","Volume besar. Cari lewat direktori B2B seperti Alibaba atau Global Sources.",""],["Perias pengantin","Cari lewat Instagram dengan kata kunci “bridal hair” plus nama kota.",""],["Pabrik wig dan rambut","Calon mitra atau pesaing. Cari lewat direktori ekspor.",""]];
 function tab(n){[1,2].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}
 $("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};
 $("segs").innerHTML=SEG.map(function(s,i){return"<div class='seg'><div class='n'>"+(i+1)+"</div><div><b>"+s[0]+"</b><span>"+s[1]+"</span>"+(s[2]?"<div><button class='ghost' data-i='"+i+"'>Cari tempat ini</button></div>":"")+"</div></div>"}).join("");
 document.querySelectorAll("#segs button").forEach(function(b){b.onclick=function(){$("kind").value=SEG[+b.getAttribute("data-i")][2];tab(1);$("city").focus()}});
+fetch("/api/session").then(function(r){return r.json()}).then(function(j){
+  if(j.authed)showApp();else{showLogin(j.configured===false?"APP_PASSWORD belum diisi di Vercel, jadi belum ada kata sandi.":"")}
+}).catch(function(){showLogin("Tidak bisa menghubungi server.")});
 })();
 </script>
 </body>

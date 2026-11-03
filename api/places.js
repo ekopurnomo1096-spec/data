@@ -1,4 +1,5 @@
-// Vercel serverless function: cari tempat via OpenStreetMap (gratis, tanpa API key)
+// Vercel serverless function: cari tempat. API key dikirim dari halaman (header), tidak disimpan di server
+const { isAuthed } = require("./_auth");
 const FILTERS = {
   salon: 'nwr["shop"="hairdresser"]',
   beauty: 'nwr["shop"~"beauty|cosmetics"]',
@@ -102,7 +103,7 @@ async function overpassSearch(pt, kind) {
       body: "data=" + encodeURIComponent(q)
     }, 28000)));
   } catch (agg) {
-    throw new Error("server peta sedang sibuk. Isi GEOAPIFY_KEY di Vercel agar lebih stabil (" +
+    throw new Error("server peta sedang sibuk. Isi key Geoapify di Pengaturan agar lebih stabil (" +
       (agg.errors || []).map(x => x.message).join("; ") + ")");
   }
   return (o.elements || []).map(x => {
@@ -145,6 +146,7 @@ async function serpSearch(city, kind, key) {
 
 module.exports = async (req, res) => {
   try {
+    if (!isAuthed(req)) return res.status(401).json({ error: "Belum login" });
     const city = String((req.query && req.query.city) || "").trim();
     const kind = FILTERS[req.query && req.query.kind] ? req.query.kind : "salon";
     if (!city) return res.status(400).json({ error: "Isi nama kota" });
@@ -152,14 +154,14 @@ module.exports = async (req, res) => {
     if (req.query.source === "osm") {
       const pt = await geocode(city);
       if (!pt) return res.status(404).json({ error: "Kota tidak ditemukan" });
-      const key = process.env.GEOAPIFY_KEY;
+      const key = req.headers["x-geoapify-key"] || process.env.GEOAPIFY_KEY;
       results = key ? await geoSearch(pt, kind, key) : await overpassSearch(pt, kind);
     } else {
-      const key = process.env.SERPAPI_KEY;
-      if (!key) return res.status(500).json({ error: "SERPAPI_KEY belum diisi di Vercel (Settings > Environment Variables), lalu Redeploy" });
+      const key = req.headers["x-serpapi-key"] || process.env.SERPAPI_KEY;
+      if (!key) return res.status(500).json({ error: "API key SerpApi belum diisi. Buka Pengaturan lalu masukkan key-nya" });
       results = await serpSearch(city, kind, key);
     }
-    res.setHeader("Cache-Control", "s-maxage=3600");
+    res.setHeader("Cache-Control", "private, no-store");
     return res.status(200).json({ results });
   } catch (err) {
     return res.status(500).json({ error: err.message });
