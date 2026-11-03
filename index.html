@@ -197,6 +197,16 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .mlist.rd .mrow{cursor:default}
 #elist{max-height:420px;margin-top:0}
 #p4 .panel+.panel{margin-top:16px}
+.sf .ksaved{height:auto;min-height:42px;padding-top:4px;padding-bottom:4px}
+.sf .ksaved .kt{min-width:0}
+.sf .ksaved .kt b{white-space:nowrap}
+.sf .ksaved .kt span{min-width:0;overflow-wrap:anywhere}
+.ksaved .btn{flex:none}
+#emcfg summary{display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;list-style:none}
+#emcfg summary::-webkit-details-marker{display:none}
+#emcfg summary::after{content:"";margin-left:auto;width:8px;height:8px;border:solid var(--mute);border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-3px}
+#emcfg[open] summary::after{transform:rotate(225deg);margin-top:3px}
+#emcfg .sf:first-of-type{margin-top:12px}
 .eacts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
 #maild .acts{margin-top:16px}
 .sf{margin-top:16px}
@@ -459,13 +469,22 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <div id="svres" hidden><p style="margin:0 0 12px"><button class="ghost" id="svback" type="button">← Kembali ke Tersimpan</button></p><div id="svslot"></div></div>
 </section>
 <section id="p4" hidden>
+  <div class="panel" id="emcfgp">
+    <details id="emcfg"><summary>Pengaturan email <em class="tn" id="emcn"></em></summary>
+  <div class="sf f" id="kf5"><label for="k5">API key Resend</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh5"></span></span><button class="btn" id="kc5" type="button">Ganti</button></div><div class="krow"><input type="password" id="k5" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx5" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://resend.com" target="_blank" rel="noopener">resend.com</a>. Dipakai untuk semua pengiriman email.</p></div>
+  <div class="sf f" id="kf6"><label for="k6">Email pengirim (untuk Resend)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh6"></span></span><button class="btn" id="kc6" type="button">Ganti</button></div><div class="krow"><input type="text" id="k6" autocomplete="off" placeholder="EMA Hairshop Wholesale &lt;sales@wholesale.emahairshop.com&gt;" data-ph="1"><button class="btn" id="kx6" type="button" hidden>Batal</button></div><p class="hint2">Harus memakai domain yang sudah diverifikasi di Resend. Tidak bisa Gmail atau Yahoo.</p></div>
+  <div class="sf f" id="kf7"><label for="k7">Reply-To (balasan masuk ke sini, opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh7"></span></span><button class="btn" id="kc7" type="button">Ganti</button></div><div class="krow"><input type="text" id="k7" autocomplete="off" placeholder="sales@emahairshop.com" data-ph="1"><button class="btn" id="kx7" type="button" hidden>Batal</button></div><p class="hint2">Email yang kamu baca. Kalau calon pembeli klik Balas, jawabannya masuk ke sini, bukan ke alamat pengirim.</p></div>
+    <label class="chk" id="emksw" style="margin-top:14px"><input type="checkbox" id="emks"> Tampilkan key</label>
+    <p class="hint2" id="emkmsg" hidden></p>
+    <div class="eacts"><button class="btn primary" id="emksave" type="button">Simpan</button><button class="btn" id="emkclear" type="button" hidden>Hapus pengaturan email</button></div>
+    </details>
+  </div>
   <div class="panel">
     <div class="f"><label for="emsj">Subjek</label><input type="text" id="emsj" maxlength="200"></div>
     <div class="sf f"><label for="emtx">Isi email</label><textarea id="emtx" rows="12"></textarea>
       <p class="hint2">Sapaan di baris pertama otomatis memakai nama tempat (Hi Nama team!) selama baris itu tetap diawali Hi!</p></div>
     <p class="hint2" id="emfrom"></p>
     <p class="aiwarn" id="emerr" hidden></p>
-    <div class="eacts"><button class="btn" id="emset" type="button" hidden>Buka Pengaturan</button></div>
   </div>
   <div class="panel">
     <div class="svh">Penerima</div>
@@ -502,7 +521,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <div class="sf f"><label for="mtx" id="mtxl">Isi email</label><textarea id="mtx" rows="11"></textarea></div>
   <p class="hint2" id="mfrom"></p>
   <p class="aiwarn" id="merr" hidden></p>
-  <div class="acts"><button class="btn primary" id="msend" type="button">Kirim</button><button class="btn" id="mset" type="button" hidden>Buka Pengaturan</button><button class="btn" id="mcancel" type="button">Batal</button></div>
+  <div class="acts"><button class="btn primary" id="msend" type="button">Kirim</button><button class="btn" id="mset" type="button" hidden>Buka tab Email</button><button class="btn" id="mcancel" type="button">Batal</button></div>
 </div></dialog>
 <dialog id="setd" aria-label="Pengaturan"><div id="sbody">
   <div class="dh"><div><h2>Pengaturan</h2><p class="dr">API key disimpan terenkripsi di server, jadi cukup diisi sekali dan berlaku di semua browser.</p></div><button class="x" id="sx" type="button" aria-label="Tutup">✕</button></div>
@@ -512,9 +531,6 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <div class="sf f" id="kf2"><label for="k2">API key SerpApi akun 2 (opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh2"></span></span><button class="btn" id="kc2" type="button">Ganti</button></div><div class="krow"><input type="password" id="k2" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx2" type="button" hidden>Batal</button></div><p class="hint2">Pilih akun yang dipakai lewat switch di pojok kanan atas.</p></div>
   <div class="sf f" id="kf3"><label for="k3">API key Geoapify (opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh3"></span></span><button class="btn" id="kc3" type="button">Ganti</button></div><div class="krow"><input type="password" id="k3" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx3" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://geoapify.com" target="_blank" rel="noopener">geoapify.com</a>. Dipakai untuk sumber OpenStreetMap.</p></div>
   <div class="sf f" id="kf4"><label for="k4">API key Gemini (fitur AI)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh4"></span></span><button class="btn" id="kc4" type="button">Ganti</button></div><div class="krow"><input type="password" id="k4" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx4" type="button" hidden>Batal</button></div><p class="hint2">Buat gratis di <a class="lk" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com</a>. Dipakai untuk skor prospek, saran langkah, dan draf pesan (model Gemini 3.5 Flash-Lite).</p></div>
-  <div class="sf f" id="kf5"><label for="k5">API key Resend (kirim email, opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh5"></span></span><button class="btn" id="kc5" type="button">Ganti</button></div><div class="krow"><input type="password" id="k5" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx5" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://resend.com" target="_blank" rel="noopener">resend.com</a>. Dipakai untuk tombol Kirim email.</p></div>
-  <div class="sf f" id="kf6"><label for="k6">Email pengirim (untuk Resend)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh6"></span></span><button class="btn" id="kc6" type="button">Ganti</button></div><div class="krow"><input type="text" id="k6" autocomplete="off" placeholder="EMA Hairshop Wholesale &lt;sales@wholesale.emahairshop.com&gt;" data-ph="1"><button class="btn" id="kx6" type="button" hidden>Batal</button></div><p class="hint2">Harus memakai domain yang sudah diverifikasi di Resend. Tidak bisa Gmail atau Yahoo.</p></div>
-  <div class="sf f" id="kf7"><label for="k7">Reply-To (balasan masuk ke sini, opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh7"></span></span><button class="btn" id="kc7" type="button">Ganti</button></div><div class="krow"><input type="text" id="k7" autocomplete="off" placeholder="sales@emahairshop.com" data-ph="1"><button class="btn" id="kx7" type="button" hidden>Batal</button></div><p class="hint2">Email yang kamu baca. Kalau calon pembeli klik Balas, jawabannya masuk ke sini, bukan ke alamat pengirim.</p></div>
   <label class="chk sf" id="kshow"><input type="checkbox" id="ks"> Tampilkan key</label>
   <div class="acts" id="kacts"><button class="btn primary" id="ksave" type="button">Simpan</button><button class="btn" id="kclear" type="button">Hapus key tersimpan</button></div>
   <p class="info" id="kmsg" hidden></p>
@@ -1205,11 +1221,17 @@ function usageAfterSearch(){
   var sync=function(final){loadUsage(function(r){var x=(r.accounts||[]).filter(function(y){return y.n===n})[0];if(!final&&x&&x.used<=base){x.used=base+1;x.left=Math.max(x.left-1,0)}})};
   setTimeout(function(){sync(false)},4000);setTimeout(function(){sync(true)},15000);
 }
-var KEYS=[["1","serp"],["2","serp2"],["3","geo"],["4","gem"],["5","rs"],["6","rsf"],["7","rrt"]],was={};
+var KEYS=[["1","serp"],["2","serp2"],["3","geo"],["4","gem"]],MKEYS=[["5","rs"],["6","rsf"],["7","rrt"]],ALLK=KEYS.concat(MKEYS),was={};
 function isSaved(n){return $("kf"+n).classList.contains("saved")}
 function keyState(j){
-  KEYS.forEach(function(p){var on=j[p[1]].set;$("kf"+p[0]).classList.toggle("saved",on);was[p[0]]=on;$("kh"+p[0]).textContent=on?"("+j[p[1]].hint+")":"";$("k"+p[0]).value=""});
-  keyUi();
+  ALLK.forEach(function(p){var on=j[p[1]].set;$("kf"+p[0]).classList.toggle("saved",on);was[p[0]]=on;$("kh"+p[0]).textContent=on?"("+j[p[1]].hint+")":"";$("k"+p[0]).value=""});
+  keyUi();mkeyUi();
+}
+function mkeyUi(){
+  var edit=MKEYS.some(function(p){return!isSaved(p[0])});
+  MKEYS.forEach(function(p){$("kx"+p[0]).hidden=!(was[p[0]]&&!isSaved(p[0]))});
+  $("emksave").hidden=!edit;$("emksw").hidden=isSaved("5");
+  $("emkclear").hidden=!MKEYS.some(function(p){return isSaved(p[0])});
 }
 function keyUi(){
   var edit=KEYS.some(function(p){return!isSaved(p[0])});
@@ -1250,17 +1272,18 @@ function saveKeys(body,okMsg){
     .then(function(){busy(false)});
 }
 $("ksave").onclick=function(){var b={},n=0;KEYS.forEach(function(p){var v=$("k"+p[0]).value.trim();if(v){b[p[1]]=v;n++}});if(!n){kmsg("Tidak ada yang diubah.");return}saveKeys(b,"Tersimpan di server.")};
-KEYS.forEach(function(p){$("kx"+p[0]).onclick=function(){$("k"+p[0]).value="";$("kf"+p[0]).classList.add("saved");keyUi()}});
-KEYS.forEach(function(p){$("kc"+p[0]).onclick=function(){$("kf"+p[0]).classList.remove("saved");keyUi();$("k"+p[0]).focus()}});
-$("kclear").onclick=function(){if(confirm("Hapus semua key yang tersimpan di server?"))saveKeys({serp:"",serp2:"",geo:"",gem:"",rs:"",rsf:"",rrt:""},"Key dihapus.")};
+ALLK.forEach(function(p){$("kx"+p[0]).onclick=function(){$("k"+p[0]).value="";$("kf"+p[0]).classList.add("saved");keyUi();mkeyUi()}});
+ALLK.forEach(function(p){$("kc"+p[0]).onclick=function(){$("kf"+p[0]).classList.remove("saved");keyUi();mkeyUi();$("k"+p[0]).focus()}});
+$("kclear").onclick=function(){if(confirm("Hapus semua key yang tersimpan di server?"))saveKeys({serp:"",serp2:"",geo:"",gem:""},"Key dihapus.")};
 $("outb").onclick=function(){fetch("/api/session",{method:"DELETE"}).then(function(){location.reload()},function(){location.reload()})};
 
 // ---- Kirim email lewat Resend ----
 var MM={items:[],cfg:null};
 var EM={cfg:null,sent:{},sel:{},loaded:false,filled:false,busy:false},EMAX=20;
-function mailWarn(j){
-  if(!j.hasKey)return"API key Resend belum diisi. Buka Pengaturan lalu masukkan key-nya.";
-  if(!j.from)return"Email pengirim belum diisi. Buka Pengaturan, isi dengan alamat dari domain yang sudah diverifikasi di Resend.";
+function mailWarn(j,inTab){
+  var where=inTab?"Isi di Pengaturan email di atas.":"Buka tab Email, lalu isi di Pengaturan email.";
+  if(!j.hasKey)return"API key Resend belum diisi. "+where;
+  if(!j.from)return"Email pengirim belum diisi. "+where+" Alamatnya harus dari domain yang sudah diverifikasi di Resend.";
   return"";
 }
 function mailFrom(j){return j.ready?"Dikirim dari "+j.from+"."+(j.replyTo?" Balasan masuk ke "+j.replyTo+".":" Reply-To belum diisi, balasan akan menuju alamat pengirim."):""}
@@ -1311,7 +1334,7 @@ function doSend(force){
 }
 $("msend").onclick=function(){doSend(false)};
 $("mx").onclick=$("mcancel").onclick=function(){$("maild").close()};
-$("mset").onclick=function(){$("maild").close();openSet()};
+$("mset").onclick=function(){$("maild").close();tab(4);renderMail();loadMailTab();$("emcfg").open=true;$("emcfg").scrollIntoView({block:"start"})};
 $("maild").onclick=function(e){if(e.target===this)this.close()};
 
 // ---- Tab Email (kirim ke banyak tempat) ----
@@ -1337,7 +1360,7 @@ function mailView(){
   });
 }
 function selIds(){return Object.keys(EM.sel).filter(function(k){return EM.sel[k]})}
-function emErr(t){var e=$("emerr");e.textContent=t||"";e.hidden=!t;$("emset").hidden=!/Pengaturan/.test(t||"")}
+function emErr(t){var e=$("emerr");e.textContent=t||"";e.hidden=!t}
 function emCount(){
   var n=selIds().length,b=$("emsend");
   b.disabled=EM.busy||!n||!(EM.cfg&&EM.cfg.ready);
@@ -1380,10 +1403,32 @@ function loadMailTab(){
     if(j.error){emErr(j.error);return}
     EM.cfg=j;EM.sent=j.sent||{};EM.loaded=true;
     if(!EM.filled){$("emsj").value=j.subject||"";$("emtx").value=j.text||"";EM.filled=true}
-    $("emfrom").textContent=mailFrom(j);emErr(mailWarn(j));
+    $("emfrom").textContent=mailFrom(j);emErr(mailWarn(j,true));
+    $("emcn").textContent=j.ready?"siap kirim":"belum lengkap";
+    if(!j.ready)$("emcfg").open=true;
     renderMail();
   }).catch(function(e){if(e!==0)emErr("Tidak bisa menghubungi server.")});
+  if(!EM.keysLoaded)loadMailKeys();
 }
+function mkmsg(t,bad){var e=$("emkmsg");e.textContent=t||"";e.className=bad?"aiwarn":"hint2";e.hidden=!t}
+function loadMailKeys(){
+  fetch("/api/keys").then(function(r){if(r.status===401)throw 0;return r.json().then(function(j){return{ok:r.ok,j:j}})}).then(function(o){
+    if(!o.ok){mkmsg(o.j.error||"Gagal memuat pengaturan email",true);return}
+    EM.keysLoaded=true;keyState(o.j);
+  }).catch(function(e){if(e!==0)mkmsg("Tidak bisa menghubungi server.",true)});
+}
+function saveMKeys(body,okMsg){
+  var b=$("emksave");b.disabled=true;$("emkclear").disabled=true;mkmsg("");
+  fetch("/api/keys",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+    .then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})})
+    .then(function(o){if(!o.ok){mkmsg(o.j.error||"Gagal menyimpan",true);return}
+      keyState(o.j);mkmsg(okMsg);loadMailTab()})
+    .catch(function(){mkmsg("Tidak bisa menghubungi server.",true)})
+    .then(function(){b.disabled=false;$("emkclear").disabled=false});
+}
+$("emksave").onclick=function(){var b={},n=0;MKEYS.forEach(function(p){var v=$("k"+p[0]).value.trim();if(v){b[p[1]]=v;n++}});if(!n){mkmsg("Tidak ada yang diubah.");return}saveMKeys(b,"Tersimpan di server.")};
+$("emkclear").onclick=function(){if(confirm("Hapus pengaturan email yang tersimpan di server?"))saveMKeys({rs:"",rsf:"",rrt:""},"Pengaturan email dihapus.")};
+$("emks").onchange=function(){$("k5").type=this.checked?"text":"password"};
 function greet(tx,name){
   var n=String(name||"").replace(/[\r\n\t<>]+/g," ").trim().slice(0,80);
   return tx.replace(/^\s*Hi!/,n?"Hi "+n+" team!":"Hi!");
@@ -1412,7 +1457,6 @@ function emSend(force){
   }).catch(function(){EM.busy=false;emErr("Tidak bisa menghubungi server.");emCount()});
 }
 $("emsend").onclick=function(){emSend(false)};
-$("emset").onclick=function(){openSet()};
 $("emq").oninput=$("emst").onchange=$("emhide").onchange=renderMail;
 $("emall").onclick=function(){EM.sel={};mailView().slice(0,EMAX).forEach(function(x){EM.sel[x.id]=true});renderMail()};
 $("emnone").onclick=function(){EM.sel={};renderMail()};
@@ -1425,7 +1469,6 @@ $("elist").addEventListener("change",function(e){
   }else delete EM.sel[id];
   emCount();
 });
-$("setd").addEventListener("close",function(){if(!$("p4").hidden)loadMailTab()});
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"]];
 function tab(n){[1,2,3,4].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}
 $("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};$("t4").onclick=function(){tab(4);renderMail();loadMailTab()};$("t3").onclick=function(){if($("t3").getAttribute("aria-selected")==="true"){$("svres").hidden=true;$("svbox").hidden=false}tab(3)};
