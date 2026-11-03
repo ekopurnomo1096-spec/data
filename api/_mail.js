@@ -45,17 +45,23 @@ async function suppress(email, reason) {
 }
 
 // ---- Tautan berhenti berlangganan ----------------------------------------------------------------
-let UK = null;
-function unsubKey() {
-  if (!UK) UK = crypto.scryptSync(process.env.APP_PASSWORD || "", "hair-leads-unsub-v1", 32);
-  return UK;
+// Kunci tanda tangan: UNSUB_SECRET (disarankan, terpisah dari kata sandi) dipakai untuk tautan baru.
+// Kunci dari APP_PASSWORD tetap diterima supaya tautan di email lama tidak mati.
+let UKS = null;
+function unsubKeys() {
+  if (!UKS) {
+    const mk = s => crypto.scryptSync(s, "hair-leads-unsub-v1", 32);
+    UKS = [];
+    if (process.env.UNSUB_SECRET) UKS.push(mk(process.env.UNSUB_SECRET));
+    UKS.push(mk(process.env.APP_PASSWORD || ""));
+  }
+  return UKS;
 }
-function unsubToken(email) {
-  return crypto.createHmac("sha256", unsubKey()).update(String(email).toLowerCase()).digest("hex").slice(0, 32);
-}
+const sign = (k, email) => crypto.createHmac("sha256", k).update(String(email).toLowerCase()).digest("hex").slice(0, 32);
+function unsubToken(email) { return sign(unsubKeys()[0], email); }
 function tokenOk(email, t) {
-  const a = Buffer.from(String(t || "")), b = Buffer.from(unsubToken(email));
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+  const a = Buffer.from(String(t || ""));
+  return unsubKeys().some(k => { const b = Buffer.from(sign(k, email)); return a.length === b.length && crypto.timingSafeEqual(a, b); });
 }
 // Alamat situs ini sendiri (untuk tautan di dalam email). Dari permintaan kalau ada, kalau tidak dari env Vercel.
 // PUBLIC_URL (kalau diisi di Vercel) diutamakan, supaya tautan selalu memakai domain sendiri, termasuk saat dipanggil cron.
@@ -172,5 +178,79 @@ async function recordSent(items, used) {
   return used + items.length;
 }
 
-module.exports = { MAIL, DAYK, SUPP, MAX, DAILY, EMAIL, ID, clean, parse, escHtml, usedToday, suppressedSet, suppress,
+// ---- Verifikasi MX (gratis, tanpa API) -------------------------------------------------------------
+const MXK = "hairleads:mx"; // {domain: {ok:true|false, t}}; hasil disimpan 14 hari (gagal 3 hari)
+const dns = require("dns").promises;
+const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error("timeout"), { code: "ETIMEOUT" })), ms))]);
+// true = domain bisa menerima email, false = pasti tidak bisa, null = tidak bisa dipastikan sekarang (jangan dianggap salah)
+async function mxLookup(domain) {
+  try {
+    const mx = await withTimeout(dns.resolveMx(domain), 4000);
+    if (mx && mx.some(m => m.exchange && m.exchange !== ".")) return true;
+    if (mx && mx.length) return false; // "null MX" (RFC 7505): domain menolak email
+  } catch (e) {
+    if (e.code !== "ENODATA" && e.code !== "ENOTFOUND") return null;
+  }
+  try { // tanpa MX, alamat A dianggap tujuan email (aturan SMTP)
+    const a = await withTimeout(dns.resolve4(domain), 4000);
+    return !!(a && a.length);
+  } catch (e) { return e.code === "ENODATA" || e.code === "ENOTFOUND" ? false : null; }
+}
+// domains: array nama domain. Mengembalikan Map domain -> true|false. Domain yang belum sempat/ tidak bisa dipastikan tidak ada di Map.
+async function mxCheck(domains, deadline) {
+  const out = new Map(), list = [...new Set(domains.map(d => String(d || "").toLowerCase()).filter(Boolean))];
+  if (!list.length) return out;
+  const now = Date.now(), cache = {};
+  if (dbConfigured()) {
+    try {
+      for (let i = 0; i < list.length; i += 200) {
+        const chunk = list.slice(i, i + 200), got = await cmd(["HMGET", MXK, ...chunk]);
+        chunk.forEach((d, k) => { const v = got[k] && parse(got[k]); if (v) cache[d] = v; });
+      }
+    } catch (e) { /* tanpa cache tetap jalan */ }
+  }
+  const todo = [];
+  for (const d of list) {
+    const c = cache[d];
+    if (c && now - c.t < (c.ok ? 14 : 3) * 864e5) out.set(d, !!c.ok); else todo.push(d);
+  }
+  const save = [];
+  for (let i = 0; i < todo.length; i += 10) {
+    if (deadline && Date.now() > deadline) break;
+    const chunk = todo.slice(i, i + 10);
+    const res = await Promise.all(chunk.map(d => mxLookup(d).catch(() => null)));
+    chunk.forEach((d, k) => { if (res[k] !== null) { out.set(d, res[k]); save.push(d, JSON.stringify({ ok: res[k], t: now })); } });
+  }
+  if (save.length && dbConfigured()) { try { for (let i = 0; i < save.length; i += 200) await cmd(["HSET", MXK, ...save.slice(i, i + 200)]); } catch (e) { /* abaikan */ } }
+  return out;
+}
+const domainOf = e => String(e || "").toLowerCase().split("@")[1] || "";
+
+// ---- Status prospek saat alamat masuk suppression ---------------------------------------------------
+// Prospek yang pernah dikirimi email ke alamat itu: status "Dibalas/Deal/Tidak" tidak diubah; "" atau "Sudah dihubungi" jadi "Tidak cocok" + catatan.
+const BLN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+async function flagLeads(email, reason) {
+  email = String(email || "").trim().toLowerCase();
+  if (!dbConfigured() || !email) return 0;
+  const LEADS = "hairleads:leads", d = new Date(Date.now() + 7 * 36e5);
+  const label = { bounce: "Email bounce", spam: "Lapor spam", unsub: "Berhenti langganan" }[reason] || "Masuk daftar berhenti";
+  const line = label + ", " + d.getUTCDate() + " " + BLN[d.getUTCMonth()];
+  const all = await cmd(["HGETALL", MAIL]), ids = [];
+  const arr = Array.isArray(all) ? all : [];
+  for (let i = 0; i + 1 < arr.length; i += 2) { const v = parse(arr[i + 1]); if (v && String(v.to || "").toLowerCase() === email) ids.push(arr[i]); }
+  let n = 0;
+  for (const id of ids) {
+    const rec = parse(await cmd(["HGET", LEADS, id]));
+    if (!rec || (rec.s && rec.s !== "chat")) continue;
+    rec.s = "tidak";
+    const nt = String(rec.n || "");
+    if (nt.indexOf(line) < 0) rec.n = nt ? nt + "\n" + line : line;
+    rec.t = Date.now();
+    await cmd(["HSET", LEADS, id, JSON.stringify(rec)]);
+    n++;
+  }
+  return n;
+}
+
+module.exports = { mxCheck, domainOf, flagLeads, MAIL, DAYK, SUPP, MAX, DAILY, EMAIL, ID, clean, parse, escHtml, usedToday, suppressedSet, suppress,
   unsubToken, tokenOk, baseUrl, unsubUrl, buildHtml, greet, config, sendBatch, recordSent };

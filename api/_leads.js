@@ -72,7 +72,8 @@ function sanitizeLead(l) {
     osm: str(l.osm, 300), wa: str(l.wa, 30), ctx: str(l.ctx, 200),
     rating: l.rating == null ? null : str(String(l.rating), 10),
     reviews: l.reviews == null ? null : str(String(l.reviews), 12),
-    looked: !!l.looked, found: !!l.found
+    looked: !!l.looked, found: !!l.found,
+    retry: Math.max(0, Math.min(2, parseInt(l.retry, 10) || 0)), rt: Math.max(0, Number(l.rt) || 0) // coba ulang cek website: jumlah gagal dan waktu gagal terakhir
   };
   o.emails = Array.isArray(l.emails) ? l.emails.slice(0, 5).map(e => str(e, 200)).filter(Boolean) : [];
   return o;

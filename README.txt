@@ -33,6 +33,8 @@ Pasang sekali (Vercel > Settings > Environment Variables, centang Production, la
   CRON_SECRET            = teks acak panjang. Tanpa ini jadwal harian ditolak. Vercel otomatis mengirimnya saat menjalankan cron.
   RESEND_WEBHOOK_SECRET  = "whsec_..." dari Resend > Webhooks. Tambahkan webhook ke  https://DOMAINMU/api/mailhook?a=resend
                            dengan event email.bounced dan email.complained. Tanpa ini bounce dan laporan spam tidak tercatat.
+  UNSUB_SECRET (disarankan) = teks acak panjang khusus untuk tanda tangan link berhenti berlangganan. Isi SEKALI dan jangan diganti lagi.
+                           Link di email lama (yang dibuat dari APP_PASSWORD) tetap berlaku, jadi aman diisi kapan saja. Setelah ini, mengganti APP_PASSWORD tidak lagi mematikan link baru.
   PUBLIC_URL (opsional)  = https://DOMAINMU  supaya tautan berhenti berlangganan di email selalu memakai domain sendiri.
 Jadwal: vercel.json menjalankan /api/auto?a=cron setiap hari 01:00 UTC (08.00 WIB), setelah kuota harian Resend reset. Paket Hobby hanya mengizinkan cron sekali sehari, dan jamnya bisa bergeser dalam jam itu.
 Tombol "Jalankan sekarang" menjalankan semuanya langsung (cari ulang diabaikan jadwalnya, tetap dibatasi pengaturan).
@@ -50,3 +52,10 @@ BERHENTI BERLANGGANAN, BOUNCE, SPAM (berlaku untuk kirim otomatis DAN manual)
 - Setiap email memuat tautan "Unsubscribe" bertanda tangan + header List-Unsubscribe (tombol berhenti di Gmail/Apple Mail). Tautan hanya menampilkan tombol konfirmasi; yang benar-benar berhenti adalah klik tombolnya.
 - Bounce permanen dan laporan spam (webhook Resend) otomatis masuk Daftar berhenti. Bounce sementara (kotak penuh dll) tidak.
 - Alamat di Daftar berhenti dilewati oleh semua jalur kirim. Bisa ditambah/dihapus manual di tab Otomatis.
+
+PENYEMPURNAAN TAMBAHAN
+- Cari email: selain /contact dan /about, sekarang juga /pages/contact (pola Shopify), /contact-us, /kontak, dan tautan "Contact/Kontak" yang ditemukan di halaman utama (maks 6 halaman per website).
+- Website yang gagal dijangkau (timeout, error server) TIDAK langsung ditandai selesai: dicoba ulang SEKALI, paling cepat 20 jam kemudian. Website yang terbuka tapi tanpa email tetap final. Hasil jalan menampilkan "retry" dan "waiting".
+- Antrean: alamat harus punya MX/alamat A (dicek lewat DNS, tanpa API, hasil disimpan di hairleads:mx, 14 hari untuk valid, 3 hari untuk gagal). Domain yang belum bisa dipastikan ditunda ke jalan berikutnya, bukan ditolak.
+- Antrean: satu bisnis satu email. Domain email milik sendiri (bukan Gmail dkk) dan host website yang sama dengan yang sudah dikirimi/diantrekan dilewati, jadi info@ dan owner@ domain yang sama tidak keduanya terkirim, dan cabang dengan website yang sama tidak terkirim berulang. Website sosial/marketplace (Facebook, Instagram, Shopify dll) tidak dihitung.
+- Bounce, laporan spam, dan berhenti berlangganan sekarang juga mengubah status prospek jadi "Tidak cocok" + catatan (hanya kalau statusnya masih Belum dihubungi / Sudah dihubungi; Dibalas/Deal tidak diubah).

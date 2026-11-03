@@ -56,6 +56,7 @@ module.exports = async (req, res) => {
       if (req.method === "POST") {
         if (!dbConfigured()) return html(res, 500, "Error", "<h1>Something went wrong</h1><p>Please try again later.</p>");
         await M.suppress(e, "unsub");
+        try { await M.flagLeads(e, "unsub"); } catch (x) { /* status gagal diubah tidak boleh menggagalkan berhenti langganan */ }
         return html(res, 200, "Unsubscribed", "<h1>You’re unsubscribed</h1><p>" + M.escHtml(e) + " will not receive any more emails from us.</p>");
       }
       if (req.method === "GET") {
@@ -90,7 +91,8 @@ module.exports = async (req, res) => {
         for (const addr of to) {
           // Bentuk "Nama <a@b.com>" juga mungkin muncul
           const m = /<([^<>]+)>/.exec(String(addr));
-          if (await M.suppress(m ? m[1] : addr, reason)) n++;
+          const a1 = m ? m[1] : addr;
+          if (await M.suppress(a1, reason)) { n++; try { await M.flagLeads(a1, reason); } catch (x) { /* abaikan */ } }
         }
       }
       return res.status(200).json({ ok: true, suppressed: n });

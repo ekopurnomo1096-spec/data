@@ -7,7 +7,7 @@
 const { dbConfigured, cmd, hgetall, getKey, getActive } = require("./_store");
 const { sanitizeLead } = require("./_leads");
 const { findContacts } = require("./_contacts");
-const { scoreLead } = require("./_score");
+const { scoreLead, FREE } = require("./_score");
 const { TEMPLATE, BRAND } = require("./_template");
 const M = require("./_mail");
 const places = require("./places");
@@ -105,6 +105,7 @@ async function loadData() {
     if (l.emails && l.emails.length) { base.emails = l.emails; base.email = base.email || l.emails[0]; }
     if (l.wa) base.wa = l.wa;
     if (l.looked) { base.looked = true; base.found = !!l.found; }
+    if (l.retry) { base.retry = l.retry; base.rt = l.rt || 0; }
     map.set(id, base);
   }
   return { map, leads };
@@ -123,28 +124,40 @@ function shortDate() { // "3 Nov" dalam WIB, sama dengan catatan otomatis di hal
 // ---- Enrich -----------------------------------------------------------------------------------------------
 async function jobEnrich(cfg, ctx) {
   if (!cfg.enrich.on) return { skip: "mati" };
-  const all = [...ctx.data.map.values()].filter(x => x.id && x.website && !x.looked);
+  // Yang gagal dijangkau dicoba ulang SEKALI, paling cepat 20 jam kemudian (retry=1). Setelah itu ditandai sudah dicek.
+  const t0 = Date.now(), RETRY_AFTER = 20 * 36e5;
+  const pool = [...ctx.data.map.values()].filter(x => x.id && x.website && !x.looked);
+  const all = pool.filter(x => !(x.retry >= 1 && t0 - (x.rt || 0) < RETRY_AFTER));
+  const waiting = pool.length - all.length;
+  all.sort((a, b) => (a.retry || 0) - (b.retry || 0)); // yang belum pernah dicek didahulukan
   const todo = all.slice(0, cfg.enrich.max);
-  let idx = 0, done = 0, found = 0;
+  let idx = 0, done = 0, found = 0, failed = 0;
   async function worker() {
     while (idx < todo.length && Date.now() < ctx.softEnd) {
       const x = todo[idx++];
-      let j = { emails: [], whatsapp: [] };
+      let j = { emails: [], whatsapp: [], failed: false };
       try { j = await findContacts(x.website, ctx.hardEnd); } catch (e) { /* alamat tidak valid: tandai sudah dicek supaya tidak diulang */ }
       const rec0 = ctx.data.leads[x.id] || { s: "", n: "" };
       const prevL = rec0.lead || {};
       const emails = j.emails.length ? j.emails : (prevL.emails || []);
       const wa = j.whatsapp[0] || prevL.wa || x.wa || "";
-      const lead = sanitizeLead({ ...x, ...prevL, id: x.id, emails, email: emails[0] || x.email || "", wa, looked: true, found: !!(j.emails.length || j.whatsapp.length) });
+      const hit = !!(j.emails.length || j.whatsapp.length);
+      const tries = x.retry || 0;
+      const retryLater = j.failed && !hit && tries < 1; // gagal dijangkau, belum pernah diulang
+      const lead = sanitizeLead({ ...x, ...prevL, id: x.id, emails, email: emails[0] || x.email || "", wa,
+        looked: !retryLater, found: hit, retry: j.failed && !hit ? tries + 1 : 0, rt: j.failed && !hit ? Date.now() : 0 });
       const rec = { s: rec0.s || "", n: rec0.n || "", t: Date.now(), lead };
       await cmd(["HSET", LEADS, x.id, JSON.stringify(rec)]);
       ctx.data.leads[x.id] = rec;
-      x.looked = true; x.found = lead.found; x.emails = lead.emails; x.email = lead.email; x.wa = lead.wa;
-      done++; if (lead.found) found++;
+      x.looked = lead.looked; x.found = lead.found; x.retry = lead.retry; x.rt = lead.rt; x.emails = lead.emails; x.email = lead.email; x.wa = lead.wa;
+      done++; if (lead.found) found++; if (retryLater) failed++;
     }
   }
   await Promise.all([worker(), worker(), worker(), worker(), worker()]);
-  return { done, found, left: Math.max(all.length - done, 0) };
+  const out = { done, found, left: Math.max(all.length - done, 0) };
+  if (failed) out.retry = failed;
+  if (waiting) out.waiting = waiting;
+  return out;
 }
 
 // ---- Refresh ----------------------------------------------------------------------------------------------
@@ -206,7 +219,17 @@ async function jobQueue(cfg, ctx) {
   const pending = Object.keys(queue).filter(k => queue[k].st === "pending").length;
   const room = Math.max(QUEUE_ROOM - pending, 0);
 
-  const cand = [], seenTo = new Set();
+  // Satu bisnis cukup satu email: domain email milik sendiri (bukan Gmail dkk) dan host website yang sudah pernah dikirimi / diantrekan dilewati
+  const SOCIAL = /(^|\.)(facebook|instagram|linktr|linktree|tiktok|youtube|twitter|x|wa|whatsapp|yelp|google|business\.site|wixsite|squarespace|godaddysites|shopify|etsy|ebay|amazon)\.[a-z.]+$/i;
+  const siteHost = w => { try { const h = new URL(/^https?:\/\//i.test(w) ? w : "https://" + w).hostname.replace(/^www\./, "").toLowerCase(); return SOCIAL.test(h) ? "" : h; } catch (e) { return ""; } };
+  const ownDom = e => { const d = M.domainOf(e); return d && !FREE.test("@" + d) ? d : ""; };
+  const usedDom = new Set();
+  const addUsed = (to, id) => { const d = ownDom(to); if (d) usedDom.add("d:" + d); const x = id && ctx.data.map.get(id), h = x && x.website ? siteHost(x.website) : ""; if (h) usedDom.add("s:" + h); };
+  Object.keys(mraw).forEach(k => { const v = parse(mraw[k]); if (v) addUsed(v.to, k); });
+  Object.keys(queue).forEach(k => addUsed(queue[k].to, k));
+
+  const cand = [], seenTo = new Set(), seenDom = new Set();
+  let dupDomain = 0;
   for (const x of ctx.data.map.values()) {
     if (!x.id || queue[x.id] || mailed.has(x.id)) continue;
     const rec = ctx.data.leads[x.id];
@@ -215,11 +238,21 @@ async function jobQueue(cfg, ctx) {
     if (!to || mailedTo.has(to) || seenTo.has(to)) continue;
     const sc = scoreLead(x);
     if (sc.s < cfg.mail.minScore) continue;
-    seenTo.add(to);
-    cand.push({ x, to, sc });
+    cand.push({ x, to, sc, dk: [ownDom(to) && "d:" + ownDom(to), x.website && siteHost(x.website) && "s:" + siteHost(x.website)].filter(Boolean) });
   }
   const sup = await M.suppressedSet(cand.map(c => c.to));
-  const ok = cand.filter(c => !sup.has(c.to)).sort((a, b) => b.sc.s - a.sc.s);
+  let pool = cand.filter(c => !sup.has(c.to)).sort((a, b) => b.sc.s - a.sc.s);
+  // Domain email harus bisa menerima email (MX). Yang belum bisa dipastikan ditunda ke jalan berikutnya, bukan ditolak.
+  const mx = await M.mxCheck(pool.map(c => M.domainOf(c.to)), ctx.softEnd);
+  let badMx = 0, pendingMx = 0;
+  pool = pool.filter(c => { const r = mx.get(M.domainOf(c.to)); if (r === false) { badMx++; return false; } if (r === undefined) { pendingMx++; return false; } return true; });
+  const ok = [];
+  for (const c of pool) {
+    if (c.dk.some(k => usedDom.has(k) || seenDom.has(k))) { dupDomain++; continue; }
+    c.dk.forEach(k => seenDom.add(k));
+    seenTo.add(c.to);
+    ok.push(c);
+  }
   // Mode kirim otomatis penuh (approve:false) tidak memakai batas ruang antrean, karena langsung "ok"
   const take = cfg.mail.approve ? ok.slice(0, room) : ok.slice(0, 200);
   const args = [], now = Date.now();
@@ -227,7 +260,11 @@ async function jobQueue(cfg, ctx) {
     args.push(c.x.id, JSON.stringify({ id: c.x.id, to: c.to, name: M.clean(c.x.name, 80), sc: c.sc.s, why: c.sc.why.slice(0, 3), st: cfg.mail.approve ? "pending" : "ok", t: now }));
   }
   for (let i = 0; i < args.length; i += 200) await cmd(["HSET", QUEUE, ...args.slice(i, i + 200)]);
-  return { added: take.length, pending: pending + (cfg.mail.approve ? take.length : 0), waiting: Math.max(ok.length - take.length, 0) };
+  const res = { added: take.length, pending: pending + (cfg.mail.approve ? take.length : 0), waiting: Math.max(ok.length - take.length, 0) };
+  if (badMx) res.noMx = badMx;
+  if (dupDomain) res.dupDomain = dupDomain;
+  if (pendingMx) res.mxLater = pendingMx;
+  return res;
 }
 
 // ---- Mail: kirim ------------------------------------------------------------------------------------------
