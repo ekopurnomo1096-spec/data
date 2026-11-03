@@ -8,6 +8,26 @@ const { dbConfigured, getKey, cmd, hgetall } = require("./_store");
 const AI = "hairleads:ai";
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 const STATUS_CODES = ["", "chat", "balas", "deal", "tidak"];
+// Template pesan pertama EMAHAIRSHOP. Ubah teks di bawah ini kalau ingin mengganti isi pesan (nomor, website, daftar produk).
+const TEMPLATE = `Hi! We’re a human hair supplier from Indonesia, specializing in hair extensions:
+
+• Hair Weft
+• Hair Bulk
+• I/U/K/V Tip
+• Nano Ring
+• Tape Hair
+• Genius Weft & more
+
+We offer high-quality products, competitive wholesale prices, and reliable service.
+
+If you’re looking for a reliable hair supplier, feel free to DM us or contact us via WhatsApp:
+
++62 895-3799-94528
+
+Website :
+https://emahairshop.com/
+
+Looking forward to working with you!`;
 const parse = v => { try { return JSON.parse(v); } catch (e) { return null; } };
 const str = (v, n) => (typeof v === "string" ? v.slice(0, n) : "");
 const clamp = (v, a, b) => Math.max(a, Math.min(b, Math.round(Number(v)) || 0));
@@ -123,19 +143,25 @@ module.exports = async (req, res) => {
         "- note_summary: ringkasan catatan dalam 1 kalimat Indonesia. String kosong kalau catatan kosong.\n" +
         "- next_step: langkah berikutnya yang paling masuk akal, 1-2 kalimat Indonesia, konkret.\n" +
         "- followup_days: bilangan bulat 1-30, berapa hari lagi sebaiknya follow-up.\n" +
-        "- wa_message: pesan WhatsApp maksimal 70 kata.\n" +
-        "- email_subject dan email_body: email maksimal 120 kata.\n" +
-        "Aturan pesan: tulis dalam bahasa yang lazim di negara alamat tempat itu (Inggris untuk Inggris, AS, Australia, dll.; Indonesia untuk Indonesia). " +
-        "Sopan dan hangat, perkenalkan EMAHAIRSHOP sebagai pemasok hair extension grosir dari Indonesia, tawarkan kirim katalog atau sampel, satu ajakan yang jelas. " +
-        "Sebut nama tempatnya. Kalau catatan menunjukkan sudah pernah dihubungi, tulis pesan follow-up yang merujuk kontak sebelumnya, jangan perkenalan ulang. " +
-        "Akhiri dengan tanda tangan \"EMAHAIRSHOP\". Jangan memakai placeholder seperti [nama].\n\n" +
+        "- wa_message: pesan WhatsApp.\n" +
+        "- email_subject dan email_body: versi email dari pesan yang sama.\n" +
+        "Aturan pesan PERTAMA (catatan kosong atau belum pernah dihubungi): pakai TEMPLATE di bawah sebagai dasar. " +
+        "Pertahankan persis daftar produk, nomor WhatsApp, alamat website, dan inti kalimatnya. " +
+        "Yang boleh diubah hanya sapaan pembuka: ganti \"Hi!\" dengan sapaan yang menyebut nama tempat (mis. \"Hi Glamour Locks team!\"). " +
+        "Boleh menambah paling banyak SATU kalimat personal singkat yang benar-benar berdasar data tempat (mis. mereka salon extension). Jangan menambah klaim lain. " +
+        "Di email, buat subjek singkat dan jelas (mis. wholesale human hair extensions from Indonesia). " +
+        "Kalau negara tempat itu bukan berbahasa Inggris, terjemahkan template ke bahasa setempat, nama produk tetap bahasa Inggris. " +
+        "Aturan FOLLOW-UP (catatan menunjukkan sudah pernah dihubungi): jangan kirim ulang template penuh. Tulis pesan singkat maksimal 60 kata yang menyapa dengan nama tempat, " +
+        "merujuk kontak sebelumnya, menanyakan apakah sempat melihat, menawarkan katalog atau sampel, dan mencantumkan nomor WhatsApp serta website dari template. " +
+        "Pesan memakai bahasa yang sama dengan aturan di atas. Jangan memakai placeholder seperti [nama].\n\n" +
+        "TEMPLATE:\n" + TEMPLATE + "\n\n" +
         "DATA TEMPAT:\n" + JSON.stringify(lead) + (ctx ? "\nKonteks pencarian: " + ctx : "");
-      const o = await gemini(key, prompt, 3072);
+      const o = await gemini(key, prompt, 4096);
       const status = STATUS_CODES.includes(o.status) ? o.status : "";
       const assist = {
         status, status_why: str(o.status_why, 300), note_summary: str(o.note_summary, 300),
         next_step: str(o.next_step, 500), followup_days: clamp(o.followup_days, 1, 30) || 3,
-        wa_message: str(o.wa_message, 1200), email_subject: str(o.email_subject, 200), email_body: str(o.email_body, 2500)
+        wa_message: str(o.wa_message, 1500), email_subject: str(o.email_subject, 200), email_body: str(o.email_body, 3000)
       };
       const items = await saveScores([{ id: lead.id, score: o.score, why: o.why }]);
       return res.status(200).json({ assist, ai: items[lead.id] });
