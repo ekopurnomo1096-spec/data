@@ -92,14 +92,13 @@ input[type=text],select{width:100%;font:inherit;font-size:.92rem;color:var(--ink
 
 <section class="panel" id="p1">
   <div class="form2">
-    <div class="f combo"><label for="country">Negara (opsional, untuk mempersempit)</label>
+    <div class="f combo"><label for="country">Negara</label>
       <input type="text" id="country" autocomplete="off" placeholder="Ketik untuk cari negara…">
       <div class="combo-list" id="countryList" hidden></div></div>
-    <div class="f combo"><label for="citysel">Cari kota (seluruh dunia)</label>
+    <div class="f combo"><label for="citysel">Cari kota</label>
       <input type="text" id="citysel" autocomplete="off" placeholder="Pilih negara dulu untuk lihat kota populer, atau ketik di sini">
       <div class="combo-list" id="cityselList" hidden></div></div>
   </div>
-  <p class="hint">Pilih negara untuk langsung melihat kota-kota populernya, atau ketik nama kota apa pun — hasilnya diambil langsung dari basis data geocoding dunia, tidak terbatas pada daftar tertentu. Bisa juga langsung ketik di kolom "Kota" di bawah.</p>
   <div class="form">
     <div class="f"><label for="kind">Jenis tempat</label>
       <select id="kind"><option value="salon">Salon rambut</option><option value="wig">Toko wig / beauty supply</option><option value="beauty">Toko kecantikan</option></select></div>
@@ -126,7 +125,6 @@ input[type=text],select{width:100%;font:inherit;font-size:.92rem;color:var(--ink
   <div id="segs"></div>
 </section>
 
-<p class="note">Data berasal dari OpenStreetMap, ditampilkan lewat Geoapify (powered by Geoapify). Kartu tanpa telepon atau website berarti datanya belum diisi di sana, dan kelengkapannya berbeda tiap negara. Google Maps (SerpApi) memberi sekitar 20 tempat per pencarian dan memakai kuota 250 pencarian gratis per bulan; pencarian yang sama dalam satu jam tidak menambah pemakaian. OpenStreetMap dibatasi sekitar 8 km dari pusat kota. Importir, distributor, dan pabrik tidak punya kategori jelas di OpenStreetMap, jadi cari lewat direktori B2B.</p>
 </main>
 
 <script>
