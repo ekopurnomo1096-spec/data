@@ -37,23 +37,31 @@ module.exports = async (req, res) => {
       if (b.action === "delsearch") {
         const key = String(b.key || "");
         if (!key || key.length > 300) return res.status(400).json({ error: "Kunci tidak valid" });
-        // Skor AI tempat-tempat di pencarian ini ikut dihapus, kecuali yang sudah punya status atau catatan
-        let aiRemoved = [];
+        // Skor AI, email, dan WhatsApp tempat-tempat di pencarian ini ikut dihapus, kecuali yang sudah punya status atau catatan
+        let aiRemoved = [], leadsRemoved = [];
         try {
           const raw = await cmd(["HGET", CACHE, key]);
           const c = raw ? parse(raw) : null;
           const ids = [...new Set(((c && c.results) || []).map(r => r && r.id).filter(id => typeof id === "string" && id))];
           if (ids.length) {
             const have = await cmd(["HMGET", LEADS, ...ids]);
-            aiRemoved = ids.filter((id, i) => !have[i]);
+            ids.forEach((id, i) => {
+              const rec = have[i] ? parse(have[i]) : null;
+              if (rec && (rec.s || rec.n)) return; // punya status atau catatan: dipertahankan
+              aiRemoved.push(id);
+              if (rec) leadsRemoved.push(id);
+            });
             for (let i = 0; i < aiRemoved.length; i += 200) {
               await cmd(["HDEL", AI, ...aiRemoved.slice(i, i + 200)]);
             }
+            for (let i = 0; i < leadsRemoved.length; i += 200) {
+              await cmd(["HDEL", LEADS, ...leadsRemoved.slice(i, i + 200)]);
+            }
           }
-        } catch (e) { aiRemoved = []; /* gagal bersih-bersih tidak boleh menggagalkan penghapusan */ }
+        } catch (e) { aiRemoved = []; leadsRemoved = []; /* gagal bersih-bersih tidak boleh menggagalkan penghapusan */ }
         await cmd(["HDEL", CACHE, key]);
         await cmd(["HDEL", META, key]);
-        return res.status(200).json({ ok: true, aiRemoved });
+        return res.status(200).json({ ok: true, aiRemoved, leadsRemoved });
       }
 
       if (b.action === "save") {
