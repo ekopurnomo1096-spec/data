@@ -19,7 +19,7 @@ FITUR SIMPAN, STATUS, DAN CATATAN (otomatis, tidak perlu pengaturan tambahan sel
 
 KIRIM EMAIL (Resend, opsional)
 - Di Resend: buat API key, dan verifikasi domain pengirim (Domains > Add domain, lalu isi DNS-nya). Gmail/Yahoo tidak bisa dipakai sebagai pengirim.
-- Di halaman ini: Pengaturan > isi "API key Resend" dan "Email pengirim" (mis. EMA Hairshop <halo@domainmu.com>). Cadangan: RESEND_API_KEY dan RESEND_FROM di Vercel.
+- Di halaman ini: Pengaturan > isi "API key Resend", "Email pengirim" (mis. EMA Hairshop Wholesale <sales@wholesale.emahairshop.com>), dan "Reply-To" (email yang kamu baca, opsional tapi disarankan). Cadangan: RESEND_API_KEY, RESEND_FROM, RESEND_REPLY_TO di Vercel.
 - Satu tempat: buka detail tempat > Kirim email. Isi bisa diedit dulu.
 - Massal: tombol "Kirim email" di atas tabel. Hanya tempat berstatus Belum dihubungi yang punya email, maksimal 20 sekali kirim. Daftar bisa dicentang.
 - Isi email memakai template di api/_template.js (sama dengan draf WA) dan sapaan diganti nama tempat. Ada baris berhenti berlangganan di bagian bawah.

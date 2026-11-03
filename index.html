@@ -480,7 +480,8 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <div class="sf f" id="kf3"><label for="k3">API key Geoapify (opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh3"></span></span><button class="btn" id="kc3" type="button">Ganti</button></div><div class="krow"><input type="password" id="k3" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx3" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://geoapify.com" target="_blank" rel="noopener">geoapify.com</a>. Dipakai untuk sumber OpenStreetMap.</p></div>
   <div class="sf f" id="kf4"><label for="k4">API key Gemini (fitur AI)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh4"></span></span><button class="btn" id="kc4" type="button">Ganti</button></div><div class="krow"><input type="password" id="k4" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx4" type="button" hidden>Batal</button></div><p class="hint2">Buat gratis di <a class="lk" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com</a>. Dipakai untuk skor prospek, saran langkah, dan draf pesan (model Gemini 3.5 Flash-Lite).</p></div>
   <div class="sf f" id="kf5"><label for="k5">API key Resend (kirim email, opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh5"></span></span><button class="btn" id="kc5" type="button">Ganti</button></div><div class="krow"><input type="password" id="k5" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx5" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://resend.com" target="_blank" rel="noopener">resend.com</a>. Dipakai untuk tombol Kirim email.</p></div>
-  <div class="sf f" id="kf6"><label for="k6">Email pengirim (untuk Resend)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh6"></span></span><button class="btn" id="kc6" type="button">Ganti</button></div><div class="krow"><input type="text" id="k6" autocomplete="off" placeholder="EMA Hairshop &lt;halo@domainmu.com&gt;" data-ph="1"><button class="btn" id="kx6" type="button" hidden>Batal</button></div><p class="hint2">Harus memakai domain yang sudah diverifikasi di Resend. Tidak bisa Gmail atau Yahoo.</p></div>
+  <div class="sf f" id="kf6"><label for="k6">Email pengirim (untuk Resend)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh6"></span></span><button class="btn" id="kc6" type="button">Ganti</button></div><div class="krow"><input type="text" id="k6" autocomplete="off" placeholder="EMA Hairshop Wholesale &lt;sales@wholesale.emahairshop.com&gt;" data-ph="1"><button class="btn" id="kx6" type="button" hidden>Batal</button></div><p class="hint2">Harus memakai domain yang sudah diverifikasi di Resend. Tidak bisa Gmail atau Yahoo.</p></div>
+  <div class="sf f" id="kf7"><label for="k7">Reply-To (balasan masuk ke sini, opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh7"></span></span><button class="btn" id="kc7" type="button">Ganti</button></div><div class="krow"><input type="text" id="k7" autocomplete="off" placeholder="sales@emahairshop.com" data-ph="1"><button class="btn" id="kx7" type="button" hidden>Batal</button></div><p class="hint2">Email yang kamu baca. Kalau calon pembeli klik Balas, jawabannya masuk ke sini, bukan ke alamat pengirim.</p></div>
   <label class="chk sf" id="kshow"><input type="checkbox" id="ks"> Tampilkan key</label>
   <div class="acts" id="kacts"><button class="btn primary" id="ksave" type="button">Simpan</button><button class="btn" id="kclear" type="button">Hapus key tersimpan</button></div>
   <p class="info" id="kmsg" hidden></p>
@@ -1171,7 +1172,7 @@ function usageAfterSearch(){
   var sync=function(final){loadUsage(function(r){var x=(r.accounts||[]).filter(function(y){return y.n===n})[0];if(!final&&x&&x.used<=base){x.used=base+1;x.left=Math.max(x.left-1,0)}})};
   setTimeout(function(){sync(false)},4000);setTimeout(function(){sync(true)},15000);
 }
-var KEYS=[["1","serp"],["2","serp2"],["3","geo"],["4","gem"],["5","rs"],["6","rsf"]],was={};
+var KEYS=[["1","serp"],["2","serp2"],["3","geo"],["4","gem"],["5","rs"],["6","rsf"],["7","rrt"]],was={};
 function isSaved(n){return $("kf"+n).classList.contains("saved")}
 function keyState(j){
   KEYS.forEach(function(p){var on=j[p[1]].set;$("kf"+p[0]).classList.toggle("saved",on);was[p[0]]=on;$("kh"+p[0]).textContent=on?"("+j[p[1]].hint+")":"";$("k"+p[0]).value=""});
@@ -1205,7 +1206,7 @@ $("lform").onsubmit=function(e){
 $("setb").onclick=openSet;
 $("sx").onclick=function(){$("setd").close()};
 $("setd").onclick=function(e){if(e.target===this)this.close()};
-$("ks").onchange=function(){var t=this.checked?"text":"password";KEYS.forEach(function(p){if(p[0]!=="6")$("k"+p[0]).type=t})};
+$("ks").onchange=function(){var t=this.checked?"text":"password";KEYS.forEach(function(p){if(p[0]!=="6"&&p[0]!=="7")$("k"+p[0]).type=t})};
 function saveKeys(body,okMsg){
   busy(true);
   fetch("/api/keys",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
@@ -1218,7 +1219,7 @@ function saveKeys(body,okMsg){
 $("ksave").onclick=function(){var b={},n=0;KEYS.forEach(function(p){var v=$("k"+p[0]).value.trim();if(v){b[p[1]]=v;n++}});if(!n){kmsg("Tidak ada yang diubah.");return}saveKeys(b,"Tersimpan di server.")};
 KEYS.forEach(function(p){$("kx"+p[0]).onclick=function(){$("k"+p[0]).value="";$("kf"+p[0]).classList.add("saved");keyUi()}});
 KEYS.forEach(function(p){$("kc"+p[0]).onclick=function(){$("kf"+p[0]).classList.remove("saved");keyUi();$("k"+p[0]).focus()}});
-$("kclear").onclick=function(){if(confirm("Hapus semua key yang tersimpan di server?"))saveKeys({serp:"",serp2:"",geo:"",gem:"",rs:"",rsf:""},"Key dihapus.")};
+$("kclear").onclick=function(){if(confirm("Hapus semua key yang tersimpan di server?"))saveKeys({serp:"",serp2:"",geo:"",gem:"",rs:"",rsf:"",rrt:""},"Key dihapus.")};
 $("outb").onclick=function(){fetch("/api/session",{method:"DELETE"}).then(function(){location.reload()},function(){location.reload()})};
 
 // ---- Kirim email lewat Resend ----
@@ -1244,7 +1245,7 @@ function openMail(items,bulk,total){
   if(!$("maild").open)$("maild").showModal();
   fetch("/api/send?name="+encodeURIComponent(items[0].name||"")).then(function(r){if(r.status===401){$("maild").close();showLogin("Sesi habis, silakan masuk lagi.");throw 0}return r.json()}).then(function(j){
     MM.cfg=j;$("msj").value=j.subject||"";$("mtx").value=j.text||"";
-    $("mfrom").textContent=j.ready?"Dikirim dari "+j.from+".":"";
+    $("mfrom").textContent=j.ready?"Dikirim dari "+j.from+"."+(j.replyTo?" Balasan masuk ke "+j.replyTo+".":" Reply-To belum diisi, balasan akan menuju alamat pengirim."):"";
     if(!j.hasKey)mErr("API key Resend belum diisi. Buka Pengaturan lalu masukkan key-nya.");
     else if(!j.from)mErr("Email pengirim belum diisi. Buka Pengaturan, isi dengan alamat dari domain yang sudah diverifikasi di Resend.");
     mCount();

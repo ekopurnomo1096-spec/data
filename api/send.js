@@ -2,7 +2,7 @@
 // GET  ?name=...            = {ready, from, subject, text}: status pengaturan + contoh isi email dari template
 // POST {items:[{id,to,name,subject?,text?}], force?} = kirim. Tanpa subject/text dipakai template.
 // Tempat yang sudah pernah dikirimi (hairleads:mail) dilewati kecuali force=true.
-// Key Resend (nama "rs") dan alamat pengirim (nama "rsf") disimpan di Redis lewat Pengaturan; RESEND_API_KEY / RESEND_FROM di Vercel jadi cadangan.
+// Key Resend (nama "rs"), alamat pengirim ("rsf"), dan Reply-To opsional ("rrt") disimpan di Redis lewat Pengaturan; RESEND_API_KEY / RESEND_FROM di Vercel jadi cadangan.
 const { isAuthed } = require("./_auth");
 const { dbConfigured, getKey, cmd } = require("./_store");
 const { TEMPLATE } = require("./_template");
@@ -23,17 +23,18 @@ function compose(name) {
 async function config() {
   const key = (await getKey("rs")) || process.env.RESEND_API_KEY || "";
   const from = (await getKey("rsf")) || process.env.RESEND_FROM || "";
-  return { key, from };
+  const rt = ((await getKey("rrt")) || process.env.RESEND_REPLY_TO || "").trim();
+  return { key, from, replyTo: EMAIL.test(rt) || /<[^<>@\s]+@[^<>\s]+>$/.test(rt) ? rt : "" };
 }
 
 module.exports = async (req, res) => {
   try {
     res.setHeader("Cache-Control", "private, no-store");
     if (!isAuthed(req)) return res.status(401).json({ error: "Belum login" });
-    const { key, from } = await config();
+    const { key, from, replyTo } = await config();
 
     if (req.method === "GET") {
-      return res.status(200).json({ ready: !!(key && from), hasKey: !!key, from, max: MAX, ...compose(req.query && req.query.name) });
+      return res.status(200).json({ ready: !!(key && from), hasKey: !!key, from, replyTo, max: MAX, ...compose(req.query && req.query.name) });
     }
     if (req.method !== "POST") return res.status(405).json({ error: "metode tidak didukung" });
 
@@ -70,7 +71,7 @@ module.exports = async (req, res) => {
     const r = await fetch("https://api.resend.com/emails/batch", {
       method: "POST",
       headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
-      body: JSON.stringify(items.map(i => ({ from, to: [i.to], subject: i.subject, text: i.text }))),
+      body: JSON.stringify(items.map(i => ({ from, to: [i.to], subject: i.subject, text: i.text, ...(replyTo ? { reply_to: replyTo } : {}) }))),
       signal: AbortSignal.timeout(25000)
     });
     const j = await r.json().catch(() => ({}));
