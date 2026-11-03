@@ -503,7 +503,7 @@ function comboAsync(inputId,listId,opts){
   });
 })();
 var rows=[],timer=null,sKey="",sDir=1,lastQ="",lastCountry="",lastDupes=0;
-var LS={},SAVED=[],pend=null,ntm=null,toastT=null;
+var LS={},SAVED=[],pend=null,ntm=null,toastT=null,curX=null;
 var STAT=[["","Belum dihubungi"],["chat","Sudah dihubungi"],["balas","Dibalas"],["deal","Deal"],["tidak","Tidak cocok"]];
 var STORD={"":0,chat:1,balas:2,deal:3,tidak:4};
 function stOf(x){var r=LS[x.id];return r&&r.s||""}
@@ -714,18 +714,18 @@ function findMail(x){
     saveLead(x,{});render();openD(x);
   }).catch(function(){b.disabled=false;b.textContent="Gagal, coba lagi"});
 }
-function openD(x){
+function openD(x){curX=x;
   var ph=firstPhone(x),site=x.website?href(x.website):"",wa=waOf(x),em=emailsOf(x);
   function item(l,v){return"<div class='di'><dt>"+l+"</dt><dd>"+v+"</dd></div>"}
   var rate=x.rating?"<span class='star'>★</span> "+esc(x.rating)+(x.reviews?" · "+esc(x.reviews)+" ulasan":""):"";
   $("dbody").innerHTML="<div class='dh'><div class='dt'>"+thumb(x,"lg")+"<div><h2>"+esc(x.name)+"</h2>"+(rate?"<p class='dr'>"+rate+"</p>":"")+"</div></div><button class='x' id='dx' type='button' aria-label='Tutup'>✕</button></div>"
     +"<dl class='dl'>"+item("Status",stSel(x,"dst")+"<span class='hint' id='dsv'></span>")+item("Catatan","<textarea id='dnt' rows='3' maxlength='2000' placeholder='Siapa yang dihubungi, balasannya, jadwal follow-up…'>"+esc(noteOf(x))+"</textarea>")+item(IC.pin+"Alamat",x.address?esc(x.address):NA)
-    +item(IC.tel+"Telepon",ph?"<a class='lk' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":"Belum ada data")
-    +item(IC.wa+"WhatsApp",wa?"<a class='lk' href='https://wa.me/"+wa.n+"' target='_blank' rel='noopener'>+"+wa.n+"</a>"+(wa.src==="phone"?"<span class='hint'>dari nomor telepon, belum tentu aktif</span>":"<span class='hint'>dari website</span>"):"Belum ada data")
+    +item(IC.tel+"Telepon",ph?"<a class='lk' data-act='tel' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":"Belum ada data")
+    +item(IC.wa+"WhatsApp",wa?"<a class='lk' data-act='wa' href='https://wa.me/"+wa.n+"' target='_blank' rel='noopener'>+"+wa.n+"</a>"+(wa.src==="phone"?"<span class='hint'>dari nomor telepon, belum tentu aktif</span>":"<span class='hint'>dari website</span>"):"Belum ada data")
     +item(IC.mail+"Email",em.length?em.map(function(e){return"<a class='lk' href='mailto:"+esc(e)+"'>"+esc(e)+"</a>"}).join("<br>"):"Belum ada data")
     +item(IC.web+"Website",site?"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":"Belum ada data")+"</dl>"
-    +"<div class='acts'>"+(wa?"<a class='btn' href='https://wa.me/"+wa.n+"' target='_blank' rel='noopener'>"+IC.wa+"Chat WhatsApp</a>":"")
-    +(ph?"<a class='btn' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+IC.tel+"Telepon</a>":"")
+    +"<div class='acts'>"+(wa?"<a class='btn' data-act='wa' href='https://wa.me/"+wa.n+"' target='_blank' rel='noopener'>"+IC.wa+"Chat WhatsApp</a>":"")
+    +(ph?"<a class='btn' data-act='tel' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+IC.tel+"Telepon</a>":"")
     +(em.length?"<a class='btn' href='mailto:"+esc(em[0])+"'>"+IC.mail+"Kirim email</a>":"")
     +(site?"<a class='btn' href='"+esc(site)+"' target='_blank' rel='noopener'>"+IC.web+"Buka website</a>":"")
     +(x.osm?"<a class='btn' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>"+IC.pin+"Lihat di peta</a>":"")
@@ -753,6 +753,23 @@ $("tb").addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")
 $("tb").onkeydown=function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr[data-i]")){e.preventDefault();openD(rows[+e.target.getAttribute("data-i")])}};
 $("dlg").onclick=function(e){if(e.target===this)this.close()};
 $("dlg").addEventListener("close",flushNote);
+// Klik Chat WhatsApp / Telepon: status "Belum dihubungi" otomatis jadi "Sudah dihubungi", dan catatan ditambah "WA, 3 Nov"
+function markContacted(x,how){
+  var el=$("dnt"),line=how+", "+new Date().toLocaleDateString("id-ID",{day:"numeric",month:"short"});
+  var cur=el?el.value.trim():noteOf(x);
+  var n=cur.indexOf(line)>-1?cur:(cur?cur+"\n"+line:line);
+  var patch={n:n};
+  if(!stOf(x))patch.s="chat";
+  clearTimeout(ntm);pend=null;
+  if(el)el.value=n;
+  var sel=$("dst");if(sel&&patch.s){sel.value=patch.s;sel.className="stsel st-"+patch.s}
+  if(n===noteOf(x)&&!patch.s)return;
+  saveLead(x,patch);render();
+}
+$("dbody").addEventListener("click",function(e){
+  var a=e.target.closest("a[data-act]");
+  if(a&&curX)markContacted(curX,a.getAttribute("data-act")==="wa"?"WA":"Telepon");
+});
 $("tb").addEventListener("change",function(e){var sel=e.target.closest("select.stsel");if(!sel)return;var x=rows[+sel.getAttribute("data-ri")];if(!x)return;sel.className="stsel st-"+(sel.value||"baru");saveLead(x,{s:sel.value})});
 $("saved").addEventListener("click",function(e){
   if(e.target.closest("#mine")){showMine();return}
