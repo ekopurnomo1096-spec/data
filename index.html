@@ -536,7 +536,9 @@ main.wrap{max-width:1180px;margin:0 auto}
 @media (prefers-reduced-motion:reduce){.side{transition:none}}
 .lbox .bmark{width:44px;height:44px}
 
-.ng>summary{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;margin-top:0;border-radius:9px;font-size:.88rem;font-weight:500;color:var(--ink);opacity:.8;cursor:pointer;list-style:none}
+.side{scrollbar-width:none;-ms-overflow-style:none}
+.side::-webkit-scrollbar{display:none}
+.ng>summary{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;margin-top:0;border-radius:9px;font-size:.95rem;font-weight:600;color:var(--ink);opacity:.9;cursor:pointer;list-style:none}
 .ng>summary svg.ni{width:19px;height:19px;margin:0;color:inherit;flex:none}
 .ng>summary::-webkit-details-marker{display:none}
 .ng>summary:hover{background:var(--soft);color:var(--ink);opacity:1}
@@ -545,8 +547,8 @@ main.wrap{max-width:1180px;margin:0 auto}
 .ng[open]>summary::after{transform:rotate(225deg);margin-top:3px}
 .ng[open]>summary{color:var(--ink);opacity:1;font-weight:600}
 .ngi{display:flex;flex-direction:column;gap:0;margin:0 0 2px 14px;padding-left:6px;border-left:1px solid var(--line)}
-.tab.tsub{height:34px;font-size:.95rem;line-height:1.2;border-radius:6px}
-.tab.tsub[aria-selected="true"]::before{left:-7px;top:7px;bottom:7px;width:3px}
+.tab.tsub{height:32px;font-size:.88rem;font-weight:500;line-height:1.2;border-radius:6px}
+.tab.tsub[aria-selected="true"]::before{left:-7px;top:6px;bottom:6px;width:3px}
 #aucfg>.aus{border-top:0;padding:2px 0}
 </style>
 </head>
@@ -573,7 +575,7 @@ main.wrap{max-width:1180px;margin:0 auto}
     <button class="tab" type="button" id="t4" data-v="4" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><rect x='2' y='4' width='20' height='16' rx='2'/><path d='M22 7l-10 6L2 7'/></svg><span>Email</span></button>
     <button class="tab" type="button" id="tbalas" data-v="balas" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg><span>Balasan</span><em class="tn" id="rpnav"></em></button>
     <div class="ngl">Otomatis</div>
-    <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M22 12h-4l-3 9L9 3l-3 9H2'/></svg><span>Pantau</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="ringkas" aria-selected="false"><span>Status & statistik</span></button><button class="tab tsub" type="button" data-v="antrean" aria-selected="false"><span>Antrean persetujuan</span><em class="tn" id="t5n"></em></button></div></details>
+    <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><rect x='3' y='3' width='7' height='9' rx='1'/><rect x='14' y='3' width='7' height='5' rx='1'/><rect x='14' y='12' width='7' height='9' rx='1'/><rect x='3' y='16' width='7' height='5' rx='1'/></svg><span>Ringkasan</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="ringkas" aria-selected="false"><span>Status & statistik</span></button><button class="tab tsub" type="button" data-v="antrean" aria-selected="false"><span>Antrean persetujuan</span><em class="tn" id="t5n"></em></button></div></details>
     <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z'/></svg><span>Kirim email</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="kirim" aria-selected="false"><span>Kirim otomatis</span></button><button class="tab tsub" type="button" data-v="warm" aria-selected="false"><span>Pemanasan domain</span></button><button class="tab tsub" type="button" data-v="teks" aria-selected="false"><span>Teks email</span></button></div></details>
     <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2'/></svg><span>Cari prospek</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="ulang" aria-selected="false"><span>Cari ulang</span></button><button class="tab tsub" type="button" data-v="putar" aria-selected="false"><span>Putaran kota</span></button><button class="tab tsub" type="button" data-v="cariem" aria-selected="false"><span>Cari email</span></button></div></details>
     <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><ellipse cx='12' cy='5' rx='9' ry='3'/><path d='M3 5v14a9 3 0 0 0 18 0V5M3 12a9 3 0 0 0 18 0'/></svg><span>Sistem</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="skor" aria-selected="false"><span>Skor prospek</span></button><button class="tab tsub" type="button" data-v="lapor" aria-selected="false"><span>Laporan & peringatan</span></button><button class="tab tsub" type="button" data-v="bersih" aria-selected="false"><span>Pembersihan data</span></button><button class="tab tsub" type="button" data-v="serp" aria-selected="false"><span>Akun SerpApi</span></button><button class="tab tsub" type="button" data-v="berhenti" aria-selected="false"><span>Daftar berhenti</span></button></div></details>
