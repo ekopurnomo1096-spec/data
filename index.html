@@ -23,6 +23,9 @@ h1{font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.15;margin:0 0 10px;font-weig
 .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
 .form{display:grid;grid-template-columns:1fr 1.2fr 1.2fr auto;gap:12px;align-items:end}
 @media (max-width:640px){.form{grid-template-columns:1fr}}
+.form2{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;margin-bottom:12px}
+@media (max-width:640px){.form2{grid-template-columns:1fr}}
+.hint{color:var(--mute);font-size:.85rem;margin:-2px 0 16px}
 .f label{display:block;font-weight:700;font-size:.9rem;margin-bottom:6px}
 input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;height:48px}
 .go{height:48px;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:0 26px;font:inherit;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px}
@@ -78,6 +81,13 @@ input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(
 </div>
 
 <section class="panel" id="p1">
+  <div class="form2">
+    <div class="f"><label for="country">Negara</label>
+      <select id="country"><option value="">Pilih negara…</option></select></div>
+    <div class="f"><label for="citysel">Kota populer</label>
+      <select id="citysel" disabled><option value="">Pilih negara dulu…</option></select></div>
+  </div>
+  <p class="hint">Pilih dari daftar supaya cepat, atau langsung ketik nama kota apa pun di kolom "Kota" di bawah — daftar ini tidak memuat semua kota di dunia.</p>
   <div class="form">
     <div class="f"><label for="kind">Jenis tempat</label>
       <select id="kind"><option value="salon">Salon rambut</option><option value="wig">Toko wig / beauty supply</option><option value="beauty">Toko kecantikan</option></select></div>
@@ -118,6 +128,77 @@ web:ic("<circle cx='12' cy='12' r='10'/><path d='M12 2a14.5 14.5 0 0 0 0 20 14.5
 pin:ic("<path d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/><circle cx='12' cy='10' r='3'/>")};
 function row(icon,val,link,empty){return val?"<div class='r2'>"+icon+"<a href='"+link+"'"+(link.indexOf("http")===0?" target='_blank' rel='noopener'":"")+">"+esc(val)+"</a></div>":"<div class='r2 off'>"+icon+"<span>"+empty+"</span></div>"}
 var LABEL={salon:"salon",wig:"toko wig",beauty:"toko kecantikan"};
+var COUNTRIES={
+"Indonesia":["Jakarta","Surabaya","Bandung","Medan","Semarang","Makassar","Palembang","Denpasar","Yogyakarta","Purwokerto"],
+"Malaysia":["Kuala Lumpur","George Town","Johor Bahru","Ipoh","Kota Kinabalu"],
+"Singapore":["Singapore"],
+"Thailand":["Bangkok","Chiang Mai","Phuket","Pattaya"],
+"Vietnam":["Ho Chi Minh City","Hanoi","Da Nang"],
+"Philippines":["Manila","Quezon City","Cebu City","Davao City"],
+"India":["Mumbai","Delhi","Bengaluru","Hyderabad","Chennai","Kolkata","Pune"],
+"China":["Shanghai","Beijing","Guangzhou","Shenzhen","Chengdu"],
+"Hong Kong":["Hong Kong"],
+"Taiwan":["Taipei","Kaohsiung","Taichung"],
+"Japan":["Tokyo","Osaka","Nagoya","Yokohama","Fukuoka"],
+"South Korea":["Seoul","Busan","Incheon"],
+"Pakistan":["Karachi","Lahore","Islamabad"],
+"Bangladesh":["Dhaka","Chittagong"],
+"Sri Lanka":["Colombo"],
+"Nepal":["Kathmandu"],
+"United States":["New York","Los Angeles","Chicago","Houston","Miami","Dallas","Atlanta","San Francisco","Seattle","Las Vegas"],
+"Canada":["Toronto","Vancouver","Montreal","Calgary"],
+"Mexico":["Mexico City","Guadalajara","Monterrey"],
+"Brazil":["Sao Paulo","Rio de Janeiro","Brasilia"],
+"Argentina":["Buenos Aires"],
+"Chile":["Santiago"],
+"Colombia":["Bogota","Medellin"],
+"Peru":["Lima"],
+"United Kingdom":["London","Manchester","Birmingham","Leeds","Glasgow","Liverpool"],
+"Ireland":["Dublin"],
+"France":["Paris","Marseille","Lyon","Nice"],
+"Germany":["Berlin","Munich","Hamburg","Frankfurt","Cologne"],
+"Netherlands":["Amsterdam","Rotterdam","The Hague"],
+"Belgium":["Brussels","Antwerp"],
+"Spain":["Madrid","Barcelona","Valencia"],
+"Portugal":["Lisbon","Porto"],
+"Italy":["Rome","Milan","Naples"],
+"Switzerland":["Zurich","Geneva"],
+"Austria":["Vienna"],
+"Sweden":["Stockholm","Gothenburg"],
+"Norway":["Oslo"],
+"Denmark":["Copenhagen"],
+"Finland":["Helsinki"],
+"Poland":["Warsaw","Krakow"],
+"Czech Republic":["Prague"],
+"Greece":["Athens"],
+"Turkey":["Istanbul","Ankara"],
+"Russia":["Moscow","Saint Petersburg"],
+"Ukraine":["Kyiv"],
+"United Arab Emirates":["Dubai","Abu Dhabi","Sharjah"],
+"Saudi Arabia":["Riyadh","Jeddah"],
+"Qatar":["Doha"],
+"Egypt":["Cairo","Alexandria"],
+"South Africa":["Johannesburg","Cape Town","Durban"],
+"Nigeria":["Lagos","Abuja"],
+"Kenya":["Nairobi"],
+"Morocco":["Casablanca","Marrakesh"],
+"Australia":["Sydney","Melbourne","Brisbane","Perth"],
+"New Zealand":["Auckland","Wellington"]
+};
+(function initPicker(){
+  var cs=Object.keys(COUNTRIES).sort(function(a,b){return a.localeCompare(b)});
+  $("country").innerHTML="<option value=''>Pilih negara…</option>"+cs.map(function(c){return"<option value='"+esc(c)+"'>"+esc(c)+"</option>"}).join("");
+  $("country").onchange=function(){
+    var c=$("country").value,sel=$("citysel");
+    if(!c){sel.innerHTML="<option value=''>Pilih negara dulu…</option>";sel.disabled=true;return}
+    sel.disabled=false;
+    sel.innerHTML="<option value=''>Pilih kota…</option>"+COUNTRIES[c].map(function(k){return"<option value='"+esc(k)+"'>"+esc(k)+"</option>"}).join("");
+  };
+  $("citysel").onchange=function(){
+    var k=$("citysel").value,c=$("country").value;
+    if(k){$("city").value=k+(c?", "+c:"");$("city").focus()}
+  };
+})();
 var rows=[],timer=null;
 var STEPS=["Mencari lokasi kota…","Mengambil data tempat…","Hampir selesai. Kota besar butuh waktu lebih lama…"];
 function loading(on){
