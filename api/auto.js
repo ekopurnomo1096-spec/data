@@ -38,6 +38,12 @@ async function state(req) {
   const q = await hgetall(J.QUEUE);
   out.queue = Object.keys(q).map(k => parse(q[k])).filter(Boolean).filter(v => v.st === "pending" || v.st === "ok")
     .sort((a, b) => (a.st === b.st ? b.sc - a.sc : a.st === "pending" ? -1 : 1)).slice(0, 200);
+  try { // foto tempat untuk daftar antrean (diambil dari hasil pencarian tersimpan)
+    if (out.queue.length) {
+      const d = await J.loadData();
+      out.queue.forEach(v => { const x = d.map.get(v.id); if (x && x.thumbnail) v.thumbnail = x.thumbnail; });
+    }
+  } catch (e) { /* tanpa foto kalau gagal, daftar tetap tampil */ }
   out.counts = { pending: 0, ok: 0, no: 0 };
   Object.keys(q).forEach(k => { const v = parse(q[k]); if (v && out.counts[v.st] != null) out.counts[v.st]++; });
   const seq = await hgetall(J.SEQ);
