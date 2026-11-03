@@ -1,6 +1,6 @@
 // Kirim email lewat Resend (maksimal 20 per permintaan).
 // GET  ?name=...            = {ready, from, subject, text}: status pengaturan + contoh isi email dari template
-// GET  ?sent=1              = sama seperti di atas, ditambah {sent:{id:{t,to}}} (riwayat kirim dari hairleads:mail)
+// GET  ?sent=1              = sama seperti di atas, ditambah {sent:{id:{t,to}}} (riwayat kirim) dan {daily:{used,limit}} (hitungan hari ini)
 // POST {items:[{id,to,name,subject?,text?}], force?} = kirim. Tanpa subject/text dipakai template.
 // Tempat yang sudah pernah dikirimi (hairleads:mail) dilewati kecuali force=true.
 // Key Resend (nama "rs"), alamat pengirim ("rsf"), dan Reply-To opsional ("rrt") disimpan di Redis lewat Pengaturan; RESEND_API_KEY / RESEND_FROM di Vercel jadi cadangan.
@@ -9,7 +9,16 @@ const { dbConfigured, getKey, cmd, hgetall } = require("./_store");
 const { TEMPLATE } = require("./_template");
 
 const MAIL = "hairleads:mail";
+const DAYK = "hairleads:mailday"; // hitungan email terkirim per hari (UTC), field = "YYYY-MM-DD"
 const MAX = 20;
+// Batas harian. Akun gratis Resend 100 email per hari (reset tengah malam UTC = 07.00 WIB).
+// Ganti lewat RESEND_DAILY_LIMIT di Vercel. Isi 0 kalau akun berbayar tanpa batas harian.
+const DAILY = (() => { const v = process.env.RESEND_DAILY_LIMIT; if (v === undefined || v === "") return 100; const n = parseInt(v, 10); return n >= 0 ? n : 100; })();
+const today = () => new Date().toISOString().slice(0, 10);
+async function usedToday() {
+  if (!dbConfigured()) return 0;
+  try { return parseInt(await cmd(["HGET", DAYK, today()]), 10) || 0; } catch (e) { return 0; }
+}
 const SUBJECT = "Human hair extension supplier from Indonesia (wholesale)";
 const FOOTER = "\n\n--\nIf you'd rather not hear from us, just reply \"unsubscribe\" and we won't email you again.";
 const EMAIL = /^[^\s@<>"]+@[^\s@<>"]+\.[A-Za-z]{2,}$/;
@@ -37,6 +46,7 @@ module.exports = async (req, res) => {
     if (req.method === "GET") {
       const out = { ready: !!(key && from), hasKey: !!key, from, replyTo, max: MAX, ...compose(req.query && req.query.name) };
       if (req.query && req.query.sent && dbConfigured()) {
+        out.daily = { used: await usedToday(), limit: DAILY };
         const all = await hgetall(MAIL);
         out.sent = {};
         for (const k of Object.keys(all)) {
@@ -77,6 +87,13 @@ module.exports = async (req, res) => {
     }
     if (!items.length) return res.status(200).json({ sent: [], skipped, bad });
 
+    // Jangan melewati batas harian
+    let used = await usedToday();
+    if (DAILY > 0 && dbConfigured() && used + items.length > DAILY) {
+      const left = Math.max(DAILY - used, 0);
+      return res.status(400).json({ error: "Sisa kuota email hari ini " + left + " dari " + DAILY + ". Kurangi jumlah yang dipilih, atau tunggu reset jam 07.00 WIB.", daily: { used, limit: DAILY } });
+    }
+
     const r = await fetch("https://api.resend.com/emails/batch", {
       method: "POST",
       headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
@@ -97,7 +114,10 @@ module.exports = async (req, res) => {
         try { await cmd(["HSET", MAIL, i.id, JSON.stringify({ t, to: i.to })]); } catch (e) { /* gagal catat tidak boleh menggagalkan hasil */ }
       }
     }
-    return res.status(200).json({ sent: items.map(i => i.id), skipped, bad });
+    if (dbConfigured()) {
+      try { used = await cmd(["HINCRBY", DAYK, today(), items.length]); } catch (e) { used += items.length; }
+    } else used += items.length;
+    return res.status(200).json({ sent: items.map(i => i.id), skipped, bad, daily: { used, limit: DAILY } });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

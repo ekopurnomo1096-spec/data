@@ -196,7 +196,9 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .mrow .mtag{flex:none;font-style:normal;font-size:.76rem;color:var(--mute);white-space:nowrap}
 .mlist.rd .mrow{cursor:default}
 #elist{max-height:420px;margin-top:0}
-#p4 .panel+.panel{margin-top:16px}
+#p4 .panel+.panel,#p4 .emuse+.panel{margin-top:16px}
+.emuse{max-width:260px;margin:0 0 14px;font-size:.8rem;color:var(--mute)}
+.emuse b{color:var(--ink);font-weight:600}
 .sf .ksaved{height:auto;min-height:42px;padding-top:4px;padding-bottom:4px}
 .sf .ksaved .kt{min-width:0}
 .sf .ksaved .kt b{white-space:nowrap}
@@ -469,6 +471,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <div id="svres" hidden><p style="margin:0 0 12px"><button class="ghost" id="svback" type="button">← Kembali ke Tersimpan</button></p><div id="svslot"></div></div>
 </section>
 <section id="p4" hidden>
+  <div class="emuse" id="emuse" hidden></div>
   <div class="panel" id="emcfgp">
     <details id="emcfg"><summary>Pengaturan email <em class="tn" id="emcn"></em></summary>
   <div class="sf f" id="kf5"><label for="k5">API key Resend</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh5"></span></span><button class="btn" id="kc5" type="button">Ganti</button></div><div class="krow"><input type="password" id="k5" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx5" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://resend.com" target="_blank" rel="noopener">resend.com</a>. Dipakai untuk semua pengiriman email.</p></div>
@@ -1279,7 +1282,15 @@ $("outb").onclick=function(){fetch("/api/session",{method:"DELETE"}).then(functi
 
 // ---- Kirim email lewat Resend ----
 var MM={items:[],cfg:null};
-var EM={cfg:null,sent:{},sel:{},loaded:false,filled:false,busy:false},EMAX=20;
+var EM={cfg:null,sent:{},sel:{},loaded:false,filled:false,busy:false,daily:null},EMAX=20;
+function emCap(){var d=EM.daily;return d&&d.limit?Math.max(0,Math.min(EMAX,d.limit-d.used)):EMAX}
+function renderEmUse(d){
+  var u=$("emuse");if(!d||!d.limit){u.hidden=true;return}
+  var pct=Math.min(100,Math.round(d.used/d.limit*100)),left=Math.max(d.limit-d.used,0),c=left<=0?" out":pct>=80?" low":"";
+  u.innerHTML="<div class='urow"+c+"' title='Sisa "+left+" email hari ini. Reset jam 07.00 WIB.'><span><b>"+d.used+" / "+d.limit+"</b> email hari ini</span><div class='ubar'><i style='width:"+pct+"%'></i></div></div>";
+  u.hidden=false;
+}
+function setDaily(d){if(d&&typeof d.used==="number"){EM.daily=d;renderEmUse(d)}}
 function mailWarn(j,inTab){
   var where=inTab?"Isi di Pengaturan email di atas.":"Buka tab Email, lalu isi di Pengaturan email.";
   if(!j.hasKey)return"API key Resend belum diisi. "+where;
@@ -1321,6 +1332,7 @@ function doSend(force){
   var b=$("msend");b.disabled=true;b.textContent="Mengirim…";mErr("");
   postSend([{id:x.id,to:emailsOf(x)[0],name:x.name,subject:$("msj").value.trim(),text:$("mtx").value}],force).then(function(o){
     if(o.st===401){$("maild").close();showLogin("Sesi habis, silakan masuk lagi.");return}
+    setDaily(o.j.daily);
     if(!o.ok){mErr(o.j.error||"Gagal mengirim");mCount();return}
     var sent=o.j.sent||[];
     if(!sent.length&&(o.j.skipped||[]).length){
@@ -1362,10 +1374,11 @@ function mailView(){
 function selIds(){return Object.keys(EM.sel).filter(function(k){return EM.sel[k]})}
 function emErr(t){var e=$("emerr");e.textContent=t||"";e.hidden=!t}
 function emCount(){
-  var n=selIds().length,b=$("emsend");
+  var n=selIds().length,b=$("emsend"),cap=emCap();
   b.disabled=EM.busy||!n||!(EM.cfg&&EM.cfg.ready);
   b.textContent=EM.busy?"Mengirim…":"Kirim "+(n>1?n+" email":"email");
-  $("emsel").textContent=n+" dipilih, maksimal "+EMAX+" sekali kirim.";
+  $("emsel").textContent=cap?n+" dipilih, maksimal "+cap+" sekali kirim.":"Kuota email hari ini habis. Reset jam 07.00 WIB.";
+  $("emall").textContent=cap?"Pilih "+cap+" pertama":"Pilih penerima";$("emall").disabled=!cap;
 }
 function shortDate(ms){return new Date(ms).toLocaleDateString("id-ID",{day:"numeric",month:"short"})}
 function renderHist(){
@@ -1385,6 +1398,7 @@ function renderMail(){
   var v=mailView(),vis={};
   v.forEach(function(x){vis[x.id]=1});
   Object.keys(EM.sel).forEach(function(k){if(!vis[k])delete EM.sel[k]});
+  selIds().slice(emCap()).forEach(function(k){delete EM.sel[k]});
   if(!v.length){
     info.textContent=mailPool().length?"Tidak ada tempat yang cocok dengan filter ini.":"Belum ada tempat yang punya email. Cari tempat dulu, buka detail tempatnya, lalu tekan Cari email dan WhatsApp dari website.";
     info.hidden=false;list.hidden=true;
@@ -1401,7 +1415,7 @@ function renderMail(){
 function loadMailTab(){
   fetch("/api/send?sent=1").then(function(r){if(r.status===401){showLogin("Sesi habis, silakan masuk lagi.");throw 0}return r.json()}).then(function(j){
     if(j.error){emErr(j.error);return}
-    EM.cfg=j;EM.sent=j.sent||{};EM.loaded=true;
+    EM.cfg=j;EM.sent=j.sent||{};EM.loaded=true;EM.daily=j.daily||null;renderEmUse(EM.daily);
     if(!EM.filled){$("emsj").value=j.subject||"";$("emtx").value=j.text||"";EM.filled=true}
     $("emfrom").textContent=mailFrom(j);emErr(mailWarn(j,true));
     $("emcn").textContent=j.ready?"siap kirim":"belum lengkap";
@@ -1444,7 +1458,8 @@ function emSend(force){
   postSend(picks.map(function(x){return{id:x.id,to:emailsOf(x)[0],name:x.name,subject:sj,text:greet(tx,x.name)}}),force).then(function(o){
     EM.busy=false;
     if(o.st===401){showLogin("Sesi habis, silakan masuk lagi.");return}
-    if(!o.ok){emErr(o.j.error||"Gagal mengirim");emCount();return}
+    setDaily(o.j.daily);
+    if(!o.ok){emErr(o.j.error||"Gagal mengirim");renderMail();return}
     var sent=o.j.sent||[],sk=o.j.skipped||[];
     if(!sent.length&&sk.length){
       emCount();
@@ -1458,13 +1473,14 @@ function emSend(force){
 }
 $("emsend").onclick=function(){emSend(false)};
 $("emq").oninput=$("emst").onchange=$("emhide").onchange=renderMail;
-$("emall").onclick=function(){EM.sel={};mailView().slice(0,EMAX).forEach(function(x){EM.sel[x.id]=true});renderMail()};
+$("emall").onclick=function(){EM.sel={};mailView().slice(0,emCap()).forEach(function(x){EM.sel[x.id]=true});renderMail()};
 $("emnone").onclick=function(){EM.sel={};renderMail()};
 $("elist").addEventListener("change",function(e){
   var c=e.target;if(!c||c.type!=="checkbox")return;
   var id=c.getAttribute("data-id");
   if(c.checked){
-    if(selIds().length>=EMAX){c.checked=false;flash("Maksimal "+EMAX+" email sekali kirim.");return}
+    var cap=emCap();
+    if(selIds().length>=cap){c.checked=false;flash(cap<EMAX?"Sisa kuota email hari ini "+cap+".":"Maksimal "+EMAX+" email sekali kirim.");return}
     EM.sel[id]=true;
   }else delete EM.sel[id];
   emCount();
