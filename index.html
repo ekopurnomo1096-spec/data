@@ -877,14 +877,39 @@ function csv(){
   }).join("\n");
 }
 function done(t){$("copied").textContent=t;$("copied").hidden=false}
-function dlFile(name,rowsOf){
+function dlFile(name,rowsOf,xlsx){
   var seen={},r=[];
   view().forEach(function(x){rowsOf(x).forEach(function(c){var k=c.toLowerCase();if(!seen[k]){seen[k]=1;r.push(c)}})});
   if(!r.length){flash("Tidak ada tempat dengan data itu di tampilan ini.");return}
   var a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob(["\ufeff"+r.join("\n")],{type:"text/csv;charset=utf-8"}));
+  a.href=URL.createObjectURL(xlsx?xlsxBlob(r):new Blob(["\ufeff"+r.join("\n")],{type:"text/csv;charset=utf-8"}));
   a.download=name;document.body.appendChild(a);a.click();a.remove();
   flash("Diunduh: "+r.length+" baris.");
+}
+function xlsxBlob(list){
+  var enc=new TextEncoder(),T=[];for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;T[n]=c>>>0}
+  function crc(b){var c=0xFFFFFFFF;for(var i=0;i<b.length;i++)c=T[(c^b[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+  function x(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+  var H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  var files=[
+    ["[Content_Types].xml",H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'],
+    ["_rels/.rels",H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+    ["xl/workbook.xml",H+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="WA" sheetId="1" r:id="rId1"/></sheets></workbook>'],
+    ["xl/_rels/workbook.xml.rels",H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>'],
+    ["xl/worksheets/sheet1.xml",H+'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="22" customWidth="1"/></cols><sheetData>'+list.map(function(v,i){return'<row r="'+(i+1)+'"><c r="A'+(i+1)+'" t="inlineStr"><is><t>'+x(v)+'</t></is></c></row>'}).join("")+'</sheetData></worksheet>']
+  ];
+  var parts=[],cen=[],off=0;
+  function u16(v){return[v&255,(v>>8)&255]}function u32(v){return[v&255,(v>>8)&255,(v>>16)&255,(v>>>24)&255]}
+  files.forEach(function(f){
+    var nm=enc.encode(f[0]),d=enc.encode(f[1]),cr=crc(d);
+    var lh=[].concat(u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0x21),u32(cr),u32(d.length),u32(d.length),u16(nm.length),u16(0));
+    parts.push(new Uint8Array(lh),nm,d);
+    cen.push([].concat(u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0x21),u32(cr),u32(d.length),u32(d.length),u16(nm.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(off)),Array.from(nm));
+    off+=lh.length+nm.length+d.length;
+  });
+  var cd=[].concat.apply([],cen);
+  parts.push(new Uint8Array(cd),new Uint8Array([].concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cd.length),u32(off),u16(0))));
+  return new Blob(parts,{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
 }
 function emRows(x){return emailsOf(x)}
 function waRows(x){var w=waOf(x);return w?["+"+w.n]:[]}
@@ -911,7 +936,7 @@ $("dlall").onclick=function(){
   a.download="prospek.csv";document.body.appendChild(a);a.click();a.remove();
 };
 $("dlem").onclick=function(){dlClose();dlFile("prospek-email.csv",emRows)};
-$("dlwa").onclick=function(){dlClose();dlFile("prospek-wa.csv",waRows)};
+$("dlwa").onclick=function(){dlClose();dlFile("prospek-wa.xlsx",waRows,true)};
 IC.wa="<svg viewBox='0 0 24 24' width='19' height='19' fill='#25D366' aria-hidden='true'><path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z'/></svg>";
 function firstPhone(x){return x.phone?x.phone.split(/[;,]/)[0].trim():""}
 function emailsOf(x){return x.emails&&x.emails.length?x.emails:(x.email?[x.email]:[])}
