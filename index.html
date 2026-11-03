@@ -337,6 +337,11 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 #aid.ai-err .aidi{color:var(--err)}
 #aid.ai-err .aipb i{background:var(--err)}
 #aid .acts{margin-top:18px;justify-content:center}
+#aid .acts:has(#aids[hidden]){display:none}
+.aidx{position:absolute;top:8px;right:8px;width:32px;height:32px;display:grid;place-items:center;padding:0;border:0;border-radius:8px;background:transparent;color:var(--mute);opacity:.9;cursor:pointer}
+.aidx:hover{opacity:1;background:var(--line)}
+.aidx[hidden]{display:none}
+.aidx svg{width:18px;height:18px}
 #aid .dr{margin-top:6px}
 #aid.ai-run .acts{display:none}
 #aid.ai-run #aidbody{padding-bottom:24px}
@@ -435,8 +440,8 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <div class="aidh"><span id="aidi" class="aidi"></span><h2 id="aidt">Menilai dengan AI</h2></div>
   <p class="dr" id="aidm" aria-live="polite"></p>
   <div class="aipb" id="aidpb"><i id="aidbar"></i></div>
-  <div class="acts" id="aida"><button class="btn primary" id="aidx" type="button">Tutup</button><button class="btn" id="aids" type="button" hidden>Buka Pengaturan</button></div>
-</div></dialog>
+  <div class="acts" id="aida"><button class="btn" id="aids" type="button" hidden>Buka Pengaturan</button></div>
+</div><button id="aidx" class="aidx" type="button" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></dialog>
 <dialog id="setd" aria-label="Pengaturan"><div id="sbody">
   <div class="dh"><div><h2>Pengaturan</h2><p class="dr">API key disimpan terenkripsi di server, jadi cukup diisi sekali dan berlaku di semua browser.</p></div><button class="x" id="sx" type="button" aria-label="Tutup">✕</button></div>
   <div id="kload" class="kload"><div class="spin"></div><span>Memuat…</span></div>
