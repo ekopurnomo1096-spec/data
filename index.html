@@ -50,9 +50,9 @@ input[type=text],select{width:100%;font:inherit;font-size:.92rem;color:var(--ink
 .chk{display:flex;gap:7px;align-items:center;font-size:.86rem;cursor:pointer}
 .chk input{width:16px;height:16px}
 .ghost{background:transparent;color:var(--acc);border:1px solid var(--line);border-radius:10px;padding:8px 13px;font:inherit;font-size:.86rem;font-weight:500;cursor:pointer}
-.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:14px}
-.item{border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--card)}
-.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:12px}
+.item{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:7px;background:var(--card)}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .item h3{margin:0;font-size:.98rem;line-height:1.3;font-weight:700}
 .rate{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
 .rate b{font-weight:700;font-size:.82rem}
@@ -60,16 +60,16 @@ input[type=text],select{width:100%;font:inherit;font-size:.92rem;color:var(--ink
 .stars{position:relative;display:inline-block;font-size:12px;line-height:1;letter-spacing:1px}
 .stars i{font-style:normal;color:var(--line)}
 .stars em{position:absolute;top:0;left:0;overflow:hidden;white-space:nowrap;font-style:normal;color:#f2b600}
-.addr{margin:0;color:var(--mute);font-size:.84rem;min-height:2.6em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rows{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px;font-size:.86rem}
-.r2{display:flex;align-items:center;gap:10px;min-width:0;height:24px}
+.addr{margin:0;color:var(--mute);font-size:.82rem;line-height:1.4;min-height:2.3em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rows{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px;font-size:.84rem}
+.r2{display:flex;align-items:center;gap:8px;min-width:0;height:20px}
 .r2 svg{flex:none;color:var(--acc)}
 .r2 a,.r2 span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .r2 a{color:var(--ink);text-decoration:none;font-weight:500}
 .r2 a:hover{color:var(--acc);text-decoration:underline}
 .r2.off{color:var(--mute)}
 .r2.off svg{color:var(--mute);opacity:.55}
-.mapl{margin-top:auto;padding-top:4px;display:inline-flex;align-items:center;gap:8px;color:var(--acc);font-weight:700;font-size:.84rem;text-decoration:none}
+.mapl{margin-top:auto;padding-top:2px;display:inline-flex;align-items:center;gap:6px;color:var(--acc);font-weight:700;font-size:.82rem;text-decoration:none}
 .mapl:hover{text-decoration:underline}
 .tag{align-self:flex-start;font-size:.78rem;font-weight:700;color:var(--ok)}
 .seg{border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-top:10px}
@@ -96,10 +96,10 @@ input[type=text],select{width:100%;font:inherit;font-size:.92rem;color:var(--ink
       <input type="text" id="country" autocomplete="off" placeholder="Ketik untuk cari negara…">
       <div class="combo-list" id="countryList" hidden></div></div>
     <div class="f combo"><label for="citysel">Cari kota (seluruh dunia)</label>
-      <input type="text" id="citysel" autocomplete="off" placeholder="Ketik minimal 2 huruf, mis. Purwokerto">
+      <input type="text" id="citysel" autocomplete="off" placeholder="Pilih negara dulu untuk lihat kota populer, atau ketik di sini">
       <div class="combo-list" id="cityselList" hidden></div></div>
   </div>
-  <p class="hint">Hasil kota diambil langsung dari basis data geocoding dunia, jadi tidak terbatas pada daftar tertentu. Atau langsung ketik nama kota apa pun di kolom "Kota" di bawah.</p>
+  <p class="hint">Pilih negara untuk langsung melihat kota-kota populernya, atau ketik nama kota apa pun — hasilnya diambil langsung dari basis data geocoding dunia, tidak terbatas pada daftar tertentu. Bisa juga langsung ketik di kolom "Kota" di bawah.</p>
   <div class="form">
     <div class="f"><label for="kind">Jenis tempat</label>
       <select id="kind"><option value="salon">Salon rambut</option><option value="wig">Toko wig / beauty supply</option><option value="beauty">Toko kecantikan</option></select></div>
@@ -182,6 +182,63 @@ function combo(inputId,listId,opts){
   });
   return{setItems:function(a){items=a},clear:function(){inp.value="";cur=""}};
 }
+var POPULAR_CITIES={
+"Indonesia":["Jakarta","Surabaya","Bandung","Medan","Semarang","Makassar","Palembang","Denpasar","Yogyakarta","Purwokerto"],
+"Malaysia":["Kuala Lumpur","George Town","Johor Bahru","Ipoh","Kota Kinabalu"],
+"Singapore":["Singapore"],
+"Thailand":["Bangkok","Chiang Mai","Phuket","Pattaya"],
+"Vietnam":["Ho Chi Minh City","Hanoi","Da Nang"],
+"Philippines":["Manila","Quezon City","Cebu City","Davao City"],
+"India":["Mumbai","Delhi","Bengaluru","Hyderabad","Chennai","Kolkata","Pune"],
+"China":["Shanghai","Beijing","Guangzhou","Shenzhen","Chengdu"],
+"Hong Kong":["Hong Kong"],
+"Taiwan":["Taipei","Kaohsiung","Taichung"],
+"Japan":["Tokyo","Osaka","Nagoya","Yokohama","Fukuoka"],
+"South Korea":["Seoul","Busan","Incheon"],
+"Pakistan":["Karachi","Lahore","Islamabad"],
+"Bangladesh":["Dhaka","Chittagong"],
+"Sri Lanka":["Colombo"],
+"Nepal":["Kathmandu"],
+"United States":["New York","Los Angeles","Chicago","Houston","Miami","Dallas","Atlanta","San Francisco","Seattle","Las Vegas"],
+"Canada":["Toronto","Vancouver","Montreal","Calgary"],
+"Mexico":["Mexico City","Guadalajara","Monterrey"],
+"Brazil":["Sao Paulo","Rio de Janeiro","Brasilia"],
+"Argentina":["Buenos Aires"],
+"Chile":["Santiago"],
+"Colombia":["Bogota","Medellin"],
+"Peru":["Lima"],
+"United Kingdom":["London","Manchester","Birmingham","Leeds","Glasgow","Liverpool"],
+"Ireland":["Dublin"],
+"France":["Paris","Marseille","Lyon","Nice"],
+"Germany":["Berlin","Munich","Hamburg","Frankfurt","Cologne"],
+"Netherlands":["Amsterdam","Rotterdam","The Hague"],
+"Belgium":["Brussels","Antwerp"],
+"Spain":["Madrid","Barcelona","Valencia"],
+"Portugal":["Lisbon","Porto"],
+"Italy":["Rome","Milan","Naples"],
+"Switzerland":["Zurich","Geneva"],
+"Austria":["Vienna"],
+"Sweden":["Stockholm","Gothenburg"],
+"Norway":["Oslo"],
+"Denmark":["Copenhagen"],
+"Finland":["Helsinki"],
+"Poland":["Warsaw","Krakow"],
+"Czech Republic":["Prague"],
+"Greece":["Athens"],
+"Turkey":["Istanbul","Ankara"],
+"Russia":["Moscow","Saint Petersburg"],
+"Ukraine":["Kyiv"],
+"United Arab Emirates":["Dubai","Abu Dhabi","Sharjah"],
+"Saudi Arabia":["Riyadh","Jeddah"],
+"Qatar":["Doha"],
+"Egypt":["Cairo","Alexandria"],
+"South Africa":["Johannesburg","Cape Town","Durban"],
+"Nigeria":["Lagos","Abuja"],
+"Kenya":["Nairobi"],
+"Morocco":["Casablanca","Marrakesh"],
+"Australia":["Sydney","Melbourne","Brisbane","Perth"],
+"New Zealand":["Auckland","Wellington"]
+};
 function comboAsync(inputId,listId,opts){
   var inp=$(inputId),list=$(listId),hi=-1,cur="",t=null,seq=0;
   function show(html){list.innerHTML=html;list.hidden=false}
@@ -197,6 +254,13 @@ function comboAsync(inputId,listId,opts){
     opts.fetch(q,function(results,cname){if(mySeq===seq)render(results,cname)},function(){if(mySeq===seq)show("<div class='none'>Gagal mencari (cek koneksi), coba lagi</div>")});
   }
   function pick(r){inp.value=r.label;cur=r.label;list.hidden=true;if(opts.onPick)opts.onPick(r)}
+  function showDefault(){
+    var d=opts.popular&&opts.popular();
+    if(d&&d.items.length){
+      list.innerHTML="<div class='none' style='padding:7px 12px 3px'>"+esc(d.title)+"</div>"+d.items.map(function(r,i){return"<div data-i='"+i+"'>"+esc(r.label)+"</div>"}).join("");
+      list._data=d.items;list.hidden=false;hi=-1;
+    }else list.hidden=true;
+  }
   list.addEventListener("mousedown",function(e){
     var d=e.target.closest("div[data-i]");
     if(d&&list._data)pick(list._data[+d.getAttribute("data-i")]);
@@ -204,10 +268,14 @@ function comboAsync(inputId,listId,opts){
   inp.addEventListener("input",function(){
     cur="";clearTimeout(t);
     var q=inp.value.trim();
-    if(q.length<2){list.hidden=true;return}
+    if(q.length<2){showDefault();return}
     t=setTimeout(function(){search(q)},350);
   });
-  inp.addEventListener("focus",function(){if(inp.value.trim().length>=2&&list.innerHTML)list.hidden=false});
+  inp.addEventListener("focus",function(){
+    var q=inp.value.trim();
+    if(q.length>=2&&list.innerHTML)list.hidden=false;
+    else if(q.length<2)showDefault();
+  });
   inp.addEventListener("blur",function(){setTimeout(function(){list.hidden=true;if(!cur)inp.value=""},150)});
   inp.addEventListener("keydown",function(e){
     var f=list.querySelectorAll("div[data-i]");
@@ -219,14 +287,24 @@ function comboAsync(inputId,listId,opts){
     f.forEach(function(d,i){d.classList.toggle("hi",i===hi)});
     if(f[hi])f[hi].scrollIntoView({block:"nearest"});
   });
-  return{refresh:function(){var q=inp.value.trim();if(q.length>=2)search(q)}};
+  return{refresh:function(){var q=inp.value.trim();if(q.length>=2)search(q);else if(document.activeElement===inp)showDefault()},showDefault:showDefault};
 }
 (function initPicker(){
   var cityAsync;
-  var countryCombo=combo("country","countryList",{onPick:function(){if(cityAsync)cityAsync.refresh()}});
+  var countryCombo=combo("country","countryList",{onPick:function(){
+    if(!cityAsync)return;
+    $("citysel").focus();
+    cityAsync.showDefault();
+  }});
   countryCombo.setItems(COUNTRY_NAMES);
   $("country").addEventListener("input",function(){if(cityAsync)cityAsync.refresh()});
   cityAsync=comboAsync("citysel","cityselList",{
+    popular:function(){
+      var cname=$("country").value.trim();
+      var cities=POPULAR_CITIES[cname];
+      if(!cname||!cities)return null;
+      return{title:"Kota populer di "+cname,items:cities.map(function(k){return{label:k+", "+cname,name:k,country:cname}})};
+    },
     fetch:function(q,ok,fail){
       var cname=$("country").value.trim(),code=COUNTRY_CODES[cname];
       var url="https://geocoding-api.open-meteo.com/v1/search?count=100&language=id&format=json&name="+encodeURIComponent(q);
