@@ -505,6 +505,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       <input type="search" class="q" id="emq" placeholder="Cari nama, alamat, atau email" aria-label="Cari penerima">
       <select id="emst" class="sortsel" aria-label="Filter status prospek"><option value="baru" selected>Belum dihubungi</option><option value="all">Semua status</option><option value="chat">Sudah dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak cocok</option></select>
       <label class="chk"><input type="checkbox" id="emhide" checked> Sembunyikan yang sudah dikirimi</label>
+      <label class="chk"><input type="checkbox" id="emfree" checked> Hanya email Gmail, Yahoo, dll</label>
       <span class="sp"></span>
       <button class="ghost" id="emall" type="button">Pilih 20 pertama</button>
       <button class="ghost" id="emnone" type="button">Kosongkan pilihan</button>
@@ -1314,7 +1315,7 @@ function postSend(items,force){
 }
 function sentDone(picks,sent){
   var t=Date.now();
-  picks.forEach(function(x){if(sent.indexOf(x.id)>-1){EM.sent[x.id]={t:t,to:emailsOf(x)[0]};delete EM.sel[x.id];markEmailed(x)}});
+  picks.forEach(function(x){if(sent.indexOf(x.id)>-1){EM.sent[x.id]={t:t,to:pickMail(x)};delete EM.sel[x.id];markEmailed(x)}});
   render();if(!$("p4").hidden)renderMail();
 }
 // Kirim dari detail satu tempat (dialog)
@@ -1365,6 +1366,9 @@ function nameOf(id){
   for(var i=0;i<rows.length;i++)if(rows[i].id===id)return rows[i].name;
   return"";
 }
+var FREEMAIL=/@(gmail|googlemail|yahoo|ymail|rocketmail|outlook|hotmail|live|msn|icloud|me|aol|proton|protonmail|gmx|mail|zoho)\.[a-z.]+$/i;
+function freeMail(x){var l=emailsOf(x);for(var i=0;i<l.length;i++)if(FREEMAIL.test(String(l[i]).trim()))return l[i];return""}
+function pickMail(x){var l=emailsOf(x);return $("emfree").checked?(freeMail(x)||l[0]):l[0]}
 function mailPool(){
   var seen={},out=[];
   function add(x){if(!x||!x.id||seen[x.id])return;seen[x.id]=1;if(emailsOf(x).length)out.push(x)}
@@ -1373,11 +1377,12 @@ function mailPool(){
   return out;
 }
 function mailView(){
-  var q=$("emq").value.trim().toLowerCase(),fs=$("emst").value,hide=$("emhide").checked;
+  var q=$("emq").value.trim().toLowerCase(),fs=$("emst").value,hide=$("emhide").checked,free=$("emfree").checked;
   return mailPool().filter(function(x){
     if(q&&((x.name||"")+" "+(x.address||"")+" "+emailsOf(x).join(" ")).toLowerCase().indexOf(q)<0)return false;
     if(fs!=="all"&&(stOf(x)||"baru")!==fs)return false;
     if(hide&&EM.sent[x.id])return false;
+    if(free&&!freeMail(x))return false;
     return true;
   });
 }
@@ -1417,7 +1422,7 @@ function renderMail(){
     info.textContent=v.length+" tempat dengan email.";info.hidden=false;
     list.innerHTML=v.map(function(x){
       var s=EM.sent[x.id];
-      return"<label class='mrow'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+"><span><b>"+esc(x.name)+"</b><small>"+esc(emailsOf(x)[0])+"</small></span><em class='mtag'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em></label>";
+      return"<label class='mrow'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+"><span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+"</small></span><em class='mtag'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em></label>";
     }).join("");
     list.hidden=false;
   }
@@ -1466,7 +1471,7 @@ function emSend(force){
   if(!picks.length)return;
   if(!tx.trim()){emErr("Isi email masih kosong.");return}
   emErr("");EM.busy=true;EM.who="list";emCount();
-  postSend(picks.map(function(x){return{id:x.id,to:emailsOf(x)[0],name:x.name,subject:sj,text:greet(tx,x.name)}}),force).then(function(o){
+  postSend(picks.map(function(x){return{id:x.id,to:pickMail(x),name:x.name,subject:sj,text:greet(tx,x.name)}}),force).then(function(o){
     EM.busy=false;
     if(o.st===401){showLogin("Sesi habis, silakan masuk lagi.");return}
     setDaily(o.j.daily);
@@ -1527,7 +1532,7 @@ function emManual(force){
 }
 $("emmsend").onclick=function(){emManual(false)};
 $("emmt").onkeydown=$("emmn").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();emManual(false)}};
-$("emq").oninput=$("emst").onchange=$("emhide").onchange=renderMail;
+$("emq").oninput=$("emst").onchange=$("emhide").onchange=$("emfree").onchange=renderMail;
 $("emall").onclick=function(){EM.sel={};mailView().slice(0,emCap()).forEach(function(x){EM.sel[x.id]=true});renderMail()};
 $("emnone").onclick=function(){EM.sel={};renderMail()};
 $("elist").addEventListener("change",function(e){
