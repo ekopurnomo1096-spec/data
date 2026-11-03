@@ -1048,7 +1048,7 @@ $("svbox").addEventListener("click",function(e){
   if(cb){var m=SAVED[+cb.getAttribute("data-i")];if(!m)return;$("city").value=m.city;$("kind").value=m.kind;$("source").value=m.source;placeRes(3);run(false);return}
   if(cx){var d=SAVED[+cx.getAttribute("data-i")];
     if(!d||!confirm("Hapus hasil tersimpan untuk "+d.city+"? Pencarian berikutnya memakai kuota lagi. Status dan catatan prospek tidak ikut terhapus."))return;
-    fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"delsearch",key:d.key})}).then(loadSearches).catch(function(){})}
+    fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"delsearch",key:d.key})}).then(function(r){return r.json().catch(function(){return{}})}).then(function(j){(j.aiRemoved||[]).forEach(function(id){delete AI[id]});loadSearches()}).catch(function(){})}
 });
 function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
 function showLogin(msg){$("boot").hidden=true;$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}

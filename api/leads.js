@@ -3,7 +3,7 @@ const { isAuthed } = require("./_auth");
 const { dbConfigured, cmd, hgetall } = require("./_store");
 const { STATUSES, sanitizeLead } = require("./_leads");
 
-const LEADS = "hairleads:leads", META = "hairleads:cmeta", CACHE = "hairleads:cache";
+const LEADS = "hairleads:leads", META = "hairleads:cmeta", CACHE = "hairleads:cache", AI = "hairleads:ai";
 const parse = v => { try { return JSON.parse(v); } catch (e) { return null; } };
 
 module.exports = async (req, res) => {
@@ -37,9 +37,23 @@ module.exports = async (req, res) => {
       if (b.action === "delsearch") {
         const key = String(b.key || "");
         if (!key || key.length > 300) return res.status(400).json({ error: "Kunci tidak valid" });
+        // Skor AI tempat-tempat di pencarian ini ikut dihapus, kecuali yang sudah punya status atau catatan
+        let aiRemoved = [];
+        try {
+          const raw = await cmd(["HGET", CACHE, key]);
+          const c = raw ? parse(raw) : null;
+          const ids = [...new Set(((c && c.results) || []).map(r => r && r.id).filter(id => typeof id === "string" && id))];
+          if (ids.length) {
+            const have = await cmd(["HMGET", LEADS, ...ids]);
+            aiRemoved = ids.filter((id, i) => !have[i]);
+            for (let i = 0; i < aiRemoved.length; i += 200) {
+              await cmd(["HDEL", AI, ...aiRemoved.slice(i, i + 200)]);
+            }
+          }
+        } catch (e) { aiRemoved = []; /* gagal bersih-bersih tidak boleh menggagalkan penghapusan */ }
         await cmd(["HDEL", CACHE, key]);
         await cmd(["HDEL", META, key]);
-        return res.status(200).json({ ok: true });
+        return res.status(200).json({ ok: true, aiRemoved });
       }
 
       if (b.action === "save") {
