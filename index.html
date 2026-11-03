@@ -207,6 +207,16 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 /* Rapikan tabel: kolom tetap proporsional, alamat & catatan dipotong agar baris tidak menjulang */
 .nm small{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;max-width:none}
 .nm small.nt{-webkit-line-clamp:1;line-clamp:1}
+.tn{font-style:normal;font-size:.74rem;color:var(--mute);margin-left:2px}
+.svh{color:var(--mute);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin:20px 0 10px}
+.svh:first-child{margin-top:4px}
+.svc{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:8px}
+.svc .sm{flex:1 1 220px;min-width:0}
+.svc .sm b{display:block;font-weight:600}
+.svc .sm span{display:block;color:var(--mute);font-size:.82rem;margin-top:2px}
+.svc.mine{border-color:var(--acc)}
+.svc .acts{display:flex;gap:8px}
+.svc .cx{color:var(--mute)}
 .morebox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
 @media (min-width:761px){
  table{min-width:0}
@@ -242,6 +252,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" id="t1" aria-selected="true">Cari tempat</button>
     <button class="tab" role="tab" id="t2" aria-selected="false">Siapa yang membeli?</button>
+    <button class="tab" role="tab" id="t3" aria-selected="false">Tersimpan <em class="tn" id="t3n"></em></button>
   </div>
 </div></header>
 <main class="wrap">
@@ -260,7 +271,6 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       <select id="source"><option value="google">Google Maps (lengkap)</option><option value="osm">OpenStreetMap (gratis, tipis)</option></select></div>
     <button class="go" id="run"><span id="runtxt">Cari</span></button>
   </div>
-  <div class="saved" id="saved" hidden></div>
   <div class="status" id="status" aria-live="polite"><p class="info">Pilih negara dan kota, lalu tekan Cari. Hasilnya bisa diurutkan dan difilter.</p></div>
   <div id="res" hidden>
     <div class="stats" id="stats"></div>
@@ -303,6 +313,9 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 <section id="p2" hidden>
   <p class="info" style="margin-bottom:14px">Daftar pembeli yang paling mungkin tertarik. Yang punya tombol bisa langsung dicari di tab Cari tempat.</p>
   <div class="segs" id="segs"></div>
+</section>
+<section id="p3" hidden>
+  <div id="svbox"></div>
 </section>
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -559,12 +572,20 @@ function hydrate(a){a.forEach(function(x){var r=LS[x.id],l=r&&r.lead;if(!l)retur
   if(l.ctx&&!x.ctx)x.ctx=l.ctx})}
 function trackedList(){return Object.keys(LS).map(function(k){return LS[k]}).filter(function(r){return r&&r.lead&&(r.s||r.n)})}
 function renderSaved(){
-  var el=$("saved"),t=trackedList(),h="";
-  if(!SAVED.length&&!t.length){el.hidden=true;return}
-  h="<span class='svl'>Tersimpan</span>";
-  if(t.length)h+="<span class='chip mine'><button type='button' id='mine' title='Semua tempat yang sudah diberi status atau catatan'>Prospek saya <em>"+t.length+"</em></button></span>";
-  SAVED.forEach(function(m,i){h+="<span class='chip'><button type='button' class='cb' data-i='"+i+"' title='Buka tanpa memakai kuota. Disimpan "+esc(fmtDate(m.at))+"'>"+esc(m.city)+" · "+esc(LABEL[m.kind]||m.kind)+(m.source==="osm"?" · OSM":"")+" <em>"+m.n+"</em></button><button type='button' class='cx' data-i='"+i+"' aria-label='Hapus simpanan "+esc(m.city)+"' title='Hapus simpanan'>×</button></span>"});
-  el.innerHTML=h;el.hidden=false;
+  var box=$("svbox"),t=trackedList(),h="";
+  $("t3n").textContent=SAVED.length||"";
+  h+="<div class='svh'>Prospek saya</div>";
+  if(t.length){
+    var cn={};t.forEach(function(r){var k=r.s||"";cn[k]=(cn[k]||0)+1});
+    var det=STAT.filter(function(p){return cn[p[0]]}).map(function(p){return cn[p[0]]+" "+p[1].toLowerCase()}).join(" · ");
+    h+="<div class='svc mine'><div class='sm'><b>"+t.length+" tempat</b><span>"+esc(det)+"</span></div><div class='acts'><button type='button' class='ghost' id='mine'>Buka</button></div></div>";
+  }else h+="<p class='info'>Belum ada prospek. Ubah status atau tulis catatan di tempat mana pun, nanti muncul di sini.</p>";
+  h+="<div class='svh'>Pencarian tersimpan</div>";
+  if(SAVED.length)SAVED.forEach(function(m,i){
+    h+="<div class='svc'><div class='sm'><b>"+esc(m.city)+" · "+esc(LABEL[m.kind]||m.kind)+(m.source==="osm"?" · OSM":"")+"</b><span>"+m.n+" tempat · disimpan "+esc(fmtDate(m.at))+"</span></div><div class='acts'><button type='button' class='ghost cb' data-i='"+i+"' title='Buka tanpa memakai kuota'>Buka</button><button type='button' class='ghost cx' data-i='"+i+"' aria-label='Hapus simpanan "+esc(m.city)+"'>Hapus</button></div></div>";
+  });
+  else h+="<p class='info'>Belum ada pencarian tersimpan. Hasil tiap pencarian disimpan otomatis.</p>";
+  box.innerHTML=h;
 }
 function loadLeads(){
   fetch("/api/leads").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){LS=j.items||{};SAVED=j.searches||[];renderSaved()}).catch(function(){});
@@ -803,10 +824,10 @@ $("dbody").addEventListener("click",function(e){
   if(a&&curX)markContacted(curX,a.getAttribute("data-act")==="wa"?"WA":"Telepon");
 });
 $("tb").addEventListener("change",function(e){var sel=e.target.closest("select.stsel");if(!sel)return;var x=rows[+sel.getAttribute("data-ri")];if(!x)return;sel.className="stsel st-"+(sel.value||"baru");saveLead(x,{s:sel.value})});
-$("saved").addEventListener("click",function(e){
-  if(e.target.closest("#mine")){showMine();return}
+$("svbox").addEventListener("click",function(e){
+  if(e.target.closest("#mine")){tab(1);showMine();return}
   var cb=e.target.closest(".cb"),cx=e.target.closest(".cx");
-  if(cb){var m=SAVED[+cb.getAttribute("data-i")];if(!m)return;$("city").value=m.city;$("kind").value=m.kind;$("source").value=m.source;run(false);return}
+  if(cb){var m=SAVED[+cb.getAttribute("data-i")];if(!m)return;$("city").value=m.city;$("kind").value=m.kind;$("source").value=m.source;tab(1);run(false);return}
   if(cx){var d=SAVED[+cx.getAttribute("data-i")];
     if(!d||!confirm("Hapus hasil tersimpan untuk "+d.city+"? Pencarian berikutnya memakai kuota lagi. Status dan catatan prospek tidak ikut terhapus."))return;
     fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"delsearch",key:d.key})}).then(loadSearches).catch(function(){})}
@@ -891,8 +912,8 @@ KEYS.forEach(function(p){$("kc"+p[0]).onclick=function(){$("kf"+p[0]).classList.
 $("kclear").onclick=function(){if(confirm("Hapus semua key yang tersimpan di server?"))saveKeys({serp:"",serp2:"",geo:""},"Key dihapus.")};
 $("outb").onclick=function(){fetch("/api/session",{method:"DELETE"}).then(function(){location.reload()},function(){location.reload()})};
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"],["Importir dan distributor di luar negeri","Volume besar. Cari lewat direktori B2B seperti Alibaba atau Global Sources.",""],["Perias pengantin","Cari lewat Instagram dengan kata kunci “bridal hair” plus nama kota.",""],["Pabrik wig dan rambut","Calon mitra atau pesaing. Cari lewat direktori ekspor.",""]];
-function tab(n){[1,2].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}
-$("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};
+function tab(n){[1,2,3].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}
+$("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};$("t3").onclick=function(){tab(3)};
 $("segs").innerHTML=SEG.map(function(s,i){return"<div class='seg'><div class='n'>"+(i+1)+"</div><div><b>"+s[0]+"</b><span>"+s[1]+"</span>"+(s[2]?"<div><button class='ghost' data-i='"+i+"'>Cari tempat ini</button></div>":"")+"</div></div>"}).join("");
 document.querySelectorAll("#segs button").forEach(function(b){b.onclick=function(){$("kind").value=SEG[+b.getAttribute("data-i")][2];tab(1);$("city").focus()}});
 fetch("/api/session").then(function(r){return r.json()}).then(function(j){
