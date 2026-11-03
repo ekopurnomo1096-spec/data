@@ -6,7 +6,9 @@ const FILTERS = {
 };
 const OVERPASS = [
   "https://overpass-api.de/api/interpreter",
-  "https://overpass.kumi.systems/api/interpreter"
+  "https://overpass.private.coffee/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://maps.mail.ru/osm/tools/overpass/api/interpreter"
 ];
 const UA = { "User-Agent": "hair-leads-demo/1.0" };
 
@@ -59,24 +61,23 @@ module.exports = async (req, res) => {
     const kind = FILTERS[req.query && req.query.kind] ? req.query.kind : "salon";
     if (!city) return res.status(400).json({ error: "Isi nama kota" });
 
-    // 1) Nama kota -> koordinat, lalu kotak pencarian ±0,1 derajat (sekitar 11 km)
+    // 1) Nama kota -> koordinat, lalu kotak pencarian ±0,07 derajat (sekitar 8 km)
     const pt = await geocode(city);
     if (!pt) return res.status(404).json({ error: "Kota tidak ditemukan" });
-    const s = pt.lat - 0.1, n = pt.lat + 0.1, w = pt.lon - 0.1, e = pt.lon + 0.1;
+    const s = pt.lat - 0.07, n = pt.lat + 0.07, w = pt.lon - 0.07, e = pt.lon + 0.07;
 
-    const q = `[out:json][timeout:15];(${FILTERS[kind]}(${s},${w},${n},${e}););out center 100;`;
-    let o = null, lastErr;
-    for (const ep of OVERPASS) {
-      try {
-        o = await getJSON(ep, {
-          method: "POST",
-          headers: { ...UA, "Content-Type": "application/x-www-form-urlencoded" },
-          body: "data=" + encodeURIComponent(q)
-        }, 18000);
-        break;
-      } catch (err) { lastErr = err; }
+    const q = `[out:json][timeout:25];(${FILTERS[kind]}(${s},${w},${n},${e}););out center 100;`;
+    // Coba semua server Overpass bersamaan, pakai yang pertama berhasil
+    let o;
+    try {
+      o = await Promise.any(OVERPASS.map(ep => getJSON(ep, {
+        method: "POST",
+        headers: { ...UA, "Content-Type": "application/x-www-form-urlencoded" },
+        body: "data=" + encodeURIComponent(q)
+      }, 28000)));
+    } catch (agg) {
+      throw new Error("semua server peta sedang sibuk (" + (agg.errors || []).map(x => x.message).join("; ") + ")");
     }
-    if (!o) throw lastErr;
 
     const results = (o.elements || []).map(x => {
       const t = x.tags || {};
