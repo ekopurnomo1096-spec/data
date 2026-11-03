@@ -55,41 +55,78 @@ async function geocode(city) {
   return f ? { lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0] } : null;
 }
 
+// ---- Sumber utama: Geoapify (gratis, tanpa kartu kredit, perlu API key) ----
+const GEO_CATS = {
+  salon: ["service.beauty.hairdresser", "service.beauty"],
+  beauty: ["commercial.health_and_beauty"]
+};
+
+function mapGeo(f) {
+  const p = f.properties || {}, c = p.contact || {}, raw = (p.datasource && p.datasource.raw) || {};
+  return {
+    name: p.name || "",
+    address: (p.formatted || "").replace((p.name || "") + ", ", ""),
+    phone: c.phone || raw.phone || "",
+    website: p.website || c.website || raw.website || "",
+    email: c.email || raw.email || "",
+    osm: "https://www.openstreetmap.org/?mlat=" + p.lat + "&mlon=" + p.lon + "#map=18/" + p.lat + "/" + p.lon
+  };
+}
+
+async function geoSearch(pt, kind, key) {
+  const base = "https://api.geoapify.com/v2/places?limit=100&filter=circle:" + pt.lon + "," + pt.lat +
+    ",8000&bias=proximity:" + pt.lon + "," + pt.lat + "&apiKey=" + encodeURIComponent(key);
+  const tries = kind === "wig"
+    ? ["&categories=commercial,service.beauty&name=wig"]
+    : GEO_CATS[kind].map(c => "&categories=" + c);
+  let last;
+  for (const t of tries) {
+    try {
+      const j = await getJSON(base + t, { headers: UA }, 15000);
+      if (j.features) return j.features.map(mapGeo).filter(r => r.name);
+      last = new Error(j.message || j.error || "balasan Geoapify tidak dikenal");
+    } catch (e) { last = e; }
+  }
+  throw last;
+}
+
+// ---- Cadangan jika GEOAPIFY_KEY belum diisi: Overpass (sering tidak stabil) ----
+async function overpassSearch(pt, kind) {
+  const s = pt.lat - 0.07, n = pt.lat + 0.07, w = pt.lon - 0.07, e = pt.lon + 0.07;
+  const q = `[out:json][timeout:25];(${FILTERS[kind]}(${s},${w},${n},${e}););out center 100;`;
+  let o;
+  try {
+    o = await Promise.any(OVERPASS.map(ep => getJSON(ep, {
+      method: "POST",
+      headers: { ...UA, "Content-Type": "application/x-www-form-urlencoded" },
+      body: "data=" + encodeURIComponent(q)
+    }, 28000)));
+  } catch (agg) {
+    throw new Error("server peta sedang sibuk. Isi GEOAPIFY_KEY di Vercel agar lebih stabil (" +
+      (agg.errors || []).map(x => x.message).join("; ") + ")");
+  }
+  return (o.elements || []).map(x => {
+    const t = x.tags || {};
+    return {
+      name: t.name || "",
+      address: [t["addr:street"], t["addr:housenumber"], t["addr:city"]].filter(Boolean).join(" "),
+      phone: t.phone || t["contact:phone"] || t["contact:whatsapp"] || "",
+      website: t.website || t["contact:website"] || t["contact:instagram"] || "",
+      email: t.email || t["contact:email"] || "",
+      osm: "https://www.openstreetmap.org/" + x.type + "/" + x.id
+    };
+  }).filter(r => r.name);
+}
+
 module.exports = async (req, res) => {
   try {
     const city = String((req.query && req.query.city) || "").trim();
     const kind = FILTERS[req.query && req.query.kind] ? req.query.kind : "salon";
     if (!city) return res.status(400).json({ error: "Isi nama kota" });
-
-    // 1) Nama kota -> koordinat, lalu kotak pencarian ±0,07 derajat (sekitar 8 km)
     const pt = await geocode(city);
     if (!pt) return res.status(404).json({ error: "Kota tidak ditemukan" });
-    const s = pt.lat - 0.07, n = pt.lat + 0.07, w = pt.lon - 0.07, e = pt.lon + 0.07;
-
-    const q = `[out:json][timeout:25];(${FILTERS[kind]}(${s},${w},${n},${e}););out center 100;`;
-    // Coba semua server Overpass bersamaan, pakai yang pertama berhasil
-    let o;
-    try {
-      o = await Promise.any(OVERPASS.map(ep => getJSON(ep, {
-        method: "POST",
-        headers: { ...UA, "Content-Type": "application/x-www-form-urlencoded" },
-        body: "data=" + encodeURIComponent(q)
-      }, 28000)));
-    } catch (agg) {
-      throw new Error("semua server peta sedang sibuk (" + (agg.errors || []).map(x => x.message).join("; ") + ")");
-    }
-
-    const results = (o.elements || []).map(x => {
-      const t = x.tags || {};
-      return {
-        name: t.name || "",
-        address: [t["addr:street"], t["addr:housenumber"], t["addr:city"]].filter(Boolean).join(" "),
-        phone: t.phone || t["contact:phone"] || t["contact:whatsapp"] || "",
-        website: t.website || t["contact:website"] || t["contact:instagram"] || "",
-        email: t.email || t["contact:email"] || "",
-        osm: "https://www.openstreetmap.org/" + x.type + "/" + x.id
-      };
-    }).filter(r => r.name);
+    const key = process.env.GEOAPIFY_KEY;
+    const results = key ? await geoSearch(pt, kind, key) : await overpassSearch(pt, kind);
     res.setHeader("Cache-Control", "s-maxage=3600");
     return res.status(200).json({ results });
   } catch (err) {
