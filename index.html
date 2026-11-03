@@ -2087,7 +2087,12 @@ function auQueue(){
     }).join("")+"</div>";
     h+="<div class='eacts'><button class='ghost' id='auqall' type='button'>Pilih semua</button><button class='ghost' id='auqnone' type='button'>Kosongkan</button><span class='sp'></span><button class='ghost' id='auqno' type='button'>Tolak terpilih</button><button class='btn primary' id='auqok' type='button'>Setujui terpilih</button></div>";
   }
-  if(ok.length)h+="<p class='hint2'>"+ok.length+" prospek sudah disetujui dan menunggu giliran kirim (sesuai batas harian dan sisa kuota Resend).</p>";
+  if(ok.length){
+    h+="<p class='hint2'>"+ok.length+" prospek sudah disetujui dan menunggu giliran kirim (sesuai batas harian dan sisa kuota Resend). Urut dari skor tertinggi.</p>";
+    h+="<div class='mlist aulist rd'>"+ok.map(function(x){
+      return"<div class='mrow'><span><b>"+esc(x.name||x.to)+"</b><small>"+esc(x.to)+(x.why&&x.why.length?" · "+esc(x.why.join(", ")):"")+"</small></span><em class='mtag'>skor "+(x.sc||0)+"</em></div>";
+    }).join("")+"</div>";
+  }
   $("auq").innerHTML=h;$("auqn").textContent=pend.length?"("+pend.length+" menunggu)":"";
   function ids(){return[].slice.call(document.querySelectorAll("#auq input[data-id]:checked")).map(function(i){return i.getAttribute("data-id")})}
   function setAll(v){[].forEach.call(document.querySelectorAll("#auq input[data-id]"),function(i){i.checked=v})}
