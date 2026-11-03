@@ -1,6 +1,6 @@
 // GET = status key tersimpan (dimasking), POST = simpan ({serp, geo}; "" = hapus, tidak dikirim = tidak diubah)
 const { isAuthed } = require("./_auth");
-const { dbConfigured, getKey, setKey } = require("./_store");
+const { dbConfigured, getKey, setKey, setActive } = require("./_store");
 
 const NAMES = ["serp", "serp2", "geo"];
 async function status() {
@@ -30,6 +30,7 @@ module.exports = async (req, res) => {
           await setKey(n, v);
         }
       }
+      if (b.active === "1" || b.active === "2") await setActive(b.active);
       return res.status(200).json(await status());
     }
     return res.status(405).json({ error: "metode tidak didukung" });

@@ -1,6 +1,6 @@
 // Vercel serverless function: cari tempat. API key diambil dari database (diisi lewat Pengaturan), cadangan: env Vercel
 const { isAuthed } = require("./_auth");
-const { getKey } = require("./_store");
+const { getKey, getActive } = require("./_store");
 const FILTERS = {
   salon: 'nwr["shop"="hairdresser"]',
   beauty: 'nwr["shop"~"beauty|cosmetics"]',
@@ -158,17 +158,13 @@ module.exports = async (req, res) => {
       const key = (await getKey("geo")) || process.env.GEOAPIFY_KEY;
       results = key ? await geoSearch(pt, kind, key) : await overpassSearch(pt, kind);
     } else {
-      const [k1, k2] = await Promise.all([getKey("serp"), getKey("serp2")]);
-      const keys = [k1 || process.env.SERPAPI_KEY, k2].filter(Boolean);
-      if (!keys.length) return res.status(500).json({ error: "API key SerpApi belum diisi. Buka Pengaturan lalu masukkan key-nya" });
-      // Pakai akun 1 dulu; kalau kuotanya habis atau key ditolak, pindah ke akun 2
-      for (let i = 0; i < keys.length; i++) {
-        try { results = await serpSearch(city, kind, keys[i]); break; }
-        catch (e) {
-          if (i < keys.length - 1 && /out of searches|run out|limit|exceed|invalid|unauthorized|quota/i.test(e.message)) continue;
-          throw e;
-        }
-      }
+      const [k1, k2, act] = await Promise.all([getKey("serp"), getKey("serp2"), getActive()]);
+      const a1 = k1 || process.env.SERPAPI_KEY;
+      if (!a1 && !k2) return res.status(500).json({ error: "API key SerpApi belum diisi. Buka Pengaturan lalu masukkan key-nya" });
+      // Akun yang dipakai dipilih manual lewat switch di pojok kanan atas (default akun 1)
+      const useN = act === "2" && k2 ? 2 : (a1 ? 1 : 2);
+      try { results = await serpSearch(city, kind, useN === 2 ? k2 : a1); }
+      catch (e) { throw (a1 && k2) ? new Error(e.message + " (Akun " + useN + ")") : e; }
     }
     res.setHeader("Cache-Control", "private, no-store");
     return res.status(200).json({ results });

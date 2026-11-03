@@ -23,6 +23,11 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sa
 .ubar{height:8px;border-radius:99px;background:var(--soft);border:1px solid var(--line);overflow:hidden}
 .ubar i{display:block;height:100%;width:0;background:var(--acc);border-radius:99px;transition:width .4s}
 .urow{display:flex;flex-direction:column;gap:4px}
+.urow.pick{cursor:pointer;padding:2px 4px;margin:-2px -4px;border-radius:6px}
+.urow.pick:hover{background:var(--soft)}
+.rd{display:inline-block;width:11px;height:11px;border-radius:50%;border:2px solid var(--mute);margin-right:6px;vertical-align:-1px;box-sizing:border-box}
+.urow.act .rd{border-color:var(--acc);background:var(--acc);box-shadow:inset 0 0 0 2px var(--surf)}
+.urow.act>span{color:var(--ink)}
 .urow.low .ubar i{background:var(--warm)}
 .urow.out .ubar i{background:var(--err)}
 .head .tabs{flex:0 0 100%}
@@ -237,7 +242,7 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
   <div id="kload" class="kload"><div class="spin"></div><span>Memuat…</span></div>
   <div id="kbody" hidden>
   <div class="sf f" id="kf1"><label for="k1">API key SerpApi akun 1 (Google Maps)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh1"></span></span><button class="btn" id="kc1" type="button">Ganti</button></div><div class="krow"><input type="password" id="k1" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx1" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://serpapi.com" target="_blank" rel="noopener">serpapi.com</a>. Dipakai untuk sumber Google Maps.</p></div>
-  <div class="sf f" id="kf2"><label for="k2">API key SerpApi akun 2 (opsional, cadangan)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh2"></span></span><button class="btn" id="kc2" type="button">Ganti</button></div><div class="krow"><input type="password" id="k2" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx2" type="button" hidden>Batal</button></div><p class="hint2">Dipakai otomatis kalau kuota akun 1 habis.</p></div>
+  <div class="sf f" id="kf2"><label for="k2">API key SerpApi akun 2 (opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh2"></span></span><button class="btn" id="kc2" type="button">Ganti</button></div><div class="krow"><input type="password" id="k2" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx2" type="button" hidden>Batal</button></div><p class="hint2">Pilih akun yang dipakai lewat switch di pojok kanan atas.</p></div>
   <div class="sf f" id="kf3"><label for="k3">API key Geoapify (opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh3"></span></span><button class="btn" id="kc3" type="button">Ganti</button></div><div class="krow"><input type="password" id="k3" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx3" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://geoapify.com" target="_blank" rel="noopener">geoapify.com</a>. Dipakai untuk sumber OpenStreetMap.</p></div>
   <label class="chk sf" id="kshow"><input type="checkbox" id="ks"> Tampilkan key</label>
   <div class="acts" id="kacts"><button class="btn primary" id="ksave" type="button">Simpan</button><button class="btn" id="kclear" type="button">Hapus key tersimpan</button></div>
@@ -585,7 +590,13 @@ $("dlg").onclick=function(e){if(e.target===this)this.close()};
 function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
 function showLogin(msg){$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
 function showApp(){$("login").hidden=true;$("app").hidden=false;loadUsage()}
-function loadUsage(){fetch("/api/usage").then(function(r){return r.json()}).then(function(j){var u=$("usage"),a=j.accounts||[];if(!a.length){u.hidden=true;return}u.innerHTML=a.map(function(x){var pct=x.limit?Math.min(100,Math.round(x.used/x.limit*100)):0,c=x.left<=0?" out":pct>=80?" low":"";return"<div class='urow"+c+"' title='Sisa "+x.left+" pencarian bulan ini'><span><b>"+x.used+" / "+x.limit+"</b> pencarian"+(a.length>1?" · "+x.label:"")+"</span><div class='ubar'><i style='width:"+pct+"%'></i></div></div>"}).join("");u.hidden=false}).catch(function(){})}
+function loadUsage(){fetch("/api/usage").then(function(r){return r.json()}).then(function(j){var u=$("usage"),a=j.accounts||[],multi=a.length>1;if(!a.length){u.hidden=true;return}
+  u.setAttribute("role",multi?"radiogroup":"");
+  u.innerHTML=a.map(function(x){var pct=x.limit?Math.min(100,Math.round(x.used/x.limit*100)):0,c=x.left<=0?" out":pct>=80?" low":"",on=multi&&x.n===j.active;
+    return"<div class='urow"+c+(multi?" pick":"")+(on?" act":"")+"' data-n='"+x.n+"'"+(multi?" role='radio' tabindex='0' aria-checked='"+on+"' title='Klik untuk memakai "+x.label+". Sisa "+x.left+" pencarian bulan ini'":" title='Sisa "+x.left+" pencarian bulan ini'")+"><span>"+(multi?"<i class='rd'></i>":"")+"<b>"+x.used+" / "+x.limit+"</b> pencarian"+(multi?" · "+x.label:"")+"</span><div class='ubar'><i style='width:"+pct+"%'></i></div></div>"}).join("");
+  u.hidden=false;
+  if(multi)u.querySelectorAll(".urow").forEach(function(r){var go=function(){var n=r.getAttribute("data-n");if(r.classList.contains("act"))return;u.querySelectorAll(".urow").forEach(function(o){var on=o===r;o.classList.toggle("act",on);o.setAttribute("aria-checked",on)});fetch("/api/keys",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({active:n})}).then(function(x){if(!x.ok)loadUsage()}).catch(loadUsage)};r.onclick=go;r.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}})
+}).catch(function(){})}
 var KEYS=[["1","serp"],["2","serp2"],["3","geo"]],was={};
 function isSaved(n){return $("kf"+n).classList.contains("saved")}
 function keyState(j){

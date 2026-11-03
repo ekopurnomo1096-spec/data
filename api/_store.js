@@ -60,4 +60,11 @@ async function setKey(name, value) {
   else await cmd(["HDEL", HASH, name]);
 }
 
-module.exports = { dbConfigured, getKey, setKey };
+// Akun SerpApi yang dipakai untuk pencarian: "1" atau "2" (disimpan di server, jadi sama di semua browser)
+async function getActive() {
+  if (!dbConfigured()) return "1";
+  try { return (await cmd(["HGET", HASH, "active"])) === "2" ? "2" : "1"; } catch (e) { return "1"; }
+}
+async function setActive(v) { await cmd(["HSET", HASH, "active", v === "2" ? "2" : "1"]); }
+
+module.exports = { dbConfigured, getKey, setKey, getActive, setActive };
