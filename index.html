@@ -6,133 +6,165 @@
 <title>Cari prospek hair extension</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap">
 <style>
-:root{--bg:#eef3f8;--card:#fff;--ink:#12263f;--mute:#5b6b80;--line:#d3deea;--acc:#1f6feb;--accsoft:#dce8f7;--ok:#17803d;
+:root{--bg:#eef3f8;--card:#fff;--ink:#12263f;--mute:#586a80;--line:#d3deea;--acc:#1f6feb;--accsoft:#e1ecfb;--ok:#17803d;--err:#b42318;--errbg:#fdecea;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1826;--card:#16243a;--ink:#e6eef8;--mute:#93a5bb;--line:#26384f;--acc:#6aa5ff;--accsoft:#1f3556;--ok:#5fd08a}}
-:root[data-theme="dark"]{--bg:#0e1826;--card:#16243a;--ink:#e6eef8;--mute:#93a5bb;--line:#26384f;--acc:#6aa5ff;--accsoft:#1f3556;--ok:#5fd08a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1826;--card:#16243a;--ink:#e6eef8;--mute:#9bacc0;--line:#27394f;--acc:#6aa5ff;--accsoft:#1f3556;--ok:#5fd08a;--err:#ff9a8f;--errbg:#3a1f22}}
+:root[data-theme="dark"]{--bg:#0e1826;--card:#16243a;--ink:#e6eef8;--mute:#9bacc0;--line:#27394f;--acc:#6aa5ff;--accsoft:#1f3556;--ok:#5fd08a;--err:#ff9a8f;--errbg:#3a1f22}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
-main{max-width:860px;margin:0 auto;padding:28px 18px 60px}
-h1{font-size:clamp(1.7rem,5vw,2.5rem);line-height:1.15;margin:0 0 8px;font-weight:800;letter-spacing:-.02em}
-.sub{color:var(--mute);margin:0 0 22px;max-width:60ch}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:900px;margin:0 auto;padding:30px 18px 70px}
+h1{font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.15;margin:0 0 10px;font-weight:800;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:0 0 20px;max-width:60ch}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:0 0 26px;padding:0;list-style:none;counter-reset:s}
+.steps li{counter-increment:s;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:.95rem;display:flex;gap:10px;align-items:center}
+.steps li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;background:var(--acc);color:#fff;font-weight:800;display:grid;place-items:center;font-size:.9rem}
 .tabs{display:flex;gap:6px;margin-bottom:14px}
-.tab{border:1px solid var(--line);background:transparent;color:var(--ink);padding:9px 16px;border-radius:999px;font:inherit;font-weight:500;cursor:pointer}
+.tab{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 18px;border-radius:999px;font:inherit;font-weight:500;cursor:pointer}
 .tab[aria-selected="true"]{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
-.tab:focus-visible,button:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
-textarea,input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical}
-.row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center}
-.go{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:11px 20px;font:inherit;font-weight:700;cursor:pointer}
-.ghost{background:transparent;color:var(--acc);border:1px solid var(--line);border-radius:10px;padding:9px 14px;font:inherit;cursor:pointer}
-.ex{font-size:.85rem;color:var(--mute);margin-top:10px}
-.ex button{background:var(--accsoft);color:var(--ink);border:0;border-radius:999px;padding:4px 11px;margin:3px 4px 0 0;font:inherit;font-size:.82rem;cursor:pointer}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 4px}
-.chip{background:var(--accsoft);border-radius:8px;padding:4px 10px;font-size:.85rem}
-.chip b{font-weight:700}
-.meta{color:var(--mute);font-size:.88rem;margin:6px 0 10px}
-.scroll{overflow-x:auto}
-table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
-th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-weight:700;color:var(--mute);font-size:.85rem}
-td small{display:block;color:var(--mute)}
-.score{color:var(--ok);font-weight:700;white-space:nowrap}
-.seg{border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-top:9px}
+:is(button,input,select,a):focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.form{display:grid;grid-template-columns:1fr 1.2fr auto;gap:12px;align-items:end}
+@media (max-width:640px){.form{grid-template-columns:1fr}}
+.f label{display:block;font-weight:700;font-size:.9rem;margin-bottom:6px}
+input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;height:48px}
+.go{height:48px;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:0 26px;font:inherit;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px}
+.go[disabled]{opacity:.7;cursor:progress}
+.ex{margin-top:14px;font-size:.9rem;color:var(--mute)}
+.ex button{background:var(--accsoft);color:var(--ink);border:0;border-radius:999px;padding:5px 13px;margin:4px 6px 0 0;font:inherit;font-size:.88rem;cursor:pointer}
+.status{margin-top:20px}
+.load{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--accsoft);border-radius:12px;font-weight:500}
+.spin{flex:none;width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:sp .8s linear infinite}
+.go .spin{width:18px;height:18px;border-color:rgba(255,255,255,.4);border-top-color:#fff}
+@keyframes sp{to{transform:rotate(360deg)}}
+.sk{height:92px;border-radius:12px;margin-top:10px;background:linear-gradient(90deg,var(--line) 25%,var(--accsoft) 50%,var(--line) 75%);background-size:200% 100%;animation:sh 1.3s ease-in-out infinite}
+@keyframes sh{to{background-position:-200% 0}}
+.err{background:var(--errbg);color:var(--err);border-radius:12px;padding:14px 16px;font-weight:500}
+.info{color:var(--mute);padding:6px 2px}
+.bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;margin:2px 0 6px}
+.bar b{font-size:1.05rem}
+.chk{display:flex;gap:8px;align-items:center;font-size:.95rem;cursor:pointer}
+.chk input{width:18px;height:18px}
+.ghost{background:transparent;color:var(--acc);border:1px solid var(--line);border-radius:10px;padding:9px 14px;font:inherit;font-weight:500;cursor:pointer}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:12px}
+.item{border:1px solid var(--line);border-radius:12px;padding:14px 15px;display:flex;flex-direction:column;gap:6px;background:var(--card)}
+.item h3{margin:0;font-size:1.02rem;line-height:1.3}
+.item p{margin:0;color:var(--mute);font-size:.9rem}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.acts a,.acts span{font-size:.85rem;border-radius:8px;padding:4px 10px;text-decoration:none}
+.acts a{background:var(--accsoft);color:var(--ink);font-weight:500}
+.acts span{color:var(--mute);border:1px dashed var(--line)}
+.tag{align-self:flex-start;font-size:.78rem;font-weight:700;color:var(--ok)}
+.seg{border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-top:10px}
 .seg b{display:block}
-.seg span{color:var(--mute);font-size:.9rem}
-.note{margin-top:26px;font-size:.85rem;color:var(--mute);border-left:3px solid var(--acc);padding-left:12px;max-width:70ch}
-.empty{color:var(--mute);padding:14px 2px}
+.seg span{color:var(--mute);font-size:.95rem}
+.note{margin-top:26px;font-size:.88rem;color:var(--mute);border-left:3px solid var(--acc);padding-left:12px;max-width:72ch}
+@media (prefers-reduced-motion:reduce){.spin,.sk{animation:none}}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
 <main>
-<h1>Temukan pembeli dan pemasok hair extension</h1>
-<p class="sub">Tulis jenis tempat dan kota dengan kalimat biasa. Data diambil langsung dari OpenStreetMap, kota mana pun di dunia.</p>
+<h1>Temukan pembeli hair extension di kota mana pun</h1>
+<p class="sub">Cari salon dan toko wig asli lengkap dengan alamat dan kontaknya, di Indonesia maupun luar negeri.</p>
+<ol class="steps"><li>Pilih jenis tempat</li><li>Tulis nama kota</li><li>Lihat hasil dan hubungi</li></ol>
 
 <div class="tabs" role="tablist">
   <button class="tab" role="tab" id="t1" aria-selected="true">Cari tempat</button>
-  <button class="tab" role="tab" id="t2" aria-selected="false">Saran segmen</button>
+  <button class="tab" role="tab" id="t2" aria-selected="false">Siapa yang membeli?</button>
 </div>
 
 <section class="panel" id="p1">
-  <label for="q" class="meta">Siapa yang ingin kamu temui?</label>
-  <textarea id="q" rows="2">salon hair extension di London</textarea>
-  <div class="row"><button class="go" id="run">Cari</button><button class="ghost" id="copy" hidden>Salin hasil (CSV)</button><span class="meta" id="copied" hidden>Tersalin.</span></div>
-  <div class="ex">Coba:
-    <button>salon hair extension di Houston, USA</button>
-    <button>toko wig di Atlanta</button>
-    <button>toko kecantikan di Purwokerto</button>
-    <button>salon rambut di Jakarta</button>
+  <div class="form">
+    <div class="f"><label for="kind">Jenis tempat</label>
+      <select id="kind"><option value="salon">Salon rambut</option><option value="wig">Toko wig / beauty supply</option><option value="beauty">Toko kecantikan</option></select></div>
+    <div class="f"><label for="city">Kota</label><input type="text" id="city" value="London" placeholder="Contoh: London, Houston USA, Purwokerto"></div>
+    <button class="go" id="run"><span id="runtxt">Cari</span></button>
   </div>
-  <div class="chips" id="chips"></div>
-  <label class="meta" id="flt" hidden><input type="checkbox" id="onlyc"> Tampilkan hanya yang punya telepon, website, atau email</label>
-  <div class="meta" id="count"></div>
-  <div class="scroll"><table id="tbl" hidden><thead><tr><th>Nama</th><th>Alamat</th><th>Telepon</th><th>Website / email</th></tr></thead><tbody id="rb"></tbody></table></div>
+  <div class="ex">Contoh kota:
+    <button>London</button><button>Houston, USA</button><button>Atlanta, USA</button><button>Lagos, Nigeria</button><button>Purwokerto</button><button>Jakarta</button>
+  </div>
+  <div class="status" id="status" aria-live="polite"></div>
+  <div id="res" hidden>
+    <div class="bar"><b id="count"></b>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <label class="chk"><input type="checkbox" id="onlyc"> Hanya yang punya kontak</label>
+        <button class="ghost" id="copy">Salin sebagai CSV</button><span id="copied" class="info" hidden></span>
+      </div>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
 </section>
 
 <section class="panel" id="p2" hidden>
-  <p class="meta">Siapa yang biasanya membeli hair extension? Segmen yang punya tombol bisa langsung dicari di peta.</p>
+  <p class="info" style="margin-top:0">Daftar pembeli yang paling mungkin tertarik. Yang punya tombol bisa langsung dicari di peta.</p>
   <div id="segs"></div>
 </section>
 
-<p class="note">Kolom kosong berarti datanya belum diisi di OpenStreetMap, dan cakupannya berbeda tiap negara. Importir, distributor, dan pabrik tidak punya kategori jelas di OpenStreetMap, jadi cari lewat direktori B2B. Halaman ini hanya berjalan setelah di-deploy ke Vercel.</p>
+<p class="note">Data berasal dari OpenStreetMap. Kartu tanpa telepon atau website berarti datanya belum diisi di sana, dan kelengkapannya berbeda tiap negara. Hasil dibatasi sekitar 11 km dari pusat kota. Importir, distributor, dan pabrik tidak punya kategori jelas di OpenStreetMap, jadi cari lewat direktori B2B.</p>
 </main>
 
 <script>
 (function(){
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
-var KIND={wig:["wig","peruk","toupee","beauty supply"],beauty:["kecantikan","beauty","kosmetik","cosmetic"],salon:["salon","barbershop","hair studio","sambung rambut","extension"]};
-var LABEL={salon:"Salon rambut",beauty:"Toko kecantikan",wig:"Toko wig / beauty supply"};
-var NOSUP=["importir","impor","ekspor","distributor","grosir","reseller","produsen","pabrik","pemasok","supplier","mua","perias","pengantin"];
-var rows=[],lastCity="Jakarta";
-function parse(t){
-  t=t.toLowerCase();var kind=null;
-  ["wig","beauty","salon"].forEach(function(k){if(!kind&&KIND[k].some(function(w){return t.indexOf(w)>=0}))kind=k});
-  var m=t.match(/\bdi\s+(.+)$/),city=m?m[1].replace(/\s+(dengan|yang|lebih|kurang)\b.*$/,"").trim():"";
-  return{kind:kind,city:city,unsup:NOSUP.filter(function(w){return t.indexOf(w)>=0})};
+var LABEL={salon:"salon",wig:"toko wig",beauty:"toko kecantikan"};
+var rows=[],timer=null;
+var STEPS=["Mencari lokasi kota…","Mengambil data dari OpenStreetMap…","Hampir selesai. Kota besar butuh waktu lebih lama…"];
+function loading(on){
+  $("run").disabled=on;
+  $("runtxt").textContent=on?"Mencari…":"Cari";
+  if(on){
+    $("res").hidden=true;
+    var i=0;
+    $("status").innerHTML="<div class='load'><div class='spin'></div><span id='lm'>"+STEPS[0]+"</span></div><div class='sk'></div><div class='sk'></div><div class='sk'></div>";
+    timer=setInterval(function(){i=Math.min(i+1,STEPS.length-1);var m=$("lm");if(m)m.textContent=STEPS[i]},4000);
+  }else{clearInterval(timer);$("status").innerHTML=""}
 }
-function msg(t){$("count").textContent=t;$("tbl").hidden=true;$("copy").hidden=true;$("flt").hidden=true}
+function say(cls,t){$("status").innerHTML="<div class='"+cls+"'>"+t+"</div>"}
+function href(u){return/^https?:\/\//i.test(u)?u:"https://"+u}
 function render(){
   var only=$("onlyc").checked,r=rows.filter(function(x){return!only||x.phone||x.website||x.email});
-  $("count").textContent=rows.length+" tempat ditemukan"+(only?", "+r.length+" punya kontak":"")+".";
-  $("rb").innerHTML=r.map(function(x){
-    var w=x.website?"<a href='"+esc(x.website)+"' target='_blank' rel='noopener'>"+esc(x.website)+"</a>":"";
-    return"<tr><td>"+esc(x.name)+"<small><a href='"+esc(x.osm)+"' target='_blank' rel='noopener'>lihat di peta</a></small></td><td>"+esc(x.address)+"</td><td>"+esc(x.phone)+"</td><td>"+w+(x.email?"<small>"+esc(x.email)+"</small>":"")+"</td></tr>"}).join("");
-  $("tbl").hidden=!r.length;$("copy").hidden=!r.length;$("flt").hidden=!rows.length;$("copied").hidden=true;
+  var withc=rows.filter(function(x){return x.phone||x.website||x.email}).length;
+  $("count").textContent=rows.length+" tempat ditemukan, "+withc+" punya kontak";
+  $("copied").hidden=true;
+  $("list").innerHTML=r.length?r.map(function(x){
+    var a=[];
+    if(x.phone)a.push("<a href='tel:"+esc(x.phone.split(/[;,]/)[0].replace(/[^\d+]/g,""))+"'>Telepon "+esc(x.phone.split(/[;,]/)[0].trim())+"</a>");
+    if(x.website)a.push("<a href='"+esc(href(x.website))+"' target='_blank' rel='noopener'>Website</a>");
+    if(x.email)a.push("<a href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>");
+    if(!a.length)a.push("<span>Belum ada kontak</span>");
+    a.push("<a href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Peta</a>");
+    return"<div class='item'><h3>"+esc(x.name)+"</h3><p>"+(x.address?esc(x.address):"Alamat belum diisi")+"</p><div class='acts'>"+a.join("")+"</div></div>"}).join(""):"<p class='info'>Tidak ada tempat yang punya kontak. Matikan filter untuk melihat semuanya.</p>";
+  $("res").hidden=false;
 }
 async function run(){
-  var f=parse($("q").value),ch=[];
-  if(f.kind)ch.push("<span class='chip'>Jenis: <b>"+LABEL[f.kind]+"</b></span>");
-  if(f.city){ch.push("<span class='chip'>Kota: <b>"+esc(f.city)+"</b></span>");lastCity=f.city}
-  $("chips").innerHTML=ch.join("");
-  if(!f.city)return msg("Tulis nama kota setelah kata “di”, misalnya “salon hair extension di London”.");
-  if(!f.kind)return msg(f.unsup.length?"Kategori itu belum ada di OpenStreetMap. Yang bisa dicari: salon, toko wig, dan toko kecantikan. Untuk importir, distributor, atau pabrik, pakai direktori B2B.":"Sebutkan jenis tempat: salon, toko wig, atau toko kecantikan.");
-  msg("Mencari…");
+  var city=$("city").value.trim(),kind=$("kind").value;
+  if(!city){say("err","Tulis nama kota dulu, misalnya London atau Purwokerto.");$("city").focus();return}
+  loading(true);
   try{
-    var r=await fetch("/api/places?city="+encodeURIComponent(f.city)+"&kind="+f.kind),j=await r.json();
+    var r=await fetch("/api/places?city="+encodeURIComponent(city)+"&kind="+kind),tx=await r.text(),j;
+    try{j=JSON.parse(tx)}catch(x){throw new Error("server membalas error ("+r.status+"). Cek Logs di dashboard Vercel.")}
     if(!r.ok)throw new Error(j.error||"Gagal");
-    rows=j.results;
-    if(!rows.length)return msg("Tidak ada hasil. Coba nama kota atau area yang lebih kecil, atau jenis tempat lain.");
+    rows=j.results;loading(false);
+    if(!rows.length)return say("info","Tidak ada "+LABEL[kind]+" di "+esc(city)+" pada data OpenStreetMap. Coba kota lain atau jenis tempat lain.");
     render();
-  }catch(e){msg("Gagal: "+e.message+". Pastikan halaman ini sudah di-deploy ke Vercel dan folder api ada di akar repo.")}
+  }catch(e){loading(false);say("err","Pencarian gagal: "+esc(e.message)+" Coba lagi, atau coba kota yang lebih kecil.")}
 }
 $("run").onclick=run;$("onlyc").onchange=render;
-$("q").addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();run()}});
-document.querySelectorAll(".ex button").forEach(function(b){b.onclick=function(){$("q").value=b.textContent;run()}});
+$("city").addEventListener("keydown",function(e){if(e.key==="Enter")run()});
+document.querySelectorAll(".ex button").forEach(function(b){b.onclick=function(){$("city").value=b.textContent;run()}});
 $("copy").onclick=function(){
   var only=$("onlyc").checked,r=rows.filter(function(x){return!only||x.phone||x.website||x.email});
   var csv="nama,alamat,telepon,website,email\n"+r.map(function(x){return[x.name,x.address,x.phone,x.website,x.email].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(",")}).join("\n");
-  function ok(){$("copied").textContent="Tersalin.";$("copied").hidden=false}
-  function bad(){$("copied").textContent="Gagal menyalin. Salin tabel secara manual.";$("copied").hidden=false}
-  try{navigator.clipboard.writeText(csv).then(ok,bad)}catch(e){bad()}
+  function done(t){$("copied").textContent=t;$("copied").hidden=false}
+  try{navigator.clipboard.writeText(csv).then(function(){done("Tersalin.")},function(){done("Gagal menyalin.")})}catch(e){done("Gagal menyalin.")}
 };
-var SEG=[["Salon yang memasang hair extension","Pakai extension setiap hari dan butuh pasokan stabil.","salon hair extension"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","toko wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","toko kecantikan"],["Importir dan distributor di luar negeri","Volume besar. Cari lewat direktori B2B seperti Alibaba atau Global Sources.",""],["Perias pengantin","Cari lewat Instagram dengan kata kunci “bridal hair” plus nama kota.",""],["Pabrik wig dan rambut","Calon mitra atau pesaing. Cari lewat direktori ekspor.",""]];
+var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"],["Importir dan distributor di luar negeri","Volume besar. Cari lewat direktori B2B seperti Alibaba atau Global Sources.",""],["Perias pengantin","Cari lewat Instagram dengan kata kunci “bridal hair” plus nama kota.",""],["Pabrik wig dan rambut","Calon mitra atau pesaing. Cari lewat direktori ekspor.",""]];
 function tab(n){[1,2].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}
 $("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};
-$("segs").innerHTML=SEG.map(function(s,i){return"<div class='seg'><b>"+s[0]+"</b><span>"+s[1]+"</span>"+(s[2]?" <button class='ghost' data-i='"+i+"' style='margin-top:6px'>Cari di peta</button>":"")+"</div>"}).join("");
-document.querySelectorAll("#segs button").forEach(function(b){b.onclick=function(){$("q").value=SEG[+b.getAttribute("data-i")][2]+" di "+lastCity;tab(1);run()}});
+$("segs").innerHTML=SEG.map(function(s,i){return"<div class='seg'><b>"+s[0]+"</b><span>"+s[1]+"</span>"+(s[2]?"<div style='margin-top:8px'><button class='ghost' data-i='"+i+"'>Cari di peta</button></div>":"")+"</div>"}).join("");
+document.querySelectorAll("#segs button").forEach(function(b){b.onclick=function(){$("kind").value=SEG[+b.getAttribute("data-i")][2];tab(1);$("city").focus()}});
 })();
 </script>
 </body>
