@@ -324,18 +324,22 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 }
 /* Modal progres Nilai dengan AI */
 #aid{width:min(380px,calc(100vw - 24px))}
-#aidbody{padding:20px}
-.aidh{display:flex;align-items:center;gap:10px}
+#aidbody{padding:24px 20px 20px;text-align:center}
+.aidh{display:flex;flex-direction:column;align-items:center;gap:8px}
 .aidh h2{font:600 1.1rem/1.35 "Instrument Sans",system-ui,sans-serif;margin:0}
-.aidi{flex:none;display:inline-grid;place-items:center;width:24px;height:24px}
-.aidi svg{width:22px;height:22px;margin:0;color:inherit}
+.aidi{flex:none;display:inline-grid;place-items:center;width:36px;height:36px}
+.aidi svg{width:32px;height:32px;margin:0;color:inherit}
+.aidi .spin{width:28px;height:28px}
 .aidi:empty{display:none}
 .aipb{height:8px;border-radius:99px;background:var(--soft);border:1px solid var(--line);overflow:hidden;margin-top:14px}
 .aipb i{display:block;height:100%;width:0;background:var(--acc);border-radius:99px;transition:width .35s}
 #aid.ai-ok .aidi{color:var(--acc)}
 #aid.ai-err .aidi{color:var(--err)}
 #aid.ai-err .aipb i{background:var(--err)}
-#aid .acts{margin-top:16px}
+#aid .acts{margin-top:18px;justify-content:center}
+#aid .dr{margin-top:6px}
+#aid.ai-run .acts{display:none}
+#aid.ai-run #aidbody{padding-bottom:24px}
 </style>
 </head>
 <body>
