@@ -271,6 +271,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       <select id="source"><option value="google">Google Maps (lengkap)</option><option value="osm">OpenStreetMap (gratis, tipis)</option></select></div>
     <button class="go" id="run"><span id="runtxt">Cari</span></button>
   </div>
+  <div id="slot1"><div id="resbox">
   <div class="status" id="status" aria-live="polite"><p class="info">Pilih negara dan kota, lalu tekan Cari. Hasilnya bisa diurutkan dan difilter.</p></div>
   <div id="res" hidden>
     <div class="stats" id="stats"></div>
@@ -309,6 +310,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
     </table></div>
     <div class="morebox" id="morebox" hidden><button class="ghost" id="more" type="button">Muat 20 lagi</button><span class="hint2" id="morehint">Memakai 1 kuota SerpApi.</span></div>
   </div>
+  </div></div>
 </section>
 <section id="p2" hidden>
   <p class="info" style="margin-bottom:14px">Daftar pembeli yang paling mungkin tertarik. Yang punya tombol bisa langsung dicari di tab Cari tempat.</p>
@@ -316,6 +318,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 </section>
 <section id="p3" hidden>
   <div id="svbox"></div>
+  <div id="svres" hidden><p style="margin:0 0 12px"><button class="ghost" id="svback" type="button">← Kembali ke Tersimpan</button></p><div id="svslot"></div></div>
 </section>
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -721,11 +724,18 @@ $("more").onclick=async function(){
   b.disabled=false;b.textContent="Muat 20 lagi";
 };
 $("sortsel").onchange=function(){var v=this.value;if(v==="namez"){sKey="name";sDir=-1}else{sKey=v;sDir=(v==="name"||v==="status")?1:-1}render()};
-$("run").onclick=function(){run(false)};
+var resHome=1;
+function placeRes(n){
+  resHome=n;
+  (n===3?$("svslot"):$("slot1")).appendChild($("resbox"));
+  $("svres").hidden=n!==3;$("svbox").hidden=n===3;
+}
+$("svback").onclick=function(){$("svres").hidden=true;$("svbox").hidden=false};
+$("run").onclick=function(){placeRes(1);run(false)};
 ["fst","frt","frv","fph","fwa","fem","fwb","fnt"].forEach(function(id){$(id).addEventListener("change",render)});
 $("q").addEventListener("input",render);
 $("freset").onclick=function(){$("q").value="";$("fst").value="all";$("frt").value="";$("frv").value="";["fph","fwa","fem","fwb","fnt"].forEach(function(id){$(id).checked=false});render()};
-$("city").addEventListener("keydown",function(e){if(e.key==="Enter")run()});
+$("city").addEventListener("keydown",function(e){if(e.key==="Enter"){placeRes(1);run()}});
 document.querySelectorAll("th[data-k] button").forEach(function(b){b.onclick=function(){
   var k=b.parentNode.getAttribute("data-k");
   if(sKey===k)sDir=-sDir;else{sKey=k;sDir=(k==="name"||k==="status")?1:-1}
@@ -825,9 +835,9 @@ $("dbody").addEventListener("click",function(e){
 });
 $("tb").addEventListener("change",function(e){var sel=e.target.closest("select.stsel");if(!sel)return;var x=rows[+sel.getAttribute("data-ri")];if(!x)return;sel.className="stsel st-"+(sel.value||"baru");saveLead(x,{s:sel.value})});
 $("svbox").addEventListener("click",function(e){
-  if(e.target.closest("#mine")){tab(1);showMine();return}
+  if(e.target.closest("#mine")){placeRes(3);showMine();return}
   var cb=e.target.closest(".cb"),cx=e.target.closest(".cx");
-  if(cb){var m=SAVED[+cb.getAttribute("data-i")];if(!m)return;$("city").value=m.city;$("kind").value=m.kind;$("source").value=m.source;tab(1);run(false);return}
+  if(cb){var m=SAVED[+cb.getAttribute("data-i")];if(!m)return;$("city").value=m.city;$("kind").value=m.kind;$("source").value=m.source;placeRes(3);run(false);return}
   if(cx){var d=SAVED[+cx.getAttribute("data-i")];
     if(!d||!confirm("Hapus hasil tersimpan untuk "+d.city+"? Pencarian berikutnya memakai kuota lagi. Status dan catatan prospek tidak ikut terhapus."))return;
     fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"delsearch",key:d.key})}).then(loadSearches).catch(function(){})}
@@ -913,7 +923,7 @@ $("kclear").onclick=function(){if(confirm("Hapus semua key yang tersimpan di ser
 $("outb").onclick=function(){fetch("/api/session",{method:"DELETE"}).then(function(){location.reload()},function(){location.reload()})};
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"],["Importir dan distributor di luar negeri","Volume besar. Cari lewat direktori B2B seperti Alibaba atau Global Sources.",""],["Perias pengantin","Cari lewat Instagram dengan kata kunci “bridal hair” plus nama kota.",""],["Pabrik wig dan rambut","Calon mitra atau pesaing. Cari lewat direktori ekspor.",""]];
 function tab(n){[1,2,3].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}
-$("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};$("t3").onclick=function(){tab(3)};
+$("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};$("t3").onclick=function(){if($("t3").getAttribute("aria-selected")==="true"){$("svres").hidden=true;$("svbox").hidden=false}tab(3)};
 $("segs").innerHTML=SEG.map(function(s,i){return"<div class='seg'><div class='n'>"+(i+1)+"</div><div><b>"+s[0]+"</b><span>"+s[1]+"</span>"+(s[2]?"<div><button class='ghost' data-i='"+i+"'>Cari tempat ini</button></div>":"")+"</div></div>"}).join("");
 document.querySelectorAll("#segs button").forEach(function(b){b.onclick=function(){$("kind").value=SEG[+b.getAttribute("data-i")][2];tab(1);$("city").focus()}});
 fetch("/api/session").then(function(r){return r.json()}).then(function(j){
