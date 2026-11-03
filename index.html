@@ -768,6 +768,12 @@ var STAT=[["","Belum dihubungi"],["chat","Sudah dihubungi"],["balas","Dibalas"],
 var STORD={"":0,chat:1,balas:2,deal:3,tidak:4};
 function stOf(x){var r=LS[x.id];return r&&r.s||""}
 function noteOf(x){var r=LS[x.id];return r&&r.n||""}
+var AUTONOTE=/^(WA|Telepon|Email), \d{1,2} [A-Za-z]{3,5}\.?$/;
+function statusPatch(x,v){
+  var p={s:v};
+  if(!v){var cur=noteOf(x),n=cur.split("\n").filter(function(l){return!AUTONOTE.test(l.trim())}).join("\n").trim();if(n!==cur)p.n=n}
+  return p;
+}
 function stLabel(k){for(var i=0;i<STAT.length;i++)if(STAT[i][0]===k)return STAT[i][1];return STAT[0][1]}
 function stSel(x,id,extra){var s=stOf(x);return"<select"+(id?" id='"+id+"'":"")+" class='stsel st-"+(s||"baru")+"'"+(extra||"")+" aria-label='Status prospek'>"+STAT.map(function(p){return"<option value='"+p[0]+"'"+(p[0]===s?" selected":"")+">"+p[1]+"</option>"}).join("")+"</select>"}
 function stCell(x){return"<td data-l='Status'>"+IC.st+stSel(x,"","  data-ri='"+rows.indexOf(x)+"'")+"</td>"}
@@ -1065,7 +1071,7 @@ function openD(x){curX=x;
     +"</div>"
     +(x.looked&&!x.found?"<p class='dr' style='margin-top:12px'>Sudah dicek di website, tapi tidak ada email atau WhatsApp yang ditemukan.</p>":"");
   $("dx").onclick=function(){$("dlg").close()};
-  $("dst").onchange=function(){this.className="stsel st-"+(this.value||"baru");saveLead(x,{s:this.value});render()};
+  $("dst").onchange=function(){this.className="stsel st-"+(this.value||"baru");var p=statusPatch(x,this.value);saveLead(x,p);if(p.n!==undefined){var el=$("dnt");if(el)el.value=p.n}render()};
   $("dnt").oninput=function(){pend=x;clearTimeout(ntm);ntm=setTimeout(flushNote,900)};
   $("dnt").onblur=flushNote;
   if(em.length)$("dsend").onclick=function(){openMail([x])};
@@ -1226,7 +1232,7 @@ $("dbody").addEventListener("click",function(e){
   var a=e.target.closest("a[data-act]");
   if(a&&curX)markContacted(curX,a.getAttribute("data-act")==="wa"?"WA":"Telepon");
 });
-$("tb").addEventListener("change",function(e){var sel=e.target.closest("select.stsel");if(!sel)return;var x=rows[+sel.getAttribute("data-ri")];if(!x)return;sel.className="stsel st-"+(sel.value||"baru");saveLead(x,{s:sel.value})});
+$("tb").addEventListener("change",function(e){var sel=e.target.closest("select.stsel");if(!sel)return;var x=rows[+sel.getAttribute("data-ri")];if(!x)return;sel.className="stsel st-"+(sel.value||"baru");var p=statusPatch(x,sel.value);saveLead(x,p);if(p.n!==undefined)render()});
 $("svbox").addEventListener("click",function(e){
   if(e.target.closest("#mine")){placeRes(3);showMine();return}
   var cb=e.target.closest(".cb"),cx=e.target.closest(".cx");
