@@ -1088,7 +1088,7 @@ function aiLead(x){return{id:x.id,name:x.name,address:x.address,rating:x.rating,
 var AIW='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>';
 var AIOK='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.5l3.5 3.5L17 9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function aidShow(st,title,msg,pct){
-  var d=$("aid");d.className="ai-"+st;
+  var d=$("aid");d.className="ai-"+st;d.setAttribute("aria-label",title);
   $("aidt").textContent=title;$("aidm").textContent=msg;$("aidbar").style.width=pct+"%";
   $("aidi").innerHTML=st==="run"?"<div class='spin'></div>":st==="ok"?AIOK:st==="err"?AIW:"";
   $("aidpb").hidden=st==="info";
@@ -1121,18 +1121,19 @@ $("aiscore").onclick=async function(){
   b.disabled=false;
 };
 $("findall").onclick=async function(){
-  var b=this,list=view().filter(function(x){return x.id&&x.website&&!x.looked});
-  if(!list.length){flash("Semua tempat di tampilan ini sudah dicek emailnya.");return}
+  var b=this,all=view(),list=all.filter(function(x){return x.id&&x.website&&!x.looked});
+  var T="Cari email semua";
+  if(!list.length){aidShow("info",T,all.length?"Semua tempat di tampilan ini sudah dicek emailnya, atau tidak punya website.":"Tidak ada tempat untuk dicek.",0);return}
   b.disabled=true;b.setAttribute("aria-busy","true");
   var tot=list.length,done=0,got=0,idx=0,stop=false;
-  function upd(){b.textContent="Mencari "+done+"/"+tot+"…"}
+  function upd(){aidShow("run",T,"Mengecek "+done+" dari "+tot+" website…",done/tot*100)}
   upd();
   async function worker(){
     while(!stop&&idx<tot){
       var x=list[idx++];
       try{
         var r=await fetch("/api/email?url="+encodeURIComponent(x.website));
-        if(r.status===401){stop=true;showLogin("Sesi habis, silakan masuk lagi.");return}
+        if(r.status===401){stop=true;return}
         if(!r.ok)throw 0;
         var j=await r.json(),m=j.emails||[],w=(j.whatsapp||[])[0];
         x.looked=true;
@@ -1141,13 +1142,14 @@ $("findall").onclick=async function(){
         x.found=!!(m.length||w);
         if(x.found){got++;saveLead(x,{})}
       }catch(e){}
-      done++;upd();
+      done++;if(!stop)upd();
     }
   }
   await Promise.all([worker(),worker(),worker(),worker()]);
-  b.disabled=false;b.setAttribute("aria-busy","false");b.textContent="Cari email semua";
+  b.disabled=false;b.setAttribute("aria-busy","false");
   render();if($("emq"))renderMail();
-  flash("Selesai. "+got+" dari "+tot+" tempat punya email atau WhatsApp.");
+  if(stop){$("aid").close();showLogin("Sesi habis, silakan masuk lagi.");return}
+  aidShow("ok","Selesai","Dari "+tot+" website, "+got+" tempat punya email atau WhatsApp."+(got?" Tempat itu sudah tersimpan ke Prospek Saya.":""),100);
 };
 function tickBtn(b){
   clearTimeout(b._t);b.innerHTML=IC.ok;b.classList.add("done");
