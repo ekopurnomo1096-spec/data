@@ -83,6 +83,7 @@ input::placeholder{color:var(--mute);opacity:.8}
 .meter{height:4px;background:var(--soft);border-radius:4px;margin-top:8px;overflow:hidden}
 .meter i{display:block;height:100%;background:var(--acc)}
 .tools{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:10px}
+.dls{display:inline-flex;gap:8px}
 .q{flex:1 1 220px;max-width:340px}
 .chk{display:flex;gap:7px;align-items:center;font-size:.86rem;cursor:pointer}
 .chk input{width:16px;height:16px;accent-color:var(--acc)}
@@ -281,7 +282,8 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
  .tools:has(.svl)>.chk{grid-column:span 3}
  .tools:has(.svl)>.chk:has(#fnt){grid-column:1/-1}
  .tools #aiscore{grid-column:1/-1;background:var(--acc);border-color:var(--acc);color:var(--onacc)}
- .tools #copy,.tools #dl{grid-column:span 3}
+ .tools .dls{grid-column:1/-1}
+ .tools .dls .ghost{flex:1;min-width:0}
  .tools .chk:has(input:checked){border-color:var(--acc);background:var(--accsoft);color:var(--acc);font-weight:600}
  .tools .ghost{width:100%;height:40px;padding:0 8px}
  .meta{margin:4px 0 10px}
@@ -314,17 +316,15 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
  .hbtns{flex:0 0 100%;flex-wrap:nowrap;margin-bottom:8px}
  .hbtns .usage{flex:1 1 auto;min-width:0;margin-right:auto}
  #setb,#outb{width:42px;height:42px;padding:0;flex:none}
- #setb,#outb,.tools #copy,.tools #dl{font-size:0;position:relative;display:inline-flex;align-items:center;justify-content:center}
- #setb::before,#outb::before,.tools #copy::before,.tools #dl::before{content:"";width:20px;height:20px;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
+ #setb,#outb{font-size:0;position:relative;display:inline-flex;align-items:center;justify-content:center}
+ #setb::before,#outb::before{content:"";width:20px;height:20px;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
  #setb::before{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4'/%3E%3C/svg%3E")}
  #outb::before{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9'/%3E%3C/svg%3E")}
- .tools #copy::before{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='14' height='14' x='8' y='8' rx='2'/%3E%3Cpath d='M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2'/%3E%3C/svg%3E")}
- .tools #dl::before{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3'/%3E%3C/svg%3E")}
  .tools #copied{grid-column:1/-1;order:10;margin:0}
 }
 /* Modal progres Nilai dengan AI */
 #aid{width:min(380px,calc(100vw - 24px))}
-#aidbody{padding:24px 20px 20px;text-align:center}
+#aidbody{padding:28px 48px 26px;text-align:center;outline:none}
 .aidh{display:flex;flex-direction:column;align-items:center;gap:8px}
 .aidh h2{font:600 1.1rem/1.35 "Instrument Sans",system-ui,sans-serif;margin:0}
 .aidi{flex:none;display:inline-grid;place-items:center;width:36px;height:36px}
@@ -338,8 +338,9 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 #aid.ai-err .aipb i{background:var(--err)}
 #aid .acts{margin-top:18px;justify-content:center}
 #aid .acts:has(#aids[hidden]){display:none}
-.aidx{position:absolute;top:8px;right:8px;width:32px;height:32px;display:grid;place-items:center;padding:0;border:0;border-radius:8px;background:transparent;color:var(--mute);opacity:.9;cursor:pointer}
-.aidx:hover{opacity:1;background:var(--line)}
+.aidx{position:absolute;top:10px;right:10px;width:32px;height:32px;display:grid;place-items:center;padding:0;border:0;border-radius:8px;background:transparent;color:var(--mute);opacity:.9;cursor:pointer}
+.aidx:hover{opacity:1;background:var(--soft)}
+.aidx:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 .aidx[hidden]{display:none}
 .aidx svg{width:18px;height:18px}
 #aid .dr{margin-top:6px}
@@ -405,8 +406,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       <span class="sp"></span>
       <span id="copied" class="info" hidden></span>
       <button class="ghost" id="aiscore" type="button" title="AI memberi skor 0-100 dan alasan untuk tiap tempat di tampilan ini">Nilai dengan AI</button>
-      <button class="ghost" id="copy" type="button">Salin CSV</button>
-      <button class="ghost" id="dl" type="button">Unduh CSV</button>
+      <span class="dls"><button class="ghost" id="dl" type="button">Unduh CSV</button><button class="ghost" id="dlem" type="button" title="Hanya nama dan email, untuk tempat yang punya email">Unduh email</button><button class="ghost" id="dlwa" type="button" title="Hanya nama dan nomor WhatsApp, untuk tempat yang punya nomor">Unduh WA</button></span>
     </div>
     <p class="meta" id="shown"></p>
     <div class="tw"><table>
@@ -436,7 +436,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <dialog id="pdlg" aria-label="Foto tempat"><figure><img id="pimg" alt=""><figcaption id="pcap"></figcaption></figure></dialog>
 <dialog id="dlg" aria-label="Detail tempat"><div id="dbody"></div></dialog>
-<dialog id="aid" aria-label="Nilai dengan AI"><div id="aidbody">
+<dialog id="aid" aria-label="Nilai dengan AI"><div id="aidbody" tabindex="-1" autofocus>
   <div class="aidh"><span id="aidi" class="aidi"></span><h2 id="aidt">Menilai dengan AI</h2></div>
   <p class="dr" id="aidm" aria-live="polite"></p>
   <div class="aipb" id="aidpb"><i id="aidbar"></i></div>
@@ -870,14 +870,22 @@ function csv(){
   }).join("\n");
 }
 function done(t){$("copied").textContent=t;$("copied").hidden=false}
-$("copy").onclick=function(){
-  try{navigator.clipboard.writeText(csv()).then(function(){done("Tersalin.")},function(){done("Gagal menyalin.")})}catch(e){done("Gagal menyalin.")}
-};
+function dlFile(name,head,rowsOf){
+  var r=[];view().forEach(function(x){rowsOf(x).forEach(function(c){r.push(c)})});
+  if(!r.length){flash("Tidak ada tempat dengan data itu di tampilan ini.");return}
+  var q=function(v){return'"'+String(v).replace(/"/g,'""')+'"'};
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob(["\ufeff"+head+"\n"+r.map(function(c){return c.map(q).join(",")}).join("\n")],{type:"text/csv;charset=utf-8"}));
+  a.download=name;document.body.appendChild(a);a.click();a.remove();
+  flash("Diunduh: "+r.length+" baris.");
+}
 $("dl").onclick=function(){
   var a=document.createElement("a");
   a.href=URL.createObjectURL(new Blob(["\ufeff"+csv()],{type:"text/csv;charset=utf-8"}));
   a.download="prospek.csv";document.body.appendChild(a);a.click();a.remove();
 };
+$("dlem").onclick=function(){dlFile("prospek-email.csv","nama,email",function(x){return emailsOf(x).map(function(e){return[x.name,e]})})};
+$("dlwa").onclick=function(){dlFile("prospek-wa.csv","nama,whatsapp",function(x){var w=waOf(x);return w?[[x.name,"+"+w.n]]:[]})};
 IC.wa="<svg viewBox='0 0 24 24' width='19' height='19' fill='#25D366' aria-hidden='true'><path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z'/></svg>";
 function firstPhone(x){return x.phone?x.phone.split(/[;,]/)[0].trim():""}
 function emailsOf(x){return x.emails&&x.emails.length?x.emails:(x.email?[x.email]:[])}
