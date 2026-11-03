@@ -83,7 +83,13 @@ input::placeholder{color:var(--mute);opacity:.8}
 .meter{height:4px;background:var(--soft);border-radius:4px;margin-top:8px;overflow:hidden}
 .meter i{display:block;height:100%;background:var(--acc)}
 .tools{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:10px}
-.dls{display:inline-flex;gap:8px}
+.dls{position:relative;display:inline-flex}
+#dl{display:inline-flex;align-items:center;gap:6px}
+.dlmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;min-width:230px;padding:6px;background:var(--surf);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:2px}
+.dlmenu button{display:flex;justify-content:space-between;gap:12px;align-items:center;width:100%;height:38px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--ink);font:inherit;font-size:.86rem;text-align:left;cursor:pointer}
+.dlmenu button:hover,.dlmenu button:focus-visible{background:var(--soft);outline:none}
+.dlmenu button:disabled{opacity:.45;cursor:default;background:transparent}
+.dlmenu small{color:var(--mute);font-size:.78rem}
 .q{flex:1 1 220px;max-width:340px}
 .chk{display:flex;gap:7px;align-items:center;font-size:.86rem;cursor:pointer}
 .chk input{width:16px;height:16px;accent-color:var(--acc)}
@@ -283,7 +289,8 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
  .tools:has(.svl)>.chk:has(#fnt){grid-column:1/-1}
  .tools #aiscore{grid-column:1/-1;background:var(--acc);border-color:var(--acc);color:var(--onacc)}
  .tools .dls{grid-column:1/-1}
- .tools .dls .ghost{flex:1;min-width:0}
+ .tools .dls #dl{width:100%;justify-content:center}
+ .dlmenu{left:0;right:0;min-width:0}
  .tools .chk:has(input:checked){border-color:var(--acc);background:var(--accsoft);color:var(--acc);font-weight:600}
  .tools .ghost{width:100%;height:40px;padding:0 8px}
  .meta{margin:4px 0 10px}
@@ -406,7 +413,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       <span class="sp"></span>
       <span id="copied" class="info" hidden></span>
       <button class="ghost" id="aiscore" type="button" title="AI memberi skor 0-100 dan alasan untuk tiap tempat di tampilan ini">Nilai dengan AI</button>
-      <span class="dls"><button class="ghost" id="dl" type="button">Unduh CSV</button><button class="ghost" id="dlem" type="button" title="Hanya nama dan email, untuk tempat yang punya email">Unduh email</button><button class="ghost" id="dlwa" type="button" title="Hanya nama dan nomor WhatsApp, untuk tempat yang punya nomor">Unduh WA</button></span>
+      <div class="dls"><button class="ghost" id="dl" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="dlmenu">Unduh CSV <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="dlmenu" id="dlmenu" role="menu" hidden><button type="button" role="menuitem" id="dlall"></button><button type="button" role="menuitem" id="dlem"></button><button type="button" role="menuitem" id="dlwa"></button></div></div>
     </div>
     <p class="meta" id="shown"></p>
     <div class="tw"><table>
@@ -879,13 +886,31 @@ function dlFile(name,head,rowsOf){
   a.download=name;document.body.appendChild(a);a.click();a.remove();
   flash("Diunduh: "+r.length+" baris.");
 }
-$("dl").onclick=function(){
+function emRows(x){return emailsOf(x).map(function(e){return[x.name,e]})}
+function waRows(x){var w=waOf(x);return w?[[x.name,"+"+w.n]]:[]}
+function dlOpt(id,label,n){var b=$(id);b.innerHTML=label+"<small>"+n+"</small>";b.disabled=!n}
+function dlClose(){$("dlmenu").hidden=true;$("dl").setAttribute("aria-expanded","false")}
+$("dl").onclick=function(e){
+  e.stopPropagation();
+  var m=$("dlmenu");
+  if(!m.hidden){dlClose();return}
+  var v=view();
+  dlOpt("dlall","Semua kolom",v.length+" tempat");
+  dlOpt("dlem","Email saja",v.reduce(function(a,x){return a+emRows(x).length},0)+" email");
+  dlOpt("dlwa","WA saja",v.reduce(function(a,x){return a+waRows(x).length},0)+" nomor");
+  m.hidden=false;this.setAttribute("aria-expanded","true");
+};
+$("dlmenu").onclick=function(e){e.stopPropagation()};
+document.addEventListener("click",dlClose);
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("dlmenu").hidden){dlClose();$("dl").focus()}});
+$("dlall").onclick=function(){
+  dlClose();
   var a=document.createElement("a");
   a.href=URL.createObjectURL(new Blob(["\ufeff"+csv()],{type:"text/csv;charset=utf-8"}));
   a.download="prospek.csv";document.body.appendChild(a);a.click();a.remove();
 };
-$("dlem").onclick=function(){dlFile("prospek-email.csv","nama,email",function(x){return emailsOf(x).map(function(e){return[x.name,e]})})};
-$("dlwa").onclick=function(){dlFile("prospek-wa.csv","nama,whatsapp",function(x){var w=waOf(x);return w?[[x.name,"+"+w.n]]:[]})};
+$("dlem").onclick=function(){dlClose();dlFile("prospek-email.csv","nama,email",emRows)};
+$("dlwa").onclick=function(){dlClose();dlFile("prospek-wa.csv","nama,whatsapp",waRows)};
 IC.wa="<svg viewBox='0 0 24 24' width='19' height='19' fill='#25D366' aria-hidden='true'><path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z'/></svg>";
 function firstPhone(x){return x.phone?x.phone.split(/[;,]/)[0].trim():""}
 function emailsOf(x){return x.emails&&x.emails.length?x.emails:(x.email?[x.email]:[])}
