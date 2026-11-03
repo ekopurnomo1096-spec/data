@@ -533,16 +533,16 @@ main.wrap{max-width:1180px;margin:0 auto}
 @media (prefers-reduced-motion:reduce){.side{transition:none}}
 .lbox .bmark{width:44px;height:44px}
 
-.ng>summary{display:flex;align-items:center;gap:8px;padding:8px 10px;margin-top:2px;border-radius:8px;font-size:.8rem;font-weight:600;color:var(--mute);cursor:pointer;list-style:none}
+.ng>summary{display:flex;align-items:center;gap:8px;padding:6px 10px;margin-top:0;border-radius:8px;font-size:.8rem;font-weight:600;color:var(--mute);cursor:pointer;list-style:none}
 .ng>summary::-webkit-details-marker{display:none}
 .ng>summary:hover{background:var(--soft);color:var(--ink)}
 .ng>summary:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
 .ng>summary::after{content:"";margin-left:auto;width:6px;height:6px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-3px}
 .ng[open]>summary::after{transform:rotate(225deg);margin-top:3px}
 .ng[open]>summary{color:var(--ink)}
-.ngi{display:flex;flex-direction:column;gap:1px;margin:2px 0 6px 18px;padding-left:8px;border-left:1px solid var(--line)}
-.tab.sub{height:32px;font-size:.84rem}
-.tab.sub[aria-selected="true"]::before{left:-9px;top:7px;bottom:7px;width:3px}
+.ngi{display:flex;flex-direction:column;gap:0;margin:0 0 4px 14px;padding-left:6px;border-left:1px solid var(--line)}
+.tab.sub{height:28px;font-size:.82rem;border-radius:7px}
+.tab.sub[aria-selected="true"]::before{left:-7px;top:6px;bottom:6px;width:3px}
 #aucfg>.aus{border-top:0;padding:2px 0}
 </style>
 </head>
@@ -569,7 +569,7 @@ main.wrap{max-width:1180px;margin:0 auto}
     <button class="tab" type="button" id="t4" data-v="4" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><rect x='2' y='4' width='20' height='16' rx='2'/><path d='M22 7l-10 6L2 7'/></svg><span>Email</span></button>
     <button class="tab" type="button" id="tbalas" data-v="balas" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg><span>Balasan</span><em class="tn" id="rpnav"></em></button>
     <div class="ngl">Otomatis</div>
-    <details class="ng" open><summary>Pantau</summary><div class="ngi"><button class="tab sub" type="button" data-v="ringkas" aria-selected="false"><span>Status & statistik</span></button><button class="tab sub" type="button" data-v="antrean" aria-selected="false"><span>Antrean persetujuan</span><em class="tn" id="t5n"></em></button></div></details>
+    <details class="ng"><summary>Pantau</summary><div class="ngi"><button class="tab sub" type="button" data-v="ringkas" aria-selected="false"><span>Status & statistik</span></button><button class="tab sub" type="button" data-v="antrean" aria-selected="false"><span>Antrean persetujuan</span><em class="tn" id="t5n"></em></button></div></details>
     <details class="ng"><summary>Kirim email</summary><div class="ngi"><button class="tab sub" type="button" data-v="kirim" aria-selected="false"><span>Kirim otomatis</span></button><button class="tab sub" type="button" data-v="warm" aria-selected="false"><span>Pemanasan domain</span></button><button class="tab sub" type="button" data-v="teks" aria-selected="false"><span>Teks email</span></button></div></details>
     <details class="ng"><summary>Cari prospek</summary><div class="ngi"><button class="tab sub" type="button" data-v="ulang" aria-selected="false"><span>Cari ulang</span></button><button class="tab sub" type="button" data-v="putar" aria-selected="false"><span>Putaran kota</span></button><button class="tab sub" type="button" data-v="cariem" aria-selected="false"><span>Cari email</span></button></div></details>
     <details class="ng"><summary>Sistem</summary><div class="ngi"><button class="tab sub" type="button" data-v="skor" aria-selected="false"><span>Skor prospek</span></button><button class="tab sub" type="button" data-v="lapor" aria-selected="false"><span>Laporan & peringatan</span></button><button class="tab sub" type="button" data-v="bersih" aria-selected="false"><span>Pembersihan data</span></button><button class="tab sub" type="button" data-v="serp" aria-selected="false"><span>Akun SerpApi</span></button><button class="tab sub" type="button" data-v="berhenti" aria-selected="false"><span>Daftar berhenti</span></button></div></details>
@@ -1922,6 +1922,7 @@ function applyAuto(){
     if(on)el.open=true;
   });
 }
+[].forEach.call(document.querySelectorAll("details.ng"),function(d){d.addEventListener("toggle",function(){if(d.open)[].forEach.call(document.querySelectorAll("details.ng"),function(o){if(o!==d)o.open=false})})});
 function navOpen(v){document.body.classList.toggle("navopen",!!v);$("mmenu").setAttribute("aria-expanded",!!v)}
 $("mmenu").onclick=function(){navOpen(!document.body.classList.contains("navopen"))};
 $("scrim").onclick=function(){navOpen(false)};
