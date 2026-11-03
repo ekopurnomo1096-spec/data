@@ -1378,7 +1378,7 @@ $("findall").onclick=async function(){
         if(w)x.wa=w;
         x.found=!!(m.length||w);
         if(x.found)got++;
-        if(x.found||!j.failed)saveLead(x,{},true); // yang sudah dicek tapi kosong juga disimpan, supaya tidak dicek ulang setelah reload. Website yang gagal dijangkau tidak disimpan
+        saveLead(x,{},true); // semua yang sudah dicek disimpan (juga yang kosong atau website yang tidak bisa dibuka), supaya tidak dicek ulang setelah reload
       }catch(e){}
       done++;if(!stop)upd();
     }
