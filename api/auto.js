@@ -36,6 +36,13 @@ async function state(req) {
   out.stats = await M.getStats(14);
   out.flags = { cron: !!process.env.CRON_SECRET, webhook: !!process.env.RESEND_WEBHOOK_SECRET, publicUrl: M.baseUrl(req) };
   const q = await hgetall(J.QUEUE);
+  // Antrean hanya untuk alamat Gmail, Yahoo, dll (sama dengan tab Email). Yang berdomain sendiri dibuang dari antrean saat halaman dibuka.
+  // Yang berstatus ditolak tetap disimpan supaya tidak diantrekan lagi.
+  try {
+    const bad = Object.keys(q).filter(k => { const v = parse(q[k]); return v && (v.st === "pending" || v.st === "ok") && !SC.FREE.test(String(v.to || "").toLowerCase()); });
+    for (let i = 0; i < bad.length; i += 200) await cmd(["HDEL", J.QUEUE, ...bad.slice(i, i + 200)]);
+    bad.forEach(k => { delete q[k]; });
+  } catch (e) { /* gagal membersihkan tidak boleh menggagalkan halaman */ }
   out.queue = Object.keys(q).map(k => parse(q[k])).filter(Boolean).filter(v => v.st === "pending" || v.st === "ok")
     .sort((a, b) => (a.st === b.st ? b.sc - a.sc : a.st === "pending" ? -1 : 1)).slice(0, 200);
   try { // foto tempat untuk daftar antrean (diambil dari hasil pencarian tersimpan)
