@@ -217,6 +217,19 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .svc.mine{border-color:var(--acc)}
 .svc .acts{display:flex;gap:8px}
 .svc .cx{color:var(--mute)}
+.aib{display:inline-block;vertical-align:1px;margin-left:6px;padding:0 7px;border-radius:99px;font-size:.72rem;font-weight:700;line-height:1.55;border:1px solid var(--line);color:var(--mute);cursor:help}
+.aib.hi{background:var(--accsoft);border-color:var(--acc);color:var(--acc)}
+.aib.mid{border-color:var(--star);color:var(--star)}
+.aibox{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+.aibox .aih{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.aibox .aih b{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+.aibox .aih .aib{margin-left:0}
+.air{margin:10px 0;font-size:.9rem}
+.air .ail{display:block;color:var(--mute);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.aibox textarea,.aibox input[type=text]{width:100%;font:inherit;font-size:.88rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;resize:vertical}
+.aibox input[type=text]{height:36px;margin-bottom:6px}
+.aibox .acts{margin-top:8px}
+.aiwarn{color:var(--err);font-size:.86rem;margin:8px 0 0}
 .morebox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
 @media (min-width:761px){
  table{min-width:0}
@@ -281,7 +294,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       <select id="fst" class="sortsel" aria-label="Filter status prospek"><option value="all">Semua status</option><option value="baru">Belum dihubungi</option><option value="chat">Sudah dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak cocok</option></select>
       <select id="frt" class="sortsel" aria-label="Rating minimal"><option value="">Semua rating</option><option value="4">Rating 4,0 ke atas</option><option value="4.5">Rating 4,5 ke atas</option><option value="4.8">Rating 4,8 ke atas</option></select>
       <select id="frv" class="sortsel" aria-label="Ulasan minimal"><option value="">Semua ulasan</option><option value="20">20 ulasan ke atas</option><option value="100">100 ulasan ke atas</option><option value="500">500 ulasan ke atas</option></select>
-      <select id="sortsel" class="sortsel" aria-label="Urutkan"><option value="">Urutan asli</option><option value="name">Nama A–Z</option><option value="namez">Nama Z–A</option><option value="rating">Rating tertinggi</option><option value="reviews">Ulasan terbanyak</option><option value="score">Kontak terbanyak</option><option value="status">Status prospek</option><option value="changed">Terakhir diubah</option></select>
+      <select id="sortsel" class="sortsel" aria-label="Urutkan"><option value="">Urutan asli</option><option value="name">Nama A–Z</option><option value="namez">Nama Z–A</option><option value="rating">Rating tertinggi</option><option value="reviews">Ulasan terbanyak</option><option value="score">Kontak terbanyak</option><option value="ai">Skor AI</option><option value="status">Status prospek</option><option value="changed">Terakhir diubah</option></select>
     </div>
     <div class="tools">
       <span class="svl">Harus ada</span>
@@ -292,6 +305,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       <label class="chk"><input type="checkbox" id="fnt"> Catatan</label>
       <span class="sp"></span>
       <span id="copied" class="info" hidden></span>
+      <button class="ghost" id="aiscore" type="button" title="AI memberi skor 0-100 dan alasan untuk tiap tempat di tampilan ini">Nilai dengan AI</button>
       <button class="ghost" id="freset" type="button">Reset filter</button>
       <button class="ghost" id="copy" type="button">Salin CSV</button>
       <button class="ghost" id="dl" type="button">Unduh CSV</button>
@@ -331,6 +345,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <div class="sf f" id="kf1"><label for="k1">API key SerpApi akun 1 (Google Maps)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh1"></span></span><button class="btn" id="kc1" type="button">Ganti</button></div><div class="krow"><input type="password" id="k1" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx1" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://serpapi.com" target="_blank" rel="noopener">serpapi.com</a>. Dipakai untuk sumber Google Maps.</p></div>
   <div class="sf f" id="kf2"><label for="k2">API key SerpApi akun 2 (opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh2"></span></span><button class="btn" id="kc2" type="button">Ganti</button></div><div class="krow"><input type="password" id="k2" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx2" type="button" hidden>Batal</button></div><p class="hint2">Pilih akun yang dipakai lewat switch di pojok kanan atas.</p></div>
   <div class="sf f" id="kf3"><label for="k3">API key Geoapify (opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh3"></span></span><button class="btn" id="kc3" type="button">Ganti</button></div><div class="krow"><input type="password" id="k3" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx3" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://geoapify.com" target="_blank" rel="noopener">geoapify.com</a>. Dipakai untuk sumber OpenStreetMap.</p></div>
+  <div class="sf f" id="kf4"><label for="k4">API key Gemini (fitur AI)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh4"></span></span><button class="btn" id="kc4" type="button">Ganti</button></div><div class="krow"><input type="password" id="k4" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx4" type="button" hidden>Batal</button></div><p class="hint2">Buat gratis di <a class="lk" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com</a>. Dipakai untuk skor prospek, saran langkah, dan draf pesan (model Gemini 3.5 Flash-Lite).</p></div>
   <label class="chk sf" id="kshow"><input type="checkbox" id="ks"> Tampilkan key</label>
   <div class="acts" id="kacts"><button class="btn primary" id="ksave" type="button">Simpan</button><button class="btn" id="kclear" type="button">Hapus key tersimpan</button></div>
   <p class="info" id="kmsg" hidden></p>
@@ -616,7 +631,7 @@ function syncSort(){
   $("sortsel").value=v&&$("sortsel").querySelector("option[value='"+v+"']")?v:"";
 }
 function score(x){return(x.phone?1:0)+(x.email?1:0)+(x.website?1:0)}
-var SORTS={name:function(x){return x.name.toLowerCase()},rating:function(x){return parseFloat(x.rating)||0},reviews:function(x){return parseInt(String(x.reviews||"").replace(/\D/g,""),10)||0},score:score,status:function(x){return STORD[stOf(x)]||0},changed:function(x){var r=LS[x.id];return r&&r.t||0}};
+var SORTS={name:function(x){return x.name.toLowerCase()},rating:function(x){return parseFloat(x.rating)||0},reviews:function(x){return parseInt(String(x.reviews||"").replace(/\D/g,""),10)||0},score:score,ai:function(x){var a=AI[x.id];return a?a.s:-1},status:function(x){return STORD[stOf(x)]||0},changed:function(x){var r=LS[x.id];return r&&r.t||0}};
 var STEPS=["Mencari lokasi kota…","Mengambil data tempat…","Hampir selesai. Kota besar butuh waktu lebih lama…"];
 var NA="<span class='na'>–</span>";
 function loading(on){
@@ -675,7 +690,7 @@ function render(){
   });
   $("tb").innerHTML=r.length?r.map(function(x){
     var ph=x.phone?x.phone.split(/[;,]/)[0].trim():"",site=x.website?href(x.website):"",sc=score(x);
-    return"<tr class='clk' tabindex='0' data-i='"+rows.indexOf(x)+"'><td class='nm'><div class='nmw'>"+thumb(x)+"<div><b>"+esc(x.name)+"</b><small>"+(x.address?esc(x.address):"Alamat belum diisi")+"</small>"+noteLine(x)+"</div></div></td>"
+    return"<tr class='clk' tabindex='0' data-i='"+rows.indexOf(x)+"'><td class='nm'><div class='nmw'>"+thumb(x)+"<div><b>"+esc(x.name)+aiBadge(x)+"</b><small>"+(x.address?esc(x.address):"Alamat belum diisi")+"</small>"+noteLine(x)+"</div></div></td>"
       +stCell(x)
       +"<td class='num' data-l='Rating'>"+(x.rating?"<span class='star'>★</span> "+esc(x.rating):NA)+"</td>"
       +"<td class='num' data-l='Ulasan'>"+(x.reviews?esc(x.reviews):NA)+"</td>"
@@ -799,8 +814,81 @@ function openD(x){curX=x;
   $("dnt").oninput=function(){pend=x;clearTimeout(ntm);ntm=setTimeout(flushNote,900)};
   $("dnt").onblur=flushNote;
   if(site&&!x.looked)$("dmail").onclick=function(){findMail(x)};
+  renderAiBox(x);
   if(!$("dlg").open)$("dlg").showModal();
 }
+var AI={},AIA={};
+function aiCls(n){return n>=70?"hi":n>=40?"mid":"lo"}
+function aiBadge(x){var a=AI[x.id];return a?"<span class='aib "+aiCls(a.s)+"' title='Skor AI: "+esc(a.w||"")+"'>"+a.s+"</span>":""}
+function loadAI(){fetch("/api/ai").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){AI=j.items||{};if(!$("res").hidden)render()}).catch(function(){})}
+function aiPost(body){
+  return fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){
+    if(r.status===401){showLogin("Sesi habis, silakan masuk lagi.");throw new Error("401")}
+    return r.text().then(function(tx){var j;try{j=JSON.parse(tx)}catch(e){throw new Error("server membalas error ("+r.status+"). Cek Logs di dashboard Vercel.")}if(!r.ok)throw new Error(j.error||"Gagal");return j});
+  });
+}
+function aiLead(x){return{id:x.id,name:x.name,address:x.address,rating:x.rating,reviews:x.reviews,phone:!!x.phone,email:!!emailsOf(x).length,website:!!x.website,status:stLabel(stOf(x)),note:noteOf(x)}}
+$("aiscore").onclick=async function(){
+  var b=this,all=view(),list=all.filter(function(x){return x.id&&!AI[x.id]});
+  if(!list.length){done(all.length?"Semua tempat di tampilan ini sudah dinilai.":"Tidak ada tempat untuk dinilai.");return}
+  b.disabled=true;var n=0;
+  try{
+    for(var i=0;i<list.length;i+=20){
+      b.textContent="Menilai "+Math.min(i+20,list.length)+"/"+list.length+"…";
+      var j=await aiPost({action:"score",leads:list.slice(i,i+20).map(aiLead)});
+      Object.keys(j.items||{}).forEach(function(k){AI[k]=j.items[k];n++});
+    }
+    sKey="ai";sDir=-1;render();done("Selesai menilai "+n+" tempat. Diurutkan dari skor tertinggi.");
+  }catch(e){
+    var m=String(e.message||e);
+    if(m!=="401"){render();done(m);if(/Pengaturan/.test(m))openSet()}
+  }
+  b.disabled=false;b.textContent="Nilai dengan AI";
+};
+function copyTxt(t,ok){
+  function fb(){var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");flash(ok)}catch(e){flash("Gagal menyalin")}a.remove()}
+  try{navigator.clipboard.writeText(t).then(function(){flash(ok)},fb)}catch(e){fb()}
+}
+function renderAiBox(x,err){
+  var box=$("aibox");
+  if(!box){$("dbody").insertAdjacentHTML("beforeend","<div class='aibox' id='aibox'></div>");box=$("aibox")}
+  var a=AIA[x.id],sc=AI[x.id],em=emailsOf(x),wa=waOf(x),h="";
+  h+="<div class='aih'><b>Saran AI</b>"+(sc?"<span class='aib "+aiCls(sc.s)+"'>Skor "+sc.s+"</span>":"")+"</div>";
+  if(sc&&sc.w)h+="<p class='dr' style='margin:0 0 6px'>"+esc(sc.w)+"</p>";
+  if(a){
+    if(a.note_summary)h+="<div class='air'><span class='ail'>Ringkasan catatan</span>"+esc(a.note_summary)+"</div>";
+    h+="<div class='air'><span class='ail'>Status yang disarankan</span><b>"+esc(stLabel(a.status))+"</b>"+(a.status_why?" · "+esc(a.status_why):"")+
+      (a.status!==stOf(x)?" <button class='btn' type='button' data-ai='apply' style='margin-left:6px'>Terapkan status</button>":" <span class='hint'>sudah sesuai</span>")+"</div>";
+    var fd=new Date(Date.now()+a.followup_days*864e5).toLocaleDateString("id-ID",{day:"numeric",month:"short"});
+    h+="<div class='air'><span class='ail'>Langkah berikutnya</span>"+esc(a.next_step)+"<br><span class='hint'>Follow-up sekitar "+a.followup_days+" hari lagi ("+esc(fd)+")</span></div>";
+    h+="<div class='air'><span class='ail'>Draf pesan WhatsApp</span><textarea id='aiwa' rows='5'>"+esc(a.wa_message)+"</textarea><div class='acts'><button class='btn' type='button' data-ai='cwa'>Salin</button>"+(wa?"<button class='btn' type='button' data-ai='owa'>"+IC.wa+"Buka di WhatsApp</button>":"")+"</div></div>";
+    h+="<div class='air'><span class='ail'>Draf email</span><input type='text' id='aisb' value='"+esc(a.email_subject)+"' aria-label='Subjek email'><textarea id='aieb' rows='6'>"+esc(a.email_body)+"</textarea><div class='acts'><button class='btn' type='button' data-ai='cem'>Salin</button>"+(em.length?"<button class='btn' type='button' data-ai='oem'>"+IC.mail+"Buka di email</button>":"")+"</div></div>";
+  }
+  h+="<div class='acts'><button class='btn' id='dai' type='button'>"+(a?"Buat ulang saran":"Minta saran AI")+"</button></div>";
+  if(err)h+="<p class='aiwarn'>"+esc(err)+"</p>";
+  h+="<p class='hint2' style='margin-top:10px'>Draf dibuat AI dari data di atas. Baca dan sesuaikan dulu sebelum dikirim.</p>";
+  box.innerHTML=h;
+  $("dai").onclick=function(){
+    var b=this;b.disabled=true;b.textContent="Memproses…";
+    aiPost({action:"assist",lead:aiLead(x),ctx:x.ctx||""}).then(function(j){
+      AIA[x.id]=j.assist;if(j.ai)AI[x.id]=j.ai;
+      if(curX===x){renderAiBox(x);render()}
+    }).catch(function(e){
+      var m=String(e.message||e);if(m==="401")return;
+      if(curX===x)renderAiBox(x,m);
+      if(/Pengaturan/.test(m)){$("dlg").close();openSet()}
+    });
+  };
+}
+$("dbody").addEventListener("click",function(e){
+  var t=e.target.closest("[data-ai]");if(!t||!curX)return;
+  var x=curX,a=AIA[x.id],k=t.getAttribute("data-ai");
+  if(k==="apply"&&a){saveLead(x,{s:a.status});var sel=$("dst");if(sel){sel.value=a.status;sel.className="stsel st-"+(a.status||"baru")}render();renderAiBox(x)}
+  else if(k==="cwa")copyTxt($("aiwa").value,"Pesan WhatsApp tersalin");
+  else if(k==="cem")copyTxt($("aisb").value+"\n\n"+$("aieb").value,"Email tersalin");
+  else if(k==="owa"){var w=waOf(x);if(w){window.open("https://wa.me/"+w.n+"?text="+encodeURIComponent($("aiwa").value),"_blank","noopener");markContacted(x,"WA")}}
+  else if(k==="oem"){var m=emailsOf(x)[0];if(m)location.href="mailto:"+m+"?subject="+encodeURIComponent($("aisb").value)+"&body="+encodeURIComponent($("aieb").value)}
+});
 function bigSrc(u){return u.replace(/=w\d+-h\d+/,"=w900-h900").replace(/=s\d+(?=$|-)/,"=s900")}
 function openPhoto(el){
   var u=el.getAttribute("data-src"),b=bigSrc(u),im=$("pimg");
@@ -844,7 +932,7 @@ $("svbox").addEventListener("click",function(e){
 });
 function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
 function showLogin(msg){$("boot").hidden=true;$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
-function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();loadLeads()}
+function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();loadLeads();loadAI()}
 var CK="<svg class='ck' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M5 12.5l4.5 4.5L19 7.5'/></svg>",CH="<svg class='ch' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M6 9l6 6 6-6'/></svg>";
 function umClose(){var m=document.querySelector(".umenu"),t=document.querySelector(".utrig");if(m)m.hidden=true;if(t)t.setAttribute("aria-expanded","false")}
 document.addEventListener("click",function(e){if(!e.target.closest("#usage"))umClose()});
@@ -872,7 +960,7 @@ function usageAfterSearch(){
   var sync=function(final){loadUsage(function(r){var x=(r.accounts||[]).filter(function(y){return y.n===n})[0];if(!final&&x&&x.used<=base){x.used=base+1;x.left=Math.max(x.left-1,0)}})};
   setTimeout(function(){sync(false)},4000);setTimeout(function(){sync(true)},15000);
 }
-var KEYS=[["1","serp"],["2","serp2"],["3","geo"]],was={};
+var KEYS=[["1","serp"],["2","serp2"],["3","geo"],["4","gem"]],was={};
 function isSaved(n){return $("kf"+n).classList.contains("saved")}
 function keyState(j){
   KEYS.forEach(function(p){var on=j[p[1]].set;$("kf"+p[0]).classList.toggle("saved",on);was[p[0]]=on;$("kh"+p[0]).textContent=on?"("+j[p[1]].hint+")":"";$("k"+p[0]).value=""});
@@ -919,7 +1007,7 @@ function saveKeys(body,okMsg){
 $("ksave").onclick=function(){var b={},n=0;KEYS.forEach(function(p){var v=$("k"+p[0]).value.trim();if(v){b[p[1]]=v;n++}});if(!n){kmsg("Tidak ada yang diubah.");return}saveKeys(b,"Tersimpan di server.")};
 KEYS.forEach(function(p){$("kx"+p[0]).onclick=function(){$("k"+p[0]).value="";$("kf"+p[0]).classList.add("saved");keyUi()}});
 KEYS.forEach(function(p){$("kc"+p[0]).onclick=function(){$("kf"+p[0]).classList.remove("saved");keyUi();$("k"+p[0]).focus()}});
-$("kclear").onclick=function(){if(confirm("Hapus semua key yang tersimpan di server?"))saveKeys({serp:"",serp2:"",geo:""},"Key dihapus.")};
+$("kclear").onclick=function(){if(confirm("Hapus semua key yang tersimpan di server?"))saveKeys({serp:"",serp2:"",geo:"",gem:""},"Key dihapus.")};
 $("outb").onclick=function(){fetch("/api/session",{method:"DELETE"}).then(function(){location.reload()},function(){location.reload()})};
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"],["Importir dan distributor di luar negeri","Volume besar. Cari lewat direktori B2B seperti Alibaba atau Global Sources.",""],["Perias pengantin","Cari lewat Instagram dengan kata kunci “bridal hair” plus nama kota.",""],["Pabrik wig dan rambut","Calon mitra atau pesaing. Cari lewat direktori ekspor.",""]];
 function tab(n){[1,2,3].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}

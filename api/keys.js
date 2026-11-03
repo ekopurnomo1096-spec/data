@@ -1,8 +1,8 @@
-// GET = status key tersimpan (dimasking), POST = simpan ({serp, geo}; "" = hapus, tidak dikirim = tidak diubah)
+// GET = status key tersimpan (dimasking), POST = simpan ({serp, serp2, geo, gem}; "" = hapus, tidak dikirim = tidak diubah)
 const { isAuthed } = require("./_auth");
 const { dbConfigured, getKey, setKey, setActive } = require("./_store");
 
-const NAMES = ["serp", "serp2", "geo"];
+const NAMES = ["serp", "serp2", "geo", "gem"];
 async function status() {
   const v = await Promise.all(NAMES.map(getKey));
   const o = {};
