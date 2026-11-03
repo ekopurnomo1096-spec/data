@@ -1807,7 +1807,7 @@ function emPrevHtml(text,c){
     '<div style="padding:18px 28px;background:#f6f3ec;border-top:1px solid #e7e1d4;font-size:12.5px;color:#4a4a4a">'+
     '<div style="margin-bottom:6px"><b>'+esc(EMBRAND.name)+'</b> — '+esc(EMBRAND.tagline)+'</div>'+
     '<div>Website: <a href="'+esc(EMBRAND.website)+'" style="color:#000000;text-decoration:underline">'+esc(siteLabel)+'</a></div>'+
-    (c&&c.addr?'<div style="margin-top:8px">'+esc(c.addr)+'</div>':'')+(c&&c.srcn?'<div style="margin-top:8px;color:#6a6a6a">'+esc(c.srcn)+'</div>':'')+'</div>'+
+    (c&&c.addr?'<div style="margin-top:8px">'+esc(c.addr)+'</div>':'')+(c&&c.srcn?'<div style="margin-top:8px;color:#6a6a6a">'+esc(c.srcn)+'</div>':'')+'<div style="margin-top:10px;color:#6a6a6a">Don’t want to hear from us? <a href="#" style="color:#6a6a6a;text-decoration:underline">Unsubscribe</a></div></div>'+
     '</td></tr></table></td></tr></table></body></html>';
 }
 $("emprevbtn").onclick=function(){
@@ -2117,7 +2117,7 @@ function auAltHtml(a,j){
     +"<p class='hint2' style='margin:0'>Diputar bergantian dengan teks utama.</p>"
     +"<div class='f'><label>Subjek</label><input type='text' class='vs' maxlength='200' value='"+esc(a.subject||"")+"'></div>"
     +"<div class='f'><label>Isi email</label><textarea class='vx' rows='5' maxlength='5000'>"+esc(a.text||"")+"</textarea></div>"
-    +"<div class='eacts'><button class='ghost vdel' type='button' data-j='"+j+"'>Hapus variasi ini</button></div></div></details>";
+    +"<div class='eacts'><button class='ghost vprev' type='button' data-j='"+j+"'>Pratinjau</button><button class='ghost vdel' type='button' data-j='"+j+"'>Hapus variasi ini</button></div></div></details>";
 }
 function auMeta(st,i){
   var alts=st.alts||[];
@@ -2130,7 +2130,7 @@ function auStepHtml(st,i,open){
     +"<div class='f'"+(i>0?"":" style='margin-top:0'")+"><label>Subjek</label><input type='text' class='ss' maxlength='200' value='"+esc(st.subject||"")+"'></div>"
     +"<div class='f'><label>Isi email</label><textarea class='sx' rows='"+(i===0?9:5)+"' maxlength='5000'>"+esc(st.text||"")+"</textarea></div>"
     +alts.map(auAltHtml).join("")
-    +"<div class='eacts'>"+(alts.length<2?"<button class='ghost vadd' type='button'>+ Tambah variasi</button>":"")
+    +"<div class='eacts'><button class='ghost sprev' type='button'>Pratinjau</button>"+(alts.length<2?"<button class='ghost vadd' type='button'>+ Tambah variasi</button>":"")
     +(i>0?"<button class='ghost sdel' type='button'>Hapus follow-up ini</button>":"")+"</div></div></details>";
 }
 function auSteps(steps,openI,openAlt){
@@ -2143,12 +2143,27 @@ function auSteps(steps,openI,openAlt){
     var st=auReadSteps();st.splice(+b.closest(".austep").getAttribute("data-i"),1);auSteps(st,-1)}});
   [].forEach.call(document.querySelectorAll("#austeps .vadd"),function(b){b.onclick=function(){
     var st=auReadSteps(),i=+b.closest(".austep").getAttribute("data-i");st[i].alts.push({subject:"",text:""});auSteps(st,i,[i,st[i].alts.length-1])}});
+  [].forEach.call(document.querySelectorAll("#austeps .sprev"),function(b){b.onclick=function(){
+    var r=b.closest(".austep");auPreview(r.querySelector(".ss").value,r.querySelector(".sx").value)}});
+  [].forEach.call(document.querySelectorAll("#austeps .vprev"),function(b){b.onclick=function(){
+    var v=b.closest(".auv");auPreview(v.querySelector(".vs").value,v.querySelector(".vx").value)}});
   [].forEach.call(document.querySelectorAll("#austeps .vdel"),function(b){b.onclick=function(){
     var st=auReadSteps(),i=+b.closest(".austep").getAttribute("data-i");st[i].alts.splice(+b.getAttribute("data-j"),1);auSteps(st,i)}});
   $("austeps").oninput=function(e){
     var t=e.target;if(!t.classList||!(t.classList.contains("ss")||t.classList.contains("sd")))return;
     var d=t.closest(".austep"),i=+d.getAttribute("data-i");d.querySelector("summary .sm").textContent=auMeta(auReadSteps()[i],i);
   };
+}
+function auPreview(sj,tx){
+  if(!String(tx||"").trim()){flash("Isi email masih kosong, tulis dulu sebelum pratinjau.");return}
+  function show(){
+    $("emprevsj").textContent="Subjek: "+(String(sj||"").trim()||"(kosong)");
+    $("emprevfr").srcdoc=emPrevHtml(greet(tx,"Salon Anda"),EM.cfg);
+    $("emprevd").showModal();
+  }
+  if(EM.cfg){show();return}
+  fetch("/api/send?sent=1").then(function(r){if(r.status===401){showLogin("Sesi habis, silakan masuk lagi.");throw 0}return r.json()})
+    .then(function(j){if(!j.error)EM.cfg=j;show()}).catch(function(e){if(e!==0)show()});
 }
 function auReadSteps(){
   return[].map.call(document.querySelectorAll("#austeps>.austep"),function(r,i){
