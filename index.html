@@ -26,6 +26,12 @@ h1{font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.15;margin:0 0 10px;font-weig
 .form2{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;margin-bottom:12px}
 @media (max-width:640px){.form2{grid-template-columns:1fr}}
 .hint{color:var(--mute);font-size:.85rem;margin:-2px 0 16px}
+.combo{position:relative}
+.combo-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card);border:1px solid var(--line);border-radius:10px;max-height:230px;overflow:auto;z-index:30;box-shadow:0 10px 28px rgba(0,0,0,.18);padding:4px}
+.combo-list div{padding:10px 12px;border-radius:7px;cursor:pointer;font-size:.95rem}
+.combo-list div.hi,.combo-list div:hover{background:var(--accsoft)}
+.combo-list .none{color:var(--mute);cursor:default}
+.combo-list .none:hover{background:transparent}
 .f label{display:block;font-weight:700;font-size:.9rem;margin-bottom:6px}
 input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;height:48px}
 .go{height:48px;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:0 26px;font:inherit;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px}
@@ -82,10 +88,12 @@ input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(
 
 <section class="panel" id="p1">
   <div class="form2">
-    <div class="f"><label for="country">Negara</label>
-      <select id="country"><option value="">Pilih negara…</option></select></div>
-    <div class="f"><label for="citysel">Kota populer</label>
-      <select id="citysel" disabled><option value="">Pilih negara dulu…</option></select></div>
+    <div class="f combo"><label for="country">Negara</label>
+      <input type="text" id="country" autocomplete="off" placeholder="Ketik untuk cari negara…">
+      <div class="combo-list" id="countryList" hidden></div></div>
+    <div class="f combo"><label for="citysel">Kota populer</label>
+      <input type="text" id="citysel" autocomplete="off" placeholder="Pilih negara dulu…" disabled>
+      <div class="combo-list" id="cityselList" hidden></div></div>
   </div>
   <p class="hint">Pilih dari daftar supaya cepat, atau langsung ketik nama kota apa pun di kolom "Kota" di bawah — daftar ini tidak memuat semua kota di dunia.</p>
   <div class="form">
@@ -185,19 +193,58 @@ var COUNTRIES={
 "Australia":["Sydney","Melbourne","Brisbane","Perth"],
 "New Zealand":["Auckland","Wellington"]
 };
+function combo(inputId,listId,opts){
+  var inp=$(inputId),list=$(listId),items=[],hi=-1,cur="";
+  function filtered(){
+    var q=inp.value.trim().toLowerCase();
+    return q?items.filter(function(x){return x.toLowerCase().indexOf(q)>-1}):items;
+  }
+  function draw(){
+    var f=filtered();
+    hi=-1;
+    list.innerHTML=f.length?f.map(function(x){return"<div data-v='"+esc(x)+"'>"+esc(x)+"</div>"}).join(""):"<div class='none'>Tidak ada yang cocok</div>";
+    list.hidden=false;
+  }
+  function pick(v){
+    inp.value=v;cur=v;list.hidden=true;
+    if(opts.onPick)opts.onPick(v);
+  }
+  list.addEventListener("mousedown",function(e){
+    var d=e.target.closest("div[data-v]");
+    if(d)pick(d.getAttribute("data-v"));
+  });
+  inp.addEventListener("input",function(){cur="";draw()});
+  inp.addEventListener("focus",function(){if(!inp.disabled)draw()});
+  inp.addEventListener("blur",function(){setTimeout(function(){list.hidden=true;if(!cur)inp.value=""},120)});
+  inp.addEventListener("keydown",function(e){
+    if(list.hidden&&(e.key==="ArrowDown"||e.key==="ArrowUp")){draw();return}
+    var f=list.querySelectorAll("div[data-v]");
+    if(e.key==="ArrowDown"){e.preventDefault();hi=Math.min(hi+1,f.length-1)}
+    else if(e.key==="ArrowUp"){e.preventDefault();hi=Math.max(hi-1,0)}
+    else if(e.key==="Enter"){if(hi>-1&&f[hi]){e.preventDefault();pick(f[hi].getAttribute("data-v"))}return}
+    else if(e.key==="Escape"){list.hidden=true;return}
+    else return;
+    f.forEach(function(d,i){d.classList.toggle("hi",i===hi)});
+    if(f[hi])f[hi].scrollIntoView({block:"nearest"});
+  });
+  return{setItems:function(a){items=a},clear:function(){inp.value="";cur=""}};
+}
 (function initPicker(){
-  var cs=Object.keys(COUNTRIES).sort(function(a,b){return a.localeCompare(b)});
-  $("country").innerHTML="<option value=''>Pilih negara…</option>"+cs.map(function(c){return"<option value='"+esc(c)+"'>"+esc(c)+"</option>"}).join("");
-  $("country").onchange=function(){
-    var c=$("country").value,sel=$("citysel");
-    if(!c){sel.innerHTML="<option value=''>Pilih negara dulu…</option>";sel.disabled=true;return}
-    sel.disabled=false;
-    sel.innerHTML="<option value=''>Pilih kota…</option>"+COUNTRIES[c].map(function(k){return"<option value='"+esc(k)+"'>"+esc(k)+"</option>"}).join("");
-  };
-  $("citysel").onchange=function(){
-    var k=$("citysel").value,c=$("country").value;
-    if(k){$("city").value=k+(c?", "+c:"");$("city").focus()}
-  };
+  var countryNames=Object.keys(COUNTRIES).sort(function(a,b){return a.localeCompare(b)});
+  var citySel=$("citysel");
+  var cityCombo=combo("citysel","cityselList",{onPick:function(k){
+    var c=$("country").value;
+    $("city").value=k+(c?", "+c:"");
+    $("city").focus();
+  }});
+  var countryCombo=combo("country","countryList",{onPick:function(c){
+    citySel.disabled=false;citySel.placeholder="Ketik untuk cari kota…";
+    cityCombo.clear();cityCombo.setItems(COUNTRIES[c]||[]);
+  }});
+  countryCombo.setItems(countryNames);
+  document.addEventListener("click",function(e){
+    if(!e.target.closest(".combo")){$("countryList").hidden=true;$("cityselList").hidden=true}
+  });
 })();
 var rows=[],timer=null;
 var STEPS=["Mencari lokasi kota…","Mengambil data tempat…","Hampir selesai. Kota besar butuh waktu lebih lama…"];
