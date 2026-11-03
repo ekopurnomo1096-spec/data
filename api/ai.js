@@ -1,6 +1,6 @@
 // AI prospek (Gemini 3.5 Flash-Lite): skor prospek, ringkasan catatan, langkah berikutnya, dan draf pesan.
 // GET  = skor yang sudah tersimpan ({items: {id: {s, w, t}}})
-// POST = {action:"score", leads:[...]} atau {action:"assist", lead:{...}}
+// POST = {action:"score", leads:[...]}, {action:"assist", lead:{...}}, atau {action:"email", brief, subject?, text?} (draf email sesuai permintaan)
 // Key Gemini disimpan terenkripsi di Redis (nama "gem"); GEMINI_API_KEY di Vercel dipakai sebagai cadangan.
 const { isAuthed } = require("./_auth");
 const { dbConfigured, getKey, cmd, hgetall } = require("./_store");
@@ -145,6 +145,28 @@ module.exports = async (req, res) => {
       };
       const items = await saveScores([{ id: lead.id, score: o.score, why: o.why }]);
       return res.status(200).json({ assist, ai: items[lead.id] });
+    }
+
+    if (b.action === "email") {
+      const brief = str(b.brief, 600).trim();
+      const curSubject = str(b.subject, 200).trim();
+      const curText = str(b.text, 5000).trim();
+      const prompt =
+        "Tulis satu draf email penawaran pertama dari EMAHAIRSHOP ke calon pembeli grosir. Isi JSON dengan field persis: subject (judul email, maks 80 karakter) dan text (isi email).\n" +
+        "Aturan:\n" +
+        "- Fakta (daftar produk, nomor WhatsApp, alamat website) hanya boleh diambil dari TEMPLATE. Jangan mengarang harga, diskon, sertifikat, jumlah minimum order, atau klaim lain, kecuali PERMINTAAN PENGGUNA menyebutkannya.\n" +
+        "- Baris pertama isi email harus tepat diawali \"Hi!\" (sistem otomatis menggantinya dengan nama tempat). Jangan memakai placeholder seperti [nama].\n" +
+        "- Teks polos tanpa markdown, tanpa tanda bintang atau pagar. Daftar boleh memakai tanda \"•\".\n" +
+        "- Ikuti PERMINTAAN PENGGUNA soal gaya, nada, panjang, bahasa, dan isi. Kalau tidak ada permintaan, tulis dalam bahasa Inggris, ramah, dan ringkas, berdasar TEMPLATE.\n" +
+        (curText ? "- DRAF SAAT INI diberikan: revisi draf itu sesuai permintaan, pertahankan bagian yang tidak diminta diubah.\n" : "") +
+        "\nPERMINTAAN PENGGUNA: " + (brief || "(tidak ada)") + "\n\n" +
+        "TEMPLATE:\n" + TEMPLATE + "\n" +
+        (curText ? "\nDRAF SAAT INI\nSubjek: " + curSubject + "\nIsi:\n" + curText + "\n" : "");
+      const o = await gemini(key, prompt, 4096);
+      const subject = str(o.subject, 200).replace(/[\r\n\t]+/g, " ").trim();
+      const text = str(o.text, 5000).trim();
+      if (!subject || !text) return res.status(500).json({ error: "AI tidak menghasilkan email, coba lagi" });
+      return res.status(200).json({ subject, text });
     }
 
     return res.status(400).json({ error: "Aksi tidak dikenal" });

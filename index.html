@@ -156,6 +156,9 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .di dd{margin:0;overflow-wrap:anywhere}
 .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 .tbtns{display:flex;gap:8px;margin-left:auto}
+.airow{display:flex;gap:8px;flex-wrap:wrap}
+.airow input{flex:1 1 220px;min-width:0}
+.airow .ghost{flex:none;height:40px;padding:0 14px}
 .acts.dacts{display:grid;grid-template-columns:repeat(3,1fr)}
 .dacts .btn{justify-content:center;text-align:center;white-space:nowrap}
 .dacts .btn:last-child:nth-child(3n+1){grid-column:1/-1}
@@ -498,6 +501,9 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
     </details>
   </div>
   <div class="panel">
+    <div class="f"><label for="emai">Minta AI menulis</label>
+      <div class="airow"><input type="text" id="emai" maxlength="500" placeholder="Mis. nada santai, tawarkan sampel gratis, maksimal 80 kata"><button class="ghost" id="emaibtn" type="button">Tulis dengan AI</button></div>
+      <p class="hint2">Tulis permintaan kata-katanya, lalu AI mengisi Subjek dan Isi email. Kalau Isi email sudah ada, AI merevisinya sesuai permintaan.</p></div>
     <div class="f"><label for="emsj">Subjek</label><input type="text" id="emsj" maxlength="200" class="skel" readonly></div>
     <div class="sf f"><label for="emtx">Isi email</label><textarea id="emtx" rows="12" class="skel" readonly></textarea>
       <p class="hint2">Sapaan di baris pertama otomatis memakai nama tempat (Hi Nama team!) selama baris itu tetap diawali Hi!</p></div>
@@ -1479,6 +1485,23 @@ function renderMail(){
   }
   emCount();renderHist();
 }
+$("emaibtn").onclick=async function(){
+  if(!EM.loaded){flash("Tunggu sebentar, email masih dimuat.");return}
+  var b=this,T="Menulis email dengan AI";
+  b.disabled=true;
+  aidShow("run",T,"AI sedang menulis subjek dan isi email…",35);
+  try{
+    var j=await aiPost({action:"email",brief:$("emai").value.trim(),subject:$("emsj").value.trim(),text:$("emtx").value});
+    $("emsj").value=j.subject;$("emtx").value=j.text;EM.filled=true;emErr("");
+    aidShow("ok","Selesai","Subjek dan isi email sudah diisi. Baca dan sesuaikan dulu sebelum dikirim.",100);
+  }catch(e){
+    var m=String(e.message||e);
+    if(m==="401"){$("aid").close()}
+    else{aidShow("err","Gagal menulis email",m,0);$("aids").hidden=!/Pengaturan/.test(m)}
+  }
+  b.disabled=false;
+};
+$("emai").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();$("emaibtn").click()}};
 function mailUnskel(){
   ["emsj","emtx"].forEach(function(id){var e=$(id);e.classList.remove("skel");e.removeAttribute("readonly")});
   $("emcn").classList.remove("tsk");
