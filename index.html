@@ -208,14 +208,15 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .nm small{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;max-width:none}
 .nm small.nt{-webkit-line-clamp:1;line-clamp:1}
 @media (min-width:761px){
- table{min-width:1120px}
- th:nth-child(1),td:nth-child(1){width:32%;min-width:270px}
- th:nth-child(2),td:nth-child(2){width:150px;white-space:nowrap}
- th:nth-child(3),td:nth-child(3){width:72px}
- th:nth-child(4),td:nth-child(4){width:72px}
- td.clip{max-width:170px}
- td.nm,td[data-l='Status']{vertical-align:middle}
+ table{min-width:0}
+ th,td{padding-left:8px;padding-right:8px}
+ th:nth-child(1),td:nth-child(1){width:27%;min-width:210px}
+ th:nth-child(2),td:nth-child(2){width:134px;white-space:nowrap}
+ th:nth-child(3),td:nth-child(3),th:nth-child(4),td:nth-child(4){width:56px}
+ .stsel{min-width:124px}
+ td.clip{max-width:135px}
  td{vertical-align:middle}
+}
 }
 .di textarea{width:100%;font:inherit;font-size:.9rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;resize:vertical;min-height:72px}
 textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
