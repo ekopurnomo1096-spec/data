@@ -189,6 +189,25 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .krow input{flex:1;min-width:0}
 .btn.primary{background:var(--acc);color:var(--onacc);border-color:var(--acc)}
 .btn.primary:hover{color:var(--onacc);opacity:.9}
+.saved{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.svl{color:var(--mute);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-right:2px}
+.chip{display:inline-flex;align-items:center;border:1px solid var(--line);background:var(--surf);border-radius:99px;font-size:.84rem;overflow:hidden}
+.chip button{all:unset;cursor:pointer;padding:5px 12px;display:inline-flex;gap:6px;align-items:center}
+.chip button:hover{background:var(--accsoft);color:var(--acc)}
+.chip button:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
+.chip .cx{padding:5px 10px 5px 8px;color:var(--mute);border-left:1px solid var(--line)}
+.chip em{font-style:normal;color:var(--mute);font-size:.78rem}
+.chip.mine{border-color:var(--acc);color:var(--acc);font-weight:600}
+.stsel{width:auto;min-width:130px;height:32px;font-size:.82rem;padding:0 6px;font-weight:500}
+.stsel.st-chat{border-color:var(--star);color:var(--star)}
+.stsel.st-balas{border-color:var(--warm);color:var(--warm)}
+.stsel.st-deal{border-color:var(--acc);background:var(--accsoft);color:var(--acc);font-weight:600}
+.stsel.st-tidak{color:var(--mute);opacity:.75}
+.nm small.nt{color:var(--warm);margin-top:3px}
+.di textarea{width:100%;font:inherit;font-size:.9rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;resize:vertical;min-height:72px}
+textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.meta .ghost{height:28px;margin-left:8px;font-size:.78rem}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:99px;font-size:.86rem;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:90vw}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -227,16 +246,28 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
       <select id="source"><option value="google">Google Maps (lengkap)</option><option value="osm">OpenStreetMap (gratis, tipis)</option></select></div>
     <button class="go" id="run"><span id="runtxt">Cari</span></button>
   </div>
+  <div class="saved" id="saved" hidden></div>
   <div class="status" id="status" aria-live="polite"><p class="info">Pilih negara dan kota, lalu tekan Cari. Hasilnya bisa diurutkan dan difilter.</p></div>
   <div id="res" hidden>
     <div class="stats" id="stats"></div>
+    <p class="meta" id="cinfo" hidden></p>
     <div class="tools">
-      <input type="search" class="q" id="q" placeholder="Filter nama atau alamat" aria-label="Filter nama atau alamat">
-      <label class="chk"><input type="checkbox" id="onlyc"> Punya kontak</label>
-      <label class="chk"><input type="checkbox" id="onlye"> Punya email</label>
-      <select id="sortsel" class="sortsel" aria-label="Urutkan"><option value="">Urutan asli</option><option value="name">Nama A–Z</option><option value="rating">Rating tertinggi</option><option value="reviews">Ulasan terbanyak</option><option value="score">Kontak terbanyak</option></select>
+      <input type="search" class="q" id="q" placeholder="Cari nama atau alamat" aria-label="Cari nama atau alamat">
+      <select id="fst" class="sortsel" aria-label="Filter status prospek"><option value="all">Semua status</option><option value="baru">Belum dihubungi</option><option value="chat">Sudah dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak cocok</option></select>
+      <select id="frt" class="sortsel" aria-label="Rating minimal"><option value="">Semua rating</option><option value="4">Rating 4,0 ke atas</option><option value="4.5">Rating 4,5 ke atas</option><option value="4.8">Rating 4,8 ke atas</option></select>
+      <select id="frv" class="sortsel" aria-label="Ulasan minimal"><option value="">Semua ulasan</option><option value="20">20 ulasan ke atas</option><option value="100">100 ulasan ke atas</option><option value="500">500 ulasan ke atas</option></select>
+      <select id="sortsel" class="sortsel" aria-label="Urutkan"><option value="">Urutan asli</option><option value="name">Nama A–Z</option><option value="namez">Nama Z–A</option><option value="rating">Rating tertinggi</option><option value="reviews">Ulasan terbanyak</option><option value="score">Kontak terbanyak</option><option value="status">Status prospek</option><option value="changed">Terakhir diubah</option></select>
+    </div>
+    <div class="tools">
+      <span class="svl">Harus ada</span>
+      <label class="chk"><input type="checkbox" id="fph"> Telepon</label>
+      <label class="chk" title="Termasuk nomor telepon yang bisa dipakai WhatsApp (belum tentu aktif)"><input type="checkbox" id="fwa"> WhatsApp</label>
+      <label class="chk"><input type="checkbox" id="fem"> Email</label>
+      <label class="chk"><input type="checkbox" id="fwb"> Website</label>
+      <label class="chk"><input type="checkbox" id="fnt"> Catatan</label>
       <span class="sp"></span>
       <span id="copied" class="info" hidden></span>
+      <button class="ghost" id="freset" type="button">Reset filter</button>
       <button class="ghost" id="copy" type="button">Salin CSV</button>
       <button class="ghost" id="dl" type="button">Unduh CSV</button>
     </div>
@@ -244,6 +275,7 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
     <div class="tw"><table>
       <thead><tr>
         <th data-k="name" aria-sort="none"><button type="button">Tempat</button></th>
+        <th data-k="status" aria-sort="none"><button type="button">Status</button></th>
         <th class="num" data-k="rating" aria-sort="none"><button type="button">Rating</button></th>
         <th class="num" data-k="reviews" aria-sort="none"><button type="button">Ulasan</button></th>
         <th>Telepon</th><th>Email</th><th>Website</th>
@@ -259,6 +291,7 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
   <div class="segs" id="segs"></div>
 </section>
 </main>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <dialog id="pdlg" aria-label="Foto tempat"><figure><img id="pimg" alt=""><figcaption id="pcap"></figcaption></figure></dialog>
 <dialog id="dlg" aria-label="Detail tempat"><div id="dbody"></div></dialog>
 <dialog id="setd" aria-label="Pengaturan"><div id="sbody">
@@ -469,9 +502,83 @@ function comboAsync(inputId,listId,opts){
     if(!e.target.closest(".combo")){$("countryList").hidden=true;$("cityselList").hidden=true}
   });
 })();
-var rows=[],timer=null,sKey="",sDir=1,lastQ="",lastCountry="";
+var rows=[],timer=null,sKey="",sDir=1,lastQ="",lastCountry="",lastDupes=0;
+var LS={},SAVED=[],pend=null,ntm=null,toastT=null;
+var STAT=[["","Belum dihubungi"],["chat","Sudah dihubungi"],["balas","Dibalas"],["deal","Deal"],["tidak","Tidak cocok"]];
+var STORD={"":0,chat:1,balas:2,deal:3,tidak:4};
+function stOf(x){var r=LS[x.id];return r&&r.s||""}
+function noteOf(x){var r=LS[x.id];return r&&r.n||""}
+function stLabel(k){for(var i=0;i<STAT.length;i++)if(STAT[i][0]===k)return STAT[i][1];return STAT[0][1]}
+function stSel(x,id,extra){var s=stOf(x);return"<select"+(id?" id='"+id+"'":"")+" class='stsel st-"+(s||"baru")+"'"+(extra||"")+" aria-label='Status prospek'>"+STAT.map(function(p){return"<option value='"+p[0]+"'"+(p[0]===s?" selected":"")+">"+p[1]+"</option>"}).join("")+"</select>"}
+function stCell(x){return"<td data-l='Status'>"+stSel(x,"","  data-ri='"+rows.indexOf(x)+"'")+"</td>"}
+function noteLine(x){var n=noteOf(x);return n?"<small class='nt'>Catatan: "+esc(n.length>80?n.slice(0,80)+"…":n)+"</small>":""}
+function flash(t){var el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true},2400);var d=$("dsv");if(d)d.textContent=t}
+function fmtDate(ms){return new Date(ms).toLocaleString("id-ID",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}
+function leadSnap(x){return{id:x.id,name:x.name,address:x.address,phone:x.phone,website:x.website,email:x.email,emails:x.emails,wa:x.wa,looked:x.looked,found:x.found,thumbnail:x.thumbnail,rating:x.rating,reviews:x.reviews,osm:x.osm,ctx:x.ctx}}
+function saveLead(x,patch){
+  if(!x.id)return;
+  if(!x.ctx)x.ctx=lastCountry+"|"+lastQ;
+  var old=LS[x.id]||{},rec={s:old.s||"",n:old.n||"",t:Date.now(),lead:leadSnap(x)};
+  if(patch.s!==undefined)rec.s=patch.s;
+  if(patch.n!==undefined)rec.n=patch.n;
+  LS[x.id]=rec;flash("Menyimpan…");
+  fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"save",id:x.id,s:rec.s,n:rec.n,lead:rec.lead})})
+    .then(function(r){return r.json().then(function(j){return{ok:r.ok,st:r.status,j:j}})})
+    .then(function(o){
+      if(o.st===401){showLogin("Sesi habis, silakan masuk lagi.");return}
+      if(!o.ok){flash("Gagal menyimpan: "+(o.j.error||"coba lagi"));return}
+      flash("Tersimpan");renderSaved();
+    }).catch(function(){flash("Tidak bisa menghubungi server")});
+}
+function flushNote(){
+  clearTimeout(ntm);
+  var el=$("dnt");if(!pend||!el)return;
+  var x=pend;pend=null;
+  var v=el.value.trim();
+  if(v===noteOf(x))return;
+  saveLead(x,{n:v});render();
+}
+function hydrate(a){a.forEach(function(x){var r=LS[x.id],l=r&&r.lead;if(!l)return;
+  if(l.emails&&l.emails.length&&!(x.emails&&x.emails.length)){x.emails=l.emails;x.email=x.email||l.emails[0]}
+  if(l.wa&&!x.wa)x.wa=l.wa;
+  if(l.looked){x.looked=true;x.found=!!l.found}
+  if(l.ctx&&!x.ctx)x.ctx=l.ctx})}
+function trackedList(){return Object.keys(LS).map(function(k){return LS[k]}).filter(function(r){return r&&r.lead&&(r.s||r.n)})}
+function renderSaved(){
+  var el=$("saved"),t=trackedList(),h="";
+  if(!SAVED.length&&!t.length){el.hidden=true;return}
+  h="<span class='svl'>Tersimpan</span>";
+  if(t.length)h+="<span class='chip mine'><button type='button' id='mine' title='Semua tempat yang sudah diberi status atau catatan'>Prospek saya <em>"+t.length+"</em></button></span>";
+  SAVED.forEach(function(m,i){h+="<span class='chip'><button type='button' class='cb' data-i='"+i+"' title='Buka tanpa memakai kuota. Disimpan "+esc(fmtDate(m.at))+"'>"+esc(m.city)+" · "+esc(LABEL[m.kind]||m.kind)+(m.source==="osm"?" · OSM":"")+" <em>"+m.n+"</em></button><button type='button' class='cx' data-i='"+i+"' aria-label='Hapus simpanan "+esc(m.city)+"' title='Hapus simpanan'>×</button></span>"});
+  el.innerHTML=h;el.hidden=false;
+}
+function loadLeads(){
+  fetch("/api/leads").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){LS=j.items||{};SAVED=j.searches||[];renderSaved()}).catch(function(){});
+}
+function loadSearches(){
+  fetch("/api/leads?part=searches").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){SAVED=j.searches||[];renderSaved()}).catch(function(){});
+}
+function showMine(){
+  var t=trackedList();
+  if(!t.length){$("res").hidden=true;say("info","Belum ada prospek yang diberi status atau catatan.");return}
+  rows=t.map(function(r){return r.lead});
+  lastQ="Prospek saya";lastDupes=0;sKey="changed";sDir=-1;
+  $("status").innerHTML="";$("cinfo").hidden=true;
+  render();
+}
+function setCinfo(j){
+  var el=$("cinfo");
+  if(j&&j.cached){el.innerHTML="Hasil tersimpan dari "+esc(fmtDate(j.savedAt))+". Tidak memakai kuota. <button type='button' class='ghost' id='refetch'>Cari ulang</button>";el.hidden=false;$("refetch").onclick=function(){run(true)}}
+  else if(j&&j.saved){el.textContent="Hasil baru disimpan. Bisa dibuka lagi dari daftar Tersimpan tanpa memakai kuota.";el.hidden=false}
+  else el.hidden=true;
+}
+function syncSort(){
+  var d=(sKey==="name"||sKey==="status")?1:-1,v=sKey;
+  if(sKey==="name"&&sDir<0)v="namez";else if(sDir!==d)v="";
+  $("sortsel").value=v&&$("sortsel").querySelector("option[value='"+v+"']")?v:"";
+}
 function score(x){return(x.phone?1:0)+(x.email?1:0)+(x.website?1:0)}
-var SORTS={name:function(x){return x.name.toLowerCase()},rating:function(x){return parseFloat(x.rating)||0},reviews:function(x){return parseInt(String(x.reviews||"").replace(/\D/g,""),10)||0},score:score};
+var SORTS={name:function(x){return x.name.toLowerCase()},rating:function(x){return parseFloat(x.rating)||0},reviews:function(x){return parseInt(String(x.reviews||"").replace(/\D/g,""),10)||0},score:score,status:function(x){return STORD[stOf(x)]||0},changed:function(x){var r=LS[x.id];return r&&r.t||0}};
 var STEPS=["Mencari lokasi kota…","Mengambil data tempat…","Hampir selesai. Kota besar butuh waktu lebih lama…"];
 var NA="<span class='na'>–</span>";
 function loading(on){
@@ -487,11 +594,27 @@ function loading(on){
 function say(cls,t){$("status").innerHTML="<div class='"+cls+"'>"+t+"</div>"}
 function href(u){return/^https?:\/\//i.test(u)?u:"https://"+u}
 function view(){
-  var only=$("onlyc").checked,onlye=$("onlye").checked,q=$("q").value.trim().toLowerCase();
-  var r=rows.filter(function(x){return(!only||x.phone||x.website||x.email)&&(!onlye||x.email)&&(!q||(x.name+" "+x.address).toLowerCase().indexOf(q)>-1)});
-  if(sKey){
+  var q=$("q").value.trim().toLowerCase(),fs=$("fst").value,mr=parseFloat($("frt").value)||0,mv=parseInt($("frv").value,10)||0;
+  var nph=$("fph").checked,nwa=$("fwa").checked,nem=$("fem").checked,nwb=$("fwb").checked,nnt=$("fnt").checked;
+  var r=rows.filter(function(x){
+    if(q&&(x.name+" "+x.address).toLowerCase().indexOf(q)<0)return false;
+    if(fs!=="all"&&(stOf(x)||"baru")!==fs)return false;
+    if(mr&&SORTS.rating(x)<mr)return false;
+    if(mv&&SORTS.reviews(x)<mv)return false;
+    if(nph&&!x.phone)return false;
+    if(nwa&&!waOf(x))return false;
+    if(nem&&!emailsOf(x).length)return false;
+    if(nwb&&!x.website)return false;
+    if(nnt&&!noteOf(x))return false;
+    return true;
+  });
+  if(sKey&&SORTS[sKey]){
     var f=SORTS[sKey];
-    r=r.map(function(x,i){return[x,i]}).sort(function(a,b){var u=f(a[0]),v=f(b[0]);return u<v?-sDir:u>v?sDir:a[1]-b[1]}).map(function(p){return p[0]});
+    r=r.map(function(x,i){return[x,i]}).sort(function(a,b){
+      var u=f(a[0]),v=f(b[0]);
+      if(u!==v)return u<v?-sDir:sDir;
+      return(SORTS.reviews(b[0])-SORTS.reviews(a[0]))||(SORTS.rating(b[0])-SORTS.rating(a[0]))||(a[1]-b[1]);
+    }).map(function(p){return p[0]});
   }
   return r;
 }
@@ -507,14 +630,15 @@ function render(){
     var p=n?Math.round(s[1]/n*100):0;
     return"<div class='stat'><small>"+s[0]+"</small><b>"+s[1]+"</b>"+(i?"<span>"+p+"% dari total</span><div class='meter'><i style='width:"+p+"%'></i></div>":"<span>"+esc(lastQ)+"</span>")+"</div>";
   }).join("");
-  $("shown").textContent="Menampilkan "+r.length+" dari "+n+" tempat. Klik baris untuk lihat detail.";
+  $("shown").textContent="Menampilkan "+r.length+" dari "+n+" tempat."+(lastDupes?" "+lastDupes+" duplikat dibuang.":"")+" Klik baris untuk lihat detail.";
   $("copied").hidden=true;
   document.querySelectorAll("th[data-k]").forEach(function(th){
     th.setAttribute("aria-sort",th.getAttribute("data-k")===sKey?(sDir>0?"ascending":"descending"):"none");
   });
   $("tb").innerHTML=r.length?r.map(function(x){
     var ph=x.phone?x.phone.split(/[;,]/)[0].trim():"",site=x.website?href(x.website):"",sc=score(x);
-    return"<tr class='clk' tabindex='0' data-i='"+rows.indexOf(x)+"'><td class='nm'><div class='nmw'>"+thumb(x)+"<div><b>"+esc(x.name)+"</b><small>"+(x.address?esc(x.address):"Alamat belum diisi")+"</small></div></div></td>"
+    return"<tr class='clk' tabindex='0' data-i='"+rows.indexOf(x)+"'><td class='nm'><div class='nmw'>"+thumb(x)+"<div><b>"+esc(x.name)+"</b><small>"+(x.address?esc(x.address):"Alamat belum diisi")+"</small>"+noteLine(x)+"</div></div></td>"
+      +stCell(x)
       +"<td class='num' data-l='Rating'>"+(x.rating?"<span class='star'>★</span> "+esc(x.rating):NA)+"</td>"
       +"<td class='num' data-l='Ulasan'>"+(x.reviews?esc(x.reviews):NA)+"</td>"
       +"<td class='clip' data-l='Telepon'>"+(ph?IC.tel+"<a class='lk' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":NA)+"</td>"
@@ -522,38 +646,41 @@ function render(){
       +"<td class='clip' data-l='Website'>"+(site?IC.web+"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":NA)+"</td>"
       +"<td class='num sc s"+sc+"' data-l='Kontak'>"+sc+" dari 3</td>"
       +"<td class='pt' data-l='Peta'>"+(x.osm?IC.pin+"<a class='lk' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Buka</a>":NA)+"</td></tr>";
-  }).join(""):"<tr><td colspan='8'><p class='info'>Tidak ada tempat yang cocok dengan filter. Ubah atau matikan filter untuk melihat semuanya.</p></td></tr>";
-  $("sortsel").value=sKey;
+  }).join(""):"<tr><td colspan='9'><p class='info'>Tidak ada tempat yang cocok dengan filter. Ubah atau matikan filter untuk melihat semuanya.</p></td></tr>";
+  syncSort();
   $("res").hidden=false;
 }
-async function run(){
+async function run(force){
   var city=$("city").value.trim(),kind=$("kind").value;
   if(!city){say("err","Tulis nama kota dulu, misalnya London atau Purwokerto.");$("city").focus();return}
   loading(true);
   try{
-    var r=await fetch("/api/places?city="+encodeURIComponent(city)+"&kind="+kind+"&source="+$("source").value,{}),tx=await r.text(),j;
+    var r=await fetch("/api/places?city="+encodeURIComponent(city)+"&kind="+kind+"&source="+$("source").value+(force===true?"&refresh=1":""),{}),tx=await r.text(),j;
     if(r.status===401){loading(false);return showLogin("Sesi habis, silakan masuk lagi.")}
     try{j=JSON.parse(tx)}catch(x){throw new Error("server membalas error ("+r.status+"). Cek Logs di dashboard Vercel.")}
     if(!r.ok)throw new Error(j.error||"Gagal");
-    rows=j.results;loading(false);if($("source").value!=="osm")usageAfterSearch();
+    rows=j.results;hydrate(rows);lastDupes=j.dupes||0;loading(false);if($("source").value!=="osm"&&!j.cached)usageAfterSearch();
     if(!rows.length)return say("info","Tidak ada data "+LABEL[kind]+" di "+esc(city)+" dari sumber ini. Coba kota lain, jenis tempat lain, atau ganti sumber data.");
     lastQ=LABEL[kind]+" di "+city;lastCountry=$("country").value;sKey="";sDir=1;
-    render();
+    setCinfo(j);render();if(!j.cached)loadSearches();
   }catch(e){loading(false);var m=e.message.replace(/\.$/,"");
     if(/Pengaturan/.test(m)){say("err",esc(m)+". <button class='ghost' id='goset' type='button'>Buka Pengaturan</button>");$("goset").onclick=openSet}
     else say("err","Pencarian gagal: "+esc(m)+". Server peta gratis kadang sibuk, jadi coba lagi beberapa saat.")}
 }
-$("sortsel").onchange=function(){sKey=this.value;sDir=sKey==="name"?1:-1;render()};
-$("run").onclick=run;$("onlyc").onchange=render;$("onlye").onchange=render;$("q").oninput=render;
+$("sortsel").onchange=function(){var v=this.value;if(v==="namez"){sKey="name";sDir=-1}else{sKey=v;sDir=(v==="name"||v==="status")?1:-1}render()};
+$("run").onclick=function(){run(false)};
+["fst","frt","frv","fph","fwa","fem","fwb","fnt"].forEach(function(id){$(id).addEventListener("change",render)});
+$("q").addEventListener("input",render);
+$("freset").onclick=function(){$("q").value="";$("fst").value="all";$("frt").value="";$("frv").value="";["fph","fwa","fem","fwb","fnt"].forEach(function(id){$(id).checked=false});render()};
 $("city").addEventListener("keydown",function(e){if(e.key==="Enter")run()});
 document.querySelectorAll("th[data-k] button").forEach(function(b){b.onclick=function(){
   var k=b.parentNode.getAttribute("data-k");
-  if(sKey===k)sDir=-sDir;else{sKey=k;sDir=k==="name"?1:-1}
+  if(sKey===k)sDir=-sDir;else{sKey=k;sDir=(k==="name"||k==="status")?1:-1}
   render();
 }});
 function csv(){
-  return"nama,alamat,telepon,whatsapp,website,email,rating,ulasan\n"+view().map(function(x){
-    return[x.name,x.address,x.phone,waOf(x)?"+"+waOf(x).n:"",x.website,emailsOf(x).join("; "),x.rating||"",x.reviews||""].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(",");
+  return"nama,alamat,telepon,whatsapp,website,email,rating,ulasan,status,catatan\n"+view().map(function(x){
+    return[x.name,x.address,x.phone,waOf(x)?"+"+waOf(x).n:"",x.website,emailsOf(x).join("; "),x.rating||"",x.reviews||"",stLabel(stOf(x)),noteOf(x)].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(",");
   }).join("\n");
 }
 function done(t){$("copied").textContent=t;$("copied").hidden=false}
@@ -565,7 +692,7 @@ $("dl").onclick=function(){
   a.href=URL.createObjectURL(new Blob(["\ufeff"+csv()],{type:"text/csv;charset=utf-8"}));
   a.download="prospek.csv";document.body.appendChild(a);a.click();a.remove();
 };
-IC.wa=ic("<path d='M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z'/>");
+IC.wa="<svg viewBox='0 0 24 24' width='19' height='19' fill='#25D366' aria-hidden='true'><path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z'/></svg>";
 function firstPhone(x){return x.phone?x.phone.split(/[;,]/)[0].trim():""}
 function emailsOf(x){return x.emails&&x.emails.length?x.emails:(x.email?[x.email]:[])}
 function waOf(x){
@@ -573,7 +700,7 @@ function waOf(x){
   var p=firstPhone(x).replace(/[^\d+]/g,"");
   if(p.indexOf("00")===0)p="+"+p.slice(2);
   if(p.charAt(0)==="+")return p.length>8?{n:p.slice(1),src:"phone"}:null;
-  if(p.charAt(0)==="0"&&(lastCountry==="Indonesia"||/indonesia/i.test(lastQ)))return{n:"62"+p.slice(1),src:"phone"};
+  if(p.charAt(0)==="0"&&/indonesia/i.test(x.ctx||(lastCountry+"|"+lastQ)))return{n:"62"+p.slice(1),src:"phone"};
   return null;
 }
 function findMail(x){
@@ -584,7 +711,7 @@ function findMail(x){
     if(m.length){x.emails=m;x.email=m[0]}
     if(w)x.wa=w;
     x.found=!!(m.length||w);
-    render();openD(x);
+    saveLead(x,{});render();openD(x);
   }).catch(function(){b.disabled=false;b.textContent="Gagal, coba lagi"});
 }
 function openD(x){
@@ -592,7 +719,7 @@ function openD(x){
   function item(l,v){return"<div class='di'><dt>"+l+"</dt><dd>"+v+"</dd></div>"}
   var rate=x.rating?"<span class='star'>★</span> "+esc(x.rating)+(x.reviews?" · "+esc(x.reviews)+" ulasan":""):"";
   $("dbody").innerHTML="<div class='dh'><div class='dt'>"+thumb(x,"lg")+"<div><h2>"+esc(x.name)+"</h2>"+(rate?"<p class='dr'>"+rate+"</p>":"")+"</div></div><button class='x' id='dx' type='button' aria-label='Tutup'>✕</button></div>"
-    +"<dl class='dl'>"+item(IC.pin+"Alamat",x.address?esc(x.address):NA)
+    +"<dl class='dl'>"+item("Status",stSel(x,"dst")+"<span class='hint' id='dsv'></span>")+item("Catatan","<textarea id='dnt' rows='3' maxlength='2000' placeholder='Siapa yang dihubungi, balasannya, jadwal follow-up…'>"+esc(noteOf(x))+"</textarea>")+item(IC.pin+"Alamat",x.address?esc(x.address):NA)
     +item(IC.tel+"Telepon",ph?"<a class='lk' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":"Belum ada data")
     +item(IC.wa+"WhatsApp",wa?"<a class='lk' href='https://wa.me/"+wa.n+"' target='_blank' rel='noopener'>+"+wa.n+"</a>"+(wa.src==="phone"?"<span class='hint'>dari nomor telepon, belum tentu aktif</span>":"<span class='hint'>dari website</span>"):"Belum ada data")
     +item(IC.mail+"Email",em.length?em.map(function(e){return"<a class='lk' href='mailto:"+esc(e)+"'>"+esc(e)+"</a>"}).join("<br>"):"Belum ada data")
@@ -605,6 +732,9 @@ function openD(x){
     +(site&&!x.looked?"<button class='btn' id='dmail' type='button'>"+IC.mail+"Cari email & WhatsApp dari website</button>":"")+"</div>"
     +(x.looked&&!x.found?"<p class='dr' style='margin-top:12px'>Sudah dicek di website, tapi tidak ada email atau WhatsApp yang ditemukan.</p>":"");
   $("dx").onclick=function(){$("dlg").close()};
+  $("dst").onchange=function(){this.className="stsel st-"+(this.value||"baru");saveLead(x,{s:this.value});render()};
+  $("dnt").oninput=function(){pend=x;clearTimeout(ntm);ntm=setTimeout(flushNote,900)};
+  $("dnt").onblur=flushNote;
   if(site&&!x.looked)$("dmail").onclick=function(){findMail(x)};
   if(!$("dlg").open)$("dlg").showModal();
 }
@@ -618,13 +748,23 @@ function openPhoto(el){
 }
 $("pdlg").onclick=function(e){if(e.target!==$("pimg"))this.close()};
 $("dbody").addEventListener("click",function(e){var z=e.target.closest(".th.zoom");if(z)openPhoto(z)});
-$("tb").onclick=function(e){var z=e.target.closest(".th.zoom");if(z){openPhoto(z);return}if(e.target.closest("a"))return;var tr=e.target.closest("tr[data-i]");if(tr)openD(rows[+tr.getAttribute("data-i")])};
+$("tb").onclick=function(e){var z=e.target.closest(".th.zoom");if(z){openPhoto(z);return}if(e.target.closest("a,select"))return;var tr=e.target.closest("tr[data-i]");if(tr)openD(rows[+tr.getAttribute("data-i")])};
 $("tb").addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches(".th.zoom")){e.preventDefault();e.stopPropagation();openPhoto(e.target)}},true);
 $("tb").onkeydown=function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr[data-i]")){e.preventDefault();openD(rows[+e.target.getAttribute("data-i")])}};
 $("dlg").onclick=function(e){if(e.target===this)this.close()};
+$("dlg").addEventListener("close",flushNote);
+$("tb").addEventListener("change",function(e){var sel=e.target.closest("select.stsel");if(!sel)return;var x=rows[+sel.getAttribute("data-ri")];if(!x)return;sel.className="stsel st-"+(sel.value||"baru");saveLead(x,{s:sel.value})});
+$("saved").addEventListener("click",function(e){
+  if(e.target.closest("#mine")){showMine();return}
+  var cb=e.target.closest(".cb"),cx=e.target.closest(".cx");
+  if(cb){var m=SAVED[+cb.getAttribute("data-i")];if(!m)return;$("city").value=m.city;$("kind").value=m.kind;$("source").value=m.source;run(false);return}
+  if(cx){var d=SAVED[+cx.getAttribute("data-i")];
+    if(!d||!confirm("Hapus hasil tersimpan untuk "+d.city+"? Pencarian berikutnya memakai kuota lagi. Status dan catatan prospek tidak ikut terhapus."))return;
+    fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"delsearch",key:d.key})}).then(loadSearches).catch(function(){})}
+});
 function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
 function showLogin(msg){$("boot").hidden=true;$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
-function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage()}
+function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();loadLeads()}
 var CK="<svg class='ck' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M5 12.5l4.5 4.5L19 7.5'/></svg>",CH="<svg class='ch' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M6 9l6 6 6-6'/></svg>";
 function umClose(){var m=document.querySelector(".umenu"),t=document.querySelector(".utrig");if(m)m.hidden=true;if(t)t.setAttribute("aria-expanded","false")}
 document.addEventListener("click",function(e){if(!e.target.closest("#usage"))umClose()});

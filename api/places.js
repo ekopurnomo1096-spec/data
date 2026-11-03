@@ -1,6 +1,8 @@
 // Vercel serverless function: cari tempat. API key diambil dari database (diisi lewat Pengaturan), cadangan: env Vercel
 const { isAuthed } = require("./_auth");
-const { getKey, getActive } = require("./_store");
+const { getKey, getActive, dbConfigured, cmd } = require("./_store");
+const { dedupe } = require("./_leads");
+const CACHE = "hairleads:cache", META = "hairleads:cmeta";
 const FILTERS = {
   salon: 'nwr["shop"="hairdresser"]',
   beauty: 'nwr["shop"~"beauty|cosmetics"]',
@@ -151,8 +153,24 @@ module.exports = async (req, res) => {
     const city = String((req.query && req.query.city) || "").trim();
     const kind = FILTERS[req.query && req.query.kind] ? req.query.kind : "salon";
     if (!city) return res.status(400).json({ error: "Isi nama kota" });
+    const source = req.query.source === "osm" ? "osm" : "google";
+    const ckey = source + "|" + kind + "|" + city.toLowerCase().replace(/\s+/g, " ");
+    const refresh = req.query.refresh === "1";
+    res.setHeader("Cache-Control", "private, no-store");
+
+    // Hasil yang pernah disimpan dipakai lagi, jadi tidak memakai kuota SerpApi
+    if (!refresh && dbConfigured()) {
+      try {
+        const raw = await cmd(["HGET", CACHE, ckey]);
+        const hit = raw && JSON.parse(raw);
+        if (hit && Array.isArray(hit.results) && hit.results.length) {
+          return res.status(200).json({ results: hit.results, cached: true, savedAt: hit.at, dupes: hit.dupes || 0 });
+        }
+      } catch (e) { /* cache rusak atau Redis bermasalah: cari seperti biasa */ }
+    }
+
     let results;
-    if (req.query.source === "osm") {
+    if (source === "osm") {
       const pt = await geocode(city);
       if (!pt) return res.status(404).json({ error: "Kota tidak ditemukan" });
       const key = (await getKey("geo")) || process.env.GEOAPIFY_KEY;
@@ -166,8 +184,18 @@ module.exports = async (req, res) => {
       try { results = await serpSearch(city, kind, useN === 2 ? k2 : a1); }
       catch (e) { throw (a1 && k2) ? new Error(e.message + " (Akun " + useN + ")") : e; }
     }
-    res.setHeader("Cache-Control", "private, no-store");
-    return res.status(200).json({ results });
+    const d = dedupe(results);
+    results = d.list;
+    let saved = false;
+    if (results.length && dbConfigured()) {
+      try {
+        const at = Date.now();
+        await cmd(["HSET", CACHE, ckey, JSON.stringify({ at, dupes: d.dupes, results })]);
+        await cmd(["HSET", META, ckey, JSON.stringify({ at, city, kind, source, n: results.length })]);
+        saved = true;
+      } catch (e) { /* gagal menyimpan tidak boleh menggagalkan pencarian */ }
+    }
+    return res.status(200).json({ results, cached: false, saved, dupes: d.dupes });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

@@ -11,3 +11,8 @@ Progress bar kuota SerpApi tampil di pojok kanan atas, diambil dari Account API 
 
 (Opsional) SERPAPI_KEY / GEOAPIFY_KEY di Vercel tetap dipakai sebagai cadangan kalau belum ada key tersimpan.
 JANGAN menaruh API key atau kata sandi di index.html atau di GitHub.
+
+FITUR SIMPAN, STATUS, DAN CATATAN (otomatis, tidak perlu pengaturan tambahan selain Upstash Redis)
+- Hasil pencarian disimpan di Redis (hairleads:cache). Mencari kota + jenis + sumber yang sama lagi membuka hasil tersimpan tanpa memakai kuota SerpApi. Tombol "Cari ulang" memaksa pencarian baru.
+- Duplikat dibuang otomatis: place_id sama, nama + alamat sama, atau nomor telepon sama dengan nama mirip. Cabang dengan alamat berbeda tidak dibuang.
+- Status prospek dan catatan disimpan per tempat (hairleads:leads), jadi tempat yang sama di pencarian lain memakai status yang sama.

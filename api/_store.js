@@ -67,4 +67,12 @@ async function getActive() {
 }
 async function setActive(v) { await cmd(["HSET", HASH, "active", v === "2" ? "2" : "1"]); }
 
-module.exports = { dbConfigured, getKey, setKey, getActive, setActive };
+// Pembantu hash Redis umum (dipakai api/leads.js dan cache pencarian di api/places.js)
+async function hgetall(key) {
+  const a = (await cmd(["HGETALL", key])) || [];
+  const o = {};
+  for (let i = 0; i + 1 < a.length; i += 2) o[a[i]] = a[i + 1];
+  return o;
+}
+
+module.exports = { dbConfigured, getKey, setKey, getActive, setActive, cmd, hgetall };
