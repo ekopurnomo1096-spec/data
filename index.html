@@ -1831,7 +1831,7 @@ function auJobText(k,j){
   if(j.skip)return AUN[k]+": dilewati ("+j.skip+")";
   var t="";
   if(k==="mail")t="terkirim "+(j.sent||0)+" + "+(j.followups||0)+" follow-up"+(j.note?" ("+j.note+")":"");
-  else if(k==="refresh")t=(j.searches||0)+" pencarian"+(j.pages?" (termasuk "+j.pages+" halaman tambahan)":"")+", "+(j.added||0)+" tempat baru"+(j.note?" ("+j.note+")":"")+(j.switched?", pindah akun: "+j.switched:"")+(j.areas?", area: "+j.areas.join("; "):"")+(j.off?", dinonaktifkan: "+j.off.join("; "):"");
+  else if(k==="refresh")t=(j.searches||0)+" pencarian"+(j.pages?" (termasuk "+j.pages+" halaman tambahan)":"")+", "+(j.added||0)+" tempat baru"+(j.note?" ("+j.note+")":"")+(j.switched?", pindah akun: "+j.switched:"");
   else if(k==="enrich")t=(j.done||0)+" website dicek, "+(j.found||0)+" punya kontak"+(j.left?", sisa "+j.left:"")+(j.retry?", "+j.retry+" gagal dibuka (dicoba ulang besok)":"");
   else if(k==="clean"){var cp=[];
     if(j.places)cp.push(j.places+" tempat tanpa kontak");if(j.searches)cp.push(j.searches+" pencarian lama");
@@ -1993,10 +1993,7 @@ function auCfg(){
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_rd'>Ulangi setiap (hari)</label><input type='number' id='au_rd' min='1' max='60' value='"+r.everyDays+"'></div>"
     +"<div class='f'><label for='au_rm'>Maks pencarian per hari</label><input type='number' id='au_rm' min='1' max='30' value='"+r.maxSearches+"'></div>"
     +"<div class='f'><label for='au_rr'>Sisakan kuota SerpApi</label><input type='number' id='au_rr' min='0' max='1000' value='"+r.reserve+"'></div>"
-    +"<div class='f'><label for='au_rp'>Halaman per pencarian (1-3)</label><input type='number' id='au_rp' min='1' max='3' value='"+r.pages+"'></div>"
-    +"<div class='f'><label for='au_rs'>Nonaktifkan setelah (kali, 0 = tidak)</label><input type='number' id='au_rs' min='0' max='10' value='"+r.stopAfter+"'></div></div>"
-    +"<label class='chk'><input type='checkbox' id='au_rrot'"+(r.rotate?" checked":"")+"> Putar area kota otomatis (utara, selatan, timur, barat, pusat, pinggiran)</label>"
-    +"<p class='hint2'>Tiap cari ulang memakai bagian kota berikutnya, jadi Google Maps tidak mengembalikan daftar yang sama terus. Hasilnya tetap digabung ke pencarian aslinya. Pencarian yang berturut-turut tidak menemukan tempat baru sebanyak angka di atas otomatis dicabut centangnya (tidak berlaku kalau terhenti karena kuota atau error). Cari ulang yang memakai OpenStreetMap tidak diputar.</p>"
+    +"<div class='f'><label for='au_rp'>Halaman per pencarian (1-3)</label><input type='number' id='au_rp' min='1' max='3' value='"+r.pages+"'></div></div>"
     +"<p class='hint2'>Tiap halaman Google Maps (20 tempat) memakai 1 kuota SerpApi dan dihitung ke \"Maks pencarian per hari\". Halaman 2 dan 3 hanya diambil kalau seluruh isi halaman sebelumnya tempat baru; isi 1 kalau hanya mau halaman pertama. Pencarian dilewati kalau sisa kuota di bawah angka yang disisakan. Pilih pencarian yang mau diulang:</p>"
     +(se.length?"<div class='mlist aulist' id='au_rk'>"+se.map(function(x){
       return"<label class='mrow'><input type='checkbox' data-k='"+esc(x.key)+"'"+(r.keys.indexOf(x.key)>-1?" checked":"")+"><span><b>"+esc(x.city)+" · "+esc(L[x.kind]||x.kind)+"</b><small>"+(x.source==="osm"?"OpenStreetMap":"Google Maps")+" · "+x.n+" tempat</small></span></label>";
@@ -2018,7 +2015,7 @@ function auCollect(){
     clean:{on:$("au_con").checked,days:+$("au_cd").value},
     enrich:{on:$("au_eon").checked,max:+$("au_em").value},
     serp:{auto:$("au_sa").checked,below:+$("au_sb").value},
-    refresh:{on:$("au_ron").checked,everyDays:+$("au_rd").value,maxSearches:+$("au_rm").value,reserve:+$("au_rr").value,pages:+$("au_rp").value,rotate:$("au_rrot").checked,stopAfter:+$("au_rs").value,
+    refresh:{on:$("au_ron").checked,everyDays:+$("au_rd").value,maxSearches:+$("au_rm").value,reserve:+$("au_rr").value,pages:+$("au_rp").value,
       keys:[].map.call(document.querySelectorAll("#au_rk input:checked"),function(i){return i.getAttribute("data-k")})},
     mail:{on:$("au_mon").checked,approve:$("au_mapp").checked,followOn:$("au_mfo").checked,minScore:+$("au_msc").value,perDay:+$("au_mpd").value,maxBounce:+$("au_mbn").value,warm:{on:$("au_won").checked,start:+$("au_wst").value,add:+$("au_wad").value,everyDays:+$("au_wev").value},steps:auReadSteps()}
   };

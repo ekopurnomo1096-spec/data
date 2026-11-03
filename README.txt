@@ -45,7 +45,7 @@ Urutan tiap jalan: (1) kirim follow-up yang sudah waktunya + email pertama yang 
 - Antrean: prospek berstatus Belum dihubungi, punya email, belum pernah dikirimi, tidak ada di Daftar berhenti, skor >= batas. Maksimal 50 menunggu persetujuan sekaligus. "Tolak" = tidak diantrekan lagi.
 - Kirim: hanya yang disetujui, maksimal "email per hari" di pengaturan dan tidak melewati sisa kuota Resend. Setelah terkirim, status jadi Sudah dihubungi dan catatan ditambah "Email, 3 Nov" (sama seperti kirim manual). Isi email memakai template di tab Otomatis (sapaan Hi! -> Hi Nama team!).
 - Follow-up: hari ke-N sejak email pertama (bawaan 4 dan 10). Berhenti sendiri kalau status jadi Dibalas / Deal / Tidak cocok, atau alamatnya masuk Daftar berhenti.
-- Cari ulang: hanya pencarian yang dicentang. 1 pencarian Google Maps = 1 kuota SerpApi (hanya halaman pertama, 20 tempat). Dilewati kalau sisa kuota di bawah angka "Sisakan kuota SerpApi". Tempat lama tidak berubah, hanya yang baru ditambahkan.
+- Cari ulang: hanya pencarian yang dicentang. 1 halaman Google Maps (20 tempat) = 1 kuota SerpApi. Halaman 2 dan 3 hanya diambil kalau seluruh isi halaman sebelumnya tempat baru (bisa diatur 1-3 di "Halaman per pencarian"). Tiap halaman dihitung ke "Maks pencarian per hari". Dilewati kalau sisa kuota di bawah angka "Sisakan kuota SerpApi". Tempat lama tidak berubah, hanya yang baru ditambahkan.
 - Cari email: maksimal 60 website per jalan (bisa diubah). Sisanya dilanjutkan di jalan berikutnya.
 
 BERHENTI BERLANGGANAN, BOUNCE, SPAM (berlaku untuk kirim otomatis DAN manual)
@@ -95,3 +95,9 @@ RINGKASAN HARIAN, PERINGATAN, PEMBERSIHAN DATA (tab Otomatis > Pengaturan)
     * ikut dibersihkan: skor AI dan catatan cek email milik tempat itu (kalau tidak dipakai pencarian lain), cache domain email yang kedaluwarsa, statistik harian lebih dari 90 hari.
     * TIDAK PERNAH dibuang: tempat yang punya status atau catatan, pernah dikirimi email, ada di antrean, atau urutan follow-up, serta tempat yang websitenya belum dicek.
   Hasilnya tampil di Riwayat jalan dan di bagian Pembersihan data. Data yang dibuang tidak diarsipkan, tapi pencarian yang sama bisa diulang kapan saja (memakai kuota SerpApi).
+
+PINDAH AKUN SERPAPI OTOMATIS (tab Otomatis > Pengaturan > Akun SerpApi)
+- Berlaku kalau Akun 1 dan Akun 2 sama-sama diisi. Sebelum tiap pencarian Google Maps (manual maupun cari ulang otomatis), sisa kuota akun aktif dicek lewat Account API SerpApi (gratis). Kalau di bawah "Pindah kalau sisa di bawah" (bawaan 20) dan akun lain punya sisa lebih banyak, akun aktif dipindah. Sama dengan switch di pojok kanan atas, jadi pilihan manual tetap bisa diganti kapan saja.
+- Kalau SerpApi menolak pencarian karena kuota habis / key bermasalah, pencarian diulang sekali dengan akun lain dan akun aktif dipindah.
+- Pindah akun lewat jadwal harian dikabari lewat email peringatan (maks sekali sehari). Pindah terakhir tersimpan di hairleads:auto, field serpsw.
+- Pengaturan disimpan di cfg.serp {auto, below}. Matikan kotaknya kalau mau memilih akun murni manual.
