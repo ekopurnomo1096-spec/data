@@ -185,8 +185,7 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .lbox .go,.lbox .err{margin:0}
 #sbody,#mbody{padding:20px}
 #mbody .sf{margin-top:14px}
-#mtx{width:100%;font:inherit;font-size:.88rem;line-height:1.45;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;resize:vertical}
-#mtx[readonly]{color:var(--mute)}
+#mtx,#emtx{width:100%;font:inherit;font-size:.88rem;line-height:1.45;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;resize:vertical}
 .mlist{max-height:190px;overflow:auto;margin-top:14px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
 .mrow{display:flex;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--soft);font-size:.88rem;cursor:pointer}
 .mrow:last-child{border-bottom:0}
@@ -194,6 +193,11 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .mrow span{min-width:0;flex:1}
 .mrow b,.mrow small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mrow small{color:var(--mute);font-size:.8rem}
+.mrow .mtag{flex:none;font-style:normal;font-size:.76rem;color:var(--mute);white-space:nowrap}
+.mlist.rd .mrow{cursor:default}
+#elist{max-height:420px;margin-top:0}
+#p4 .panel+.panel{margin-top:16px}
+.eacts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
 #maild .acts{margin-top:16px}
 .sf{margin-top:16px}
 .hint2{color:var(--mute);font-size:.8rem;margin:5px 0 0}
@@ -299,7 +303,9 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
  .tools:has(.svl)>.chk{grid-column:span 3}
  .tools:has(.svl)>.chk:has(#fnt){grid-column:1/-1}
  .tools #aiscore{grid-column:1/-1;background:var(--acc);border-color:var(--acc);color:var(--onacc)}
- .tools .dls,.tools #mailb{grid-column:1/-1}
+ .tools .dls{grid-column:1/-1}
+ .tools:has(#emq)>.chk,.tools #emst{grid-column:1/-1}
+ .eacts .btn{flex:1 1 auto;justify-content:center}
  .tools .dls #dl{width:100%;justify-content:center}
  .dlmenu{left:0;right:0;min-width:0}
  .tools .chk:has(input:checked){border-color:var(--acc);background:var(--accsoft);color:var(--acc);font-weight:600}
@@ -385,6 +391,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
     <button class="tab" role="tab" id="t1" aria-selected="true">Cari tempat</button>
     <button class="tab" role="tab" id="t2" aria-selected="false">Siapa yang membeli?</button>
     <button class="tab" role="tab" id="t3" aria-selected="false">Tersimpan <em class="tn" id="t3n"></em></button>
+    <button class="tab" role="tab" id="t4" aria-selected="false">Email</button>
   </div>
 </div></header>
 <main class="wrap">
@@ -425,7 +432,6 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       <span class="sp"></span>
       <span id="copied" class="info" hidden></span>
       <button class="ghost" id="aiscore" type="button" title="AI memberi skor 0-100 dan alasan untuk tiap tempat di tampilan ini">Nilai dengan AI</button>
-      <button class="ghost" id="mailb" type="button" title="Kirim email ke tempat yang belum dihubungi (maksimal 20 sekali kirim)">Kirim email</button>
       <div class="dls"><button class="ghost" id="dl" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="dlmenu">Unduh CSV <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="dlmenu" id="dlmenu" role="menu" hidden><button type="button" role="menuitem" id="dlall"></button><button type="button" role="menuitem" id="dlem"></button><button type="button" role="menuitem" id="dlwa"></button></div></div>
     </div>
     <p class="meta" id="shown"></p>
@@ -452,6 +458,34 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <div id="svbox"></div>
   <div id="svres" hidden><p style="margin:0 0 12px"><button class="ghost" id="svback" type="button">← Kembali ke Tersimpan</button></p><div id="svslot"></div></div>
 </section>
+<section id="p4" hidden>
+  <div class="panel">
+    <div class="f"><label for="emsj">Subjek</label><input type="text" id="emsj" maxlength="200"></div>
+    <div class="sf f"><label for="emtx">Isi email</label><textarea id="emtx" rows="12"></textarea>
+      <p class="hint2">Sapaan di baris pertama otomatis memakai nama tempat (Hi Nama team!) selama baris itu tetap diawali Hi!</p></div>
+    <p class="hint2" id="emfrom"></p>
+    <p class="aiwarn" id="emerr" hidden></p>
+    <div class="eacts"><button class="btn" id="emset" type="button" hidden>Buka Pengaturan</button></div>
+  </div>
+  <div class="panel">
+    <div class="svh">Penerima</div>
+    <div class="tools">
+      <input type="search" class="q" id="emq" placeholder="Cari nama, alamat, atau email" aria-label="Cari penerima">
+      <select id="emst" class="sortsel" aria-label="Filter status prospek"><option value="baru" selected>Belum dihubungi</option><option value="all">Semua status</option><option value="chat">Sudah dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak cocok</option></select>
+      <label class="chk"><input type="checkbox" id="emhide" checked> Sembunyikan yang sudah dikirimi</label>
+      <span class="sp"></span>
+      <button class="ghost" id="emall" type="button">Pilih 20 pertama</button>
+      <button class="ghost" id="emnone" type="button">Kosongkan pilihan</button>
+    </div>
+    <p class="info" id="eminfo"></p>
+    <div class="mlist" id="elist" hidden></div>
+    <div class="eacts"><span class="hint2" id="emsel" style="margin:0"></span><span class="sp"></span><button class="btn primary" id="emsend" type="button" disabled>Kirim email</button></div>
+  </div>
+  <div class="panel">
+    <div class="svh">Riwayat kirim</div>
+    <div id="ehist"></div>
+  </div>
+</section>
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <dialog id="pdlg" aria-label="Foto tempat"><figure><img id="pimg" alt=""><figcaption id="pcap"></figcaption></figure></dialog>
@@ -464,7 +498,6 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 </div><button id="aidx" class="aidx" type="button" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></dialog>
 <dialog id="maild" aria-label="Kirim email"><div id="mbody">
   <div class="dh"><div><h2 id="mt">Kirim email</h2><p class="dr" id="msub"></p></div><button class="x" id="mx" type="button" aria-label="Tutup">✕</button></div>
-  <div class="mlist" id="mlist" hidden></div>
   <div class="sf f"><label for="msj">Subjek</label><input type="text" id="msj" maxlength="200"></div>
   <div class="sf f"><label for="mtx" id="mtxl">Isi email</label><textarea id="mtx" rows="11"></textarea></div>
   <p class="hint2" id="mfrom"></p>
@@ -1223,35 +1256,36 @@ $("kclear").onclick=function(){if(confirm("Hapus semua key yang tersimpan di ser
 $("outb").onclick=function(){fetch("/api/session",{method:"DELETE"}).then(function(){location.reload()},function(){location.reload()})};
 
 // ---- Kirim email lewat Resend ----
-var MM={items:[],bulk:false,cfg:null};
-function mErr(t){var e=$("merr");e.textContent=t||"";e.hidden=!t;$("mset").hidden=!/Pengaturan/.test(t||"")}
-function mCount(){
-  var n=MM.bulk?document.querySelectorAll("#mlist input:checked").length:MM.items.length;
-  var b=$("msend");b.disabled=!n||!(MM.cfg&&MM.cfg.ready);b.textContent="Kirim "+(n>1?n+" email":"email");
+var MM={items:[],cfg:null};
+var EM={cfg:null,sent:{},sel:{},loaded:false,filled:false,busy:false},EMAX=20;
+function mailWarn(j){
+  if(!j.hasKey)return"API key Resend belum diisi. Buka Pengaturan lalu masukkan key-nya.";
+  if(!j.from)return"Email pengirim belum diisi. Buka Pengaturan, isi dengan alamat dari domain yang sudah diverifikasi di Resend.";
+  return"";
 }
-function openMail(items,bulk,total){
-  MM.items=items;MM.bulk=!!bulk;MM.cfg=null;
-  $("mt").textContent=bulk?"Kirim email massal":"Kirim email";
-  $("msub").textContent="";$("mfrom").textContent="";mErr("");
-  $("mlist").hidden=!bulk;$("msj").value="";$("mtx").value="";$("mtx").readOnly=!!bulk;
-  $("mtxl").textContent=bulk?"Isi email (contoh untuk tempat pertama)":"Isi email";
-  $("msend").disabled=true;$("msend").textContent="Kirim";
-  if(bulk){
-    $("mlist").innerHTML=items.map(function(x,i){return"<label class='mrow'><input type='checkbox' checked data-i='"+i+"'><span><b>"+esc(x.name)+"</b><small>"+esc(emailsOf(x)[0])+"</small></span></label>"}).join("");
-    $("msub").textContent=items.length+" tempat yang belum dihubungi"+(total>items.length?" (dari "+total+", maksimal 20 sekali kirim)":"")+". Sapaan memakai nama tiap tempat.";
-  }else{
-    $("msub").textContent=x0(items).name+" · "+emailsOf(items[0])[0];
-  }
+function mailFrom(j){return j.ready?"Dikirim dari "+j.from+"."+(j.replyTo?" Balasan masuk ke "+j.replyTo+".":" Reply-To belum diisi, balasan akan menuju alamat pengirim."):""}
+function postSend(items,force){
+  return fetch("/api/send",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({force:!!force,items:items})})
+    .then(function(r){return r.json().then(function(j){return{ok:r.ok,st:r.status,j:j}})});
+}
+function sentDone(picks,sent){
+  var t=Date.now();
+  picks.forEach(function(x){if(sent.indexOf(x.id)>-1){EM.sent[x.id]={t:t,to:emailsOf(x)[0]};delete EM.sel[x.id];markEmailed(x)}});
+  render();if(!$("p4").hidden)renderMail();
+}
+// Kirim dari detail satu tempat (dialog)
+function mErr(t){var e=$("merr");e.textContent=t||"";e.hidden=!t;$("mset").hidden=!/Pengaturan/.test(t||"")}
+function mCount(){$("msend").disabled=!MM.items.length||!(MM.cfg&&MM.cfg.ready);$("msend").textContent="Kirim email"}
+function openMail(items){
+  MM.items=items;MM.cfg=null;
+  $("msub").textContent=items[0].name+" · "+emailsOf(items[0])[0];$("mfrom").textContent="";mErr("");
+  $("msj").value="";$("mtx").value="";$("msend").disabled=true;$("msend").textContent="Kirim email";
   if(!$("maild").open)$("maild").showModal();
   fetch("/api/send?name="+encodeURIComponent(items[0].name||"")).then(function(r){if(r.status===401){$("maild").close();showLogin("Sesi habis, silakan masuk lagi.");throw 0}return r.json()}).then(function(j){
     MM.cfg=j;$("msj").value=j.subject||"";$("mtx").value=j.text||"";
-    $("mfrom").textContent=j.ready?"Dikirim dari "+j.from+"."+(j.replyTo?" Balasan masuk ke "+j.replyTo+".":" Reply-To belum diisi, balasan akan menuju alamat pengirim."):"";
-    if(!j.hasKey)mErr("API key Resend belum diisi. Buka Pengaturan lalu masukkan key-nya.");
-    else if(!j.from)mErr("Email pengirim belum diisi. Buka Pengaturan, isi dengan alamat dari domain yang sudah diverifikasi di Resend.");
-    mCount();
+    $("mfrom").textContent=mailFrom(j);mErr(mailWarn(j));mCount();
   }).catch(function(e){if(e!==0)mErr("Tidak bisa menghubungi server.")});
 }
-function x0(a){return a[0]}
 function markEmailed(x){
   var line="Email, "+new Date().toLocaleDateString("id-ID",{day:"numeric",month:"short"});
   var cur=noteOf(x),n=cur.indexOf(line)>-1?cur:(cur?cur+"\n"+line:line),patch={n:n};
@@ -1260,42 +1294,141 @@ function markEmailed(x){
   saveLead(x,patch);
 }
 function doSend(force){
-  var picks=MM.bulk?Array.prototype.map.call(document.querySelectorAll("#mlist input:checked"),function(c){return MM.items[+c.getAttribute("data-i")]}):MM.items;
-  if(!picks.length)return;
-  var body={force:!!force,items:picks.map(function(x){
-    var o={id:x.id,to:emailsOf(x)[0],name:x.name,subject:$("msj").value.trim()};
-    if(!MM.bulk)o.text=$("mtx").value;
-    return o})};
+  var x=MM.items[0];if(!x)return;
   var b=$("msend");b.disabled=true;b.textContent="Mengirim…";mErr("");
-  fetch("/api/send",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
-    .then(function(r){return r.json().then(function(j){return{ok:r.ok,st:r.status,j:j}})})
-    .then(function(o){
-      if(o.st===401){$("maild").close();showLogin("Sesi habis, silakan masuk lagi.");return}
-      if(!o.ok){mErr(o.j.error||"Gagal mengirim");mCount();return}
-      var sent=o.j.sent||[],sk=o.j.skipped||[];
-      if(!sent.length&&sk.length&&!MM.bulk){
-        mCount();
-        if(confirm("Tempat ini sudah pernah dikirimi email lewat aplikasi ini. Kirim lagi?"))doSend(true);
-        return;
-      }
-      picks.forEach(function(x){if(sent.indexOf(x.id)>-1)markEmailed(x)});
-      render();$("maild").close();
-      flash("Terkirim: "+sent.length+" email"+(sk.length?". "+sk.length+" dilewati karena sudah pernah dikirimi.":"."));
-    }).catch(function(){mErr("Tidak bisa menghubungi server.");mCount()});
+  postSend([{id:x.id,to:emailsOf(x)[0],name:x.name,subject:$("msj").value.trim(),text:$("mtx").value}],force).then(function(o){
+    if(o.st===401){$("maild").close();showLogin("Sesi habis, silakan masuk lagi.");return}
+    if(!o.ok){mErr(o.j.error||"Gagal mengirim");mCount();return}
+    var sent=o.j.sent||[];
+    if(!sent.length&&(o.j.skipped||[]).length){
+      mCount();
+      if(confirm("Tempat ini sudah pernah dikirimi email lewat aplikasi ini. Kirim lagi?"))doSend(true);
+      return;
+    }
+    if(!sent.length){mErr("Email tidak terkirim. Periksa alamat tujuannya.");mCount();return}
+    sentDone([x],sent);$("maild").close();flash("Email terkirim.");
+  }).catch(function(){mErr("Tidak bisa menghubungi server.");mCount()});
 }
 $("msend").onclick=function(){doSend(false)};
-$("mlist").addEventListener("change",mCount);
 $("mx").onclick=$("mcancel").onclick=function(){$("maild").close()};
 $("mset").onclick=function(){$("maild").close();openSet()};
 $("maild").onclick=function(e){if(e.target===this)this.close()};
-$("mailb").onclick=function(){
-  var c=view().filter(function(x){return x.id&&emailsOf(x).length&&!stOf(x)});
-  if(!c.length){flash("Tidak ada tempat berstatus Belum dihubungi yang punya email di tampilan ini.");return}
-  openMail(c.slice(0,20),true,c.length);
-};
+
+// ---- Tab Email (kirim ke banyak tempat) ----
+function nameOf(id){
+  var r=LS[id];if(r&&r.lead&&r.lead.name)return r.lead.name;
+  for(var i=0;i<rows.length;i++)if(rows[i].id===id)return rows[i].name;
+  return"";
+}
+function mailPool(){
+  var seen={},out=[];
+  function add(x){if(!x||!x.id||seen[x.id])return;seen[x.id]=1;if(emailsOf(x).length)out.push(x)}
+  rows.forEach(add);
+  Object.keys(LS).forEach(function(k){var r=LS[k];if(r&&r.lead)add(r.lead)});
+  return out;
+}
+function mailView(){
+  var q=$("emq").value.trim().toLowerCase(),fs=$("emst").value,hide=$("emhide").checked;
+  return mailPool().filter(function(x){
+    if(q&&((x.name||"")+" "+(x.address||"")+" "+emailsOf(x).join(" ")).toLowerCase().indexOf(q)<0)return false;
+    if(fs!=="all"&&(stOf(x)||"baru")!==fs)return false;
+    if(hide&&EM.sent[x.id])return false;
+    return true;
+  });
+}
+function selIds(){return Object.keys(EM.sel).filter(function(k){return EM.sel[k]})}
+function emErr(t){var e=$("emerr");e.textContent=t||"";e.hidden=!t;$("emset").hidden=!/Pengaturan/.test(t||"")}
+function emCount(){
+  var n=selIds().length,b=$("emsend");
+  b.disabled=EM.busy||!n||!(EM.cfg&&EM.cfg.ready);
+  b.textContent=EM.busy?"Mengirim…":"Kirim "+(n>1?n+" email":"email");
+  $("emsel").textContent=n+" dipilih, maksimal "+EMAX+" sekali kirim.";
+}
+function shortDate(ms){return new Date(ms).toLocaleDateString("id-ID",{day:"numeric",month:"short"})}
+function renderHist(){
+  var ids=Object.keys(EM.sent).sort(function(a,b){return EM.sent[b].t-EM.sent[a].t}),box=$("ehist");
+  if(!EM.loaded){box.innerHTML="";return}
+  if(!ids.length){box.innerHTML="<p class='info'>Belum ada email terkirim lewat aplikasi ini.</p>";return}
+  var h="<div class='mlist rd' style='margin-top:0'>"+ids.slice(0,15).map(function(id){
+    var r=EM.sent[id],nm=nameOf(id);
+    return"<div class='mrow'><span><b>"+esc(nm||r.to)+"</b><small>"+esc(r.to)+"</small></span><em class='mtag'>"+esc(fmtDate(r.t))+"</em></div>";
+  }).join("")+"</div>";
+  h+="<p class='hint2'>"+ids.length+" email terkirim"+(ids.length>15?", 15 terbaru ditampilkan":"")+".</p>";
+  box.innerHTML=h;
+}
+function renderMail(){
+  var info=$("eminfo"),list=$("elist");
+  if(!EM.loaded){info.textContent="Memuat…";info.hidden=false;list.hidden=true;emCount();renderHist();return}
+  var v=mailView(),vis={};
+  v.forEach(function(x){vis[x.id]=1});
+  Object.keys(EM.sel).forEach(function(k){if(!vis[k])delete EM.sel[k]});
+  if(!v.length){
+    info.textContent=mailPool().length?"Tidak ada tempat yang cocok dengan filter ini.":"Belum ada tempat yang punya email. Cari tempat dulu, buka detail tempatnya, lalu tekan Cari email dan WhatsApp dari website.";
+    info.hidden=false;list.hidden=true;
+  }else{
+    info.textContent=v.length+" tempat dengan email.";info.hidden=false;
+    list.innerHTML=v.map(function(x){
+      var s=EM.sent[x.id];
+      return"<label class='mrow'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+"><span><b>"+esc(x.name)+"</b><small>"+esc(emailsOf(x)[0])+"</small></span><em class='mtag'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em></label>";
+    }).join("");
+    list.hidden=false;
+  }
+  emCount();renderHist();
+}
+function loadMailTab(){
+  fetch("/api/send?sent=1").then(function(r){if(r.status===401){showLogin("Sesi habis, silakan masuk lagi.");throw 0}return r.json()}).then(function(j){
+    if(j.error){emErr(j.error);return}
+    EM.cfg=j;EM.sent=j.sent||{};EM.loaded=true;
+    if(!EM.filled){$("emsj").value=j.subject||"";$("emtx").value=j.text||"";EM.filled=true}
+    $("emfrom").textContent=mailFrom(j);emErr(mailWarn(j));
+    renderMail();
+  }).catch(function(e){if(e!==0)emErr("Tidak bisa menghubungi server.")});
+}
+function greet(tx,name){
+  var n=String(name||"").replace(/[\r\n\t<>]+/g," ").trim().slice(0,80);
+  return tx.replace(/^\s*Hi!/,n?"Hi "+n+" team!":"Hi!");
+}
+function emSend(force){
+  if(EM.busy)return;
+  var by={};mailPool().forEach(function(x){by[x.id]=x});
+  var picks=selIds().map(function(id){return by[id]}).filter(Boolean);
+  var sj=$("emsj").value.trim(),tx=$("emtx").value;
+  if(!picks.length)return;
+  if(!tx.trim()){emErr("Isi email masih kosong.");return}
+  emErr("");EM.busy=true;emCount();
+  postSend(picks.map(function(x){return{id:x.id,to:emailsOf(x)[0],name:x.name,subject:sj,text:greet(tx,x.name)}}),force).then(function(o){
+    EM.busy=false;
+    if(o.st===401){showLogin("Sesi habis, silakan masuk lagi.");return}
+    if(!o.ok){emErr(o.j.error||"Gagal mengirim");emCount();return}
+    var sent=o.j.sent||[],sk=o.j.skipped||[];
+    if(!sent.length&&sk.length){
+      emCount();
+      if(confirm(sk.length+" tempat sudah pernah dikirimi email lewat aplikasi ini. Kirim lagi?"))emSend(true);
+      return;
+    }
+    if(!sent.length){emErr("Tidak ada email yang terkirim. Periksa alamat tujuannya.");emCount();return}
+    sentDone(picks,sent);
+    flash("Terkirim "+sent.length+" email"+(sk.length?". "+sk.length+" dilewati karena sudah pernah dikirimi.":"."));
+  }).catch(function(){EM.busy=false;emErr("Tidak bisa menghubungi server.");emCount()});
+}
+$("emsend").onclick=function(){emSend(false)};
+$("emset").onclick=function(){openSet()};
+$("emq").oninput=$("emst").onchange=$("emhide").onchange=renderMail;
+$("emall").onclick=function(){EM.sel={};mailView().slice(0,EMAX).forEach(function(x){EM.sel[x.id]=true});renderMail()};
+$("emnone").onclick=function(){EM.sel={};renderMail()};
+$("elist").addEventListener("change",function(e){
+  var c=e.target;if(!c||c.type!=="checkbox")return;
+  var id=c.getAttribute("data-id");
+  if(c.checked){
+    if(selIds().length>=EMAX){c.checked=false;flash("Maksimal "+EMAX+" email sekali kirim.");return}
+    EM.sel[id]=true;
+  }else delete EM.sel[id];
+  emCount();
+});
+$("setd").addEventListener("close",function(){if(!$("p4").hidden)loadMailTab()});
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"]];
-function tab(n){[1,2,3].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}
-$("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};$("t3").onclick=function(){if($("t3").getAttribute("aria-selected")==="true"){$("svres").hidden=true;$("svbox").hidden=false}tab(3)};
+function tab(n){[1,2,3,4].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}
+$("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};$("t4").onclick=function(){tab(4);renderMail();loadMailTab()};$("t3").onclick=function(){if($("t3").getAttribute("aria-selected")==="true"){$("svres").hidden=true;$("svbox").hidden=false}tab(3)};
 $("segs").innerHTML=SEG.map(function(s,i){return"<div class='seg'><div class='n'>"+(i+1)+"</div><div><b>"+s[0]+"</b><span>"+s[1]+"</span>"+(s[2]?"<div><button class='ghost' data-i='"+i+"'>Cari tempat ini</button></div>":"")+"</div></div>"}).join("");
 document.querySelectorAll("#segs button").forEach(function(b){b.onclick=function(){$("kind").value=SEG[+b.getAttribute("data-i")][2];tab(1);$("city").focus()}});
 fetch("/api/session").then(function(r){return r.json()}).then(function(j){

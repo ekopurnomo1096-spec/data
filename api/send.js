@@ -1,10 +1,11 @@
 // Kirim email lewat Resend (maksimal 20 per permintaan).
 // GET  ?name=...            = {ready, from, subject, text}: status pengaturan + contoh isi email dari template
+// GET  ?sent=1              = sama seperti di atas, ditambah {sent:{id:{t,to}}} (riwayat kirim dari hairleads:mail)
 // POST {items:[{id,to,name,subject?,text?}], force?} = kirim. Tanpa subject/text dipakai template.
 // Tempat yang sudah pernah dikirimi (hairleads:mail) dilewati kecuali force=true.
 // Key Resend (nama "rs"), alamat pengirim ("rsf"), dan Reply-To opsional ("rrt") disimpan di Redis lewat Pengaturan; RESEND_API_KEY / RESEND_FROM di Vercel jadi cadangan.
 const { isAuthed } = require("./_auth");
-const { dbConfigured, getKey, cmd } = require("./_store");
+const { dbConfigured, getKey, cmd, hgetall } = require("./_store");
 const { TEMPLATE } = require("./_template");
 
 const MAIL = "hairleads:mail";
@@ -34,7 +35,15 @@ module.exports = async (req, res) => {
     const { key, from, replyTo } = await config();
 
     if (req.method === "GET") {
-      return res.status(200).json({ ready: !!(key && from), hasKey: !!key, from, replyTo, max: MAX, ...compose(req.query && req.query.name) });
+      const out = { ready: !!(key && from), hasKey: !!key, from, replyTo, max: MAX, ...compose(req.query && req.query.name) };
+      if (req.query && req.query.sent && dbConfigured()) {
+        const all = await hgetall(MAIL);
+        out.sent = {};
+        for (const k of Object.keys(all)) {
+          try { const v = JSON.parse(all[k]); if (v && v.t) out.sent[k] = { t: v.t, to: String(v.to || "") }; } catch (e) { /* abaikan baris rusak */ }
+        }
+      }
+      return res.status(200).json(out);
     }
     if (req.method !== "POST") return res.status(405).json({ error: "metode tidak didukung" });
 
