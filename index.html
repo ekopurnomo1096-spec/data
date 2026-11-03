@@ -14,10 +14,6 @@ html{scroll-padding-top:env(safe-area-inset-top,0px);overflow-y:scroll;scrollbar
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
 .wrap{max-width:1240px;margin:0 auto;padding:0 20px}
-.top{background:var(--surf);border-bottom:1px solid var(--line)}
-.head{display:flex;flex-wrap:wrap;gap:0 12px;align-items:flex-start;padding-top:22px}
-.head>div:first-child{flex:1 1 auto}
-.hbtns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .usage{position:relative;display:flex;flex-direction:column;gap:7px;min-width:150px;margin-right:6px;font-size:.8rem;color:var(--mute)}
 .usage b{color:var(--ink);font-weight:600}
 .ubar{height:8px;border-radius:99px;background:var(--soft);border:1px solid var(--line);overflow:hidden}
@@ -47,13 +43,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sa
 .uopt[aria-selected="true"] .ot b{color:var(--acc)}
 .urow.low .ubar i{background:var(--warm)}
 .urow.out .ubar i{background:var(--err)}
-.head .tabs{flex:0 0 100%}
 h1{font:700 clamp(1.5rem,3vw,2rem)/1.15 "Instrument Sans",system-ui,sans-serif;letter-spacing:-.01em;margin:0}
 .sub{margin:6px 0 14px;color:var(--mute);font-size:.9rem}
-.tabs{display:flex;gap:4px}
-.tab{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;font:inherit;font-weight:500;color:var(--mute);cursor:pointer;margin-bottom:-1px}
-.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--warm);font-weight:600}
-main.wrap{padding:24px 20px 64px}
+main.wrap{padding:32px 32px 72px}
 :is(button,input,select,a):focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 #pw{outline:none}
 #pw:focus,#pw:focus-visible{outline:none}
@@ -322,12 +314,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
  body{font-size:14.5px}
  .wrap{padding:0 14px}
  main.wrap{padding:16px 14px 48px}
- .head{padding-top:16px}
  .sub{margin:4px 0 10px;font-size:.84rem}
- .hbtns{margin-bottom:6px}
- .tabs{justify-content:flex-start;gap:0;overflow-x:auto;scrollbar-width:none}
- .tabs::-webkit-scrollbar{display:none}
- .tab{flex:0 0 auto;padding:10px 10px;font-size:.84rem;text-align:center;white-space:nowrap}
  .panel{padding:14px}
  .form{gap:12px}
  .stats{gap:8px;margin:14px 0 12px}
@@ -384,13 +371,6 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 /* Pesan hasil AI: selalu di baris sendiri di bawah tombol */
 .tools #copied{order:10;flex:1 0 100%;margin-top:2px}
 @media (max-width:760px){
- .hbtns{flex:0 0 100%;flex-wrap:nowrap;margin-bottom:8px}
- .hbtns .usage{flex:1 1 auto;min-width:0;margin-right:auto}
- #setb,#outb{width:42px;height:42px;padding:0;flex:none}
- #setb,#outb{font-size:0;position:relative;display:inline-flex;align-items:center;justify-content:center}
- #setb::before,#outb::before{content:"";width:20px;height:20px;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
- #setb::before{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4'/%3E%3C/svg%3E")}
- #outb::before{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9'/%3E%3C/svg%3E")}
  .tools #copied{grid-column:1/-1;order:10;margin:0}
 }
 /* Modal progres Nilai dengan AI */
@@ -471,11 +451,93 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .aulist{max-height:360px}
 .aulist.big{max-height:none}
 .ausub{margin:22px 0 4px;font-weight:600;font-size:.95rem}
+
+/* ===== Layout baru: sidebar kiri ===== */
+.shell{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh;align-items:start}
+.content{min-width:0}
+main.wrap{max-width:1180px;margin:0 auto}
+.side{--surf:#1d4b3f;--ink:#eef4ef;--mute:#a9c1b6;--line:rgba(255,255,255,.15);--soft:rgba(255,255,255,.09);--acc:#8fd6b8;--onacc:#0f2a22;--accsoft:rgba(255,255,255,.1);--bg:rgba(255,255,255,.07);--warm:#f2a574;--err:#ff9d8f;
+  position:sticky;top:0;height:100vh;height:100dvh;display:flex;flex-direction:column;gap:2px;padding:20px 14px 14px;background:#143a30;color:var(--ink);overflow-y:auto;z-index:50}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .side{background:#0e1d18}}
+:root[data-theme="dark"] .side{background:#0e1d18}
+.brand{display:flex;align-items:center;gap:11px;padding:2px 8px 16px}
+.bmark{flex:none;width:38px;height:38px;border-radius:11px;background:var(--acc);color:var(--onacc);display:grid;place-items:center}
+.bmark svg{width:21px;height:21px;margin:0;color:inherit}
+.btx b{display:block;font-weight:700;font-size:1rem;line-height:1.2;color:var(--ink)}
+.btx span{display:block;font-size:.76rem;color:var(--mute);margin-top:2px}
+.ngl{font-size:.68rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);padding:14px 10px 6px}
+.tab{position:relative;display:flex;align-items:center;gap:12px;width:100%;height:42px;padding:0 10px;border:0;border-radius:9px;background:none;color:var(--ink);font:inherit;font-size:.92rem;font-weight:500;text-align:left;cursor:pointer;opacity:.8;-webkit-tap-highlight-color:transparent}
+.tab:hover{background:var(--soft);opacity:1}
+.tab[aria-selected="true"]{background:rgba(255,255,255,.15);opacity:1;font-weight:600}
+.tab[aria-selected="true"]::before{content:"";position:absolute;left:-14px;top:9px;bottom:9px;width:4px;border-radius:0 4px 4px 0;background:var(--acc)}
+.tab svg.ni{width:19px;height:19px;margin:0;color:inherit;flex:none}
+.tab:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
+.tab .tn{margin-left:auto}
+.tab .tn:empty:not(.tsk){display:none}
+.tab .tn:not(.tsk):not(:empty){display:inline-grid;place-items:center;min-width:22px;height:20px;padding:0 7px;border-radius:99px;background:var(--acc);color:var(--onacc);font-size:.72rem;font-weight:700}
+.sidefoot{margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:12px;border-top:1px solid var(--line)}
+.sidequota{padding:2px 10px 12px}
+.sidequota:has(#usage[hidden]){display:none}
+.sidelabel{font-size:.68rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);margin-bottom:8px}
+.side .usage{min-width:0;margin:0;font-size:.8rem}
+.side .usk{width:100%}
+.side .umenu{top:auto;bottom:calc(100% + 8px);left:-8px;right:-8px;min-width:0;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.side .utrig{width:calc(100% + 8px)}
+.mbar,.scrim{display:none}
+.pagehead{margin:0 0 22px}
+.pagehead h1{font-size:clamp(1.4rem,2.4vw,1.75rem)}
+.pagehead p{margin:6px 0 0;color:var(--mute);font-size:.94rem;max-width:68ch}
+
+/* ===== Kartu, judul bagian, dan filter ===== */
+.panel{border-radius:12px;box-shadow:0 1px 2px rgba(20,30,25,.05)}
+.ph{display:flex;flex-direction:column;gap:3px;margin-bottom:16px}
+.ph b{font-size:1rem;font-weight:600}
+.ph span{color:var(--mute);font-size:.86rem}
+.panel>.svh{text-transform:none;letter-spacing:0;font-size:1rem;font-weight:600;color:var(--ink);margin:0 0 14px}
+.aud>summary{text-transform:none;letter-spacing:0;font-size:1rem;color:var(--ink)}
+.aup+.aup{margin-top:14px}
+#p2,#p4,#p5{max-width:960px}
+.fbar{padding:14px 16px;margin-bottom:14px}
+.fbar .tools{margin:0}
+.fbar .tools+.tools{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.fbar .svl{margin-right:0}
+@media (min-width:761px){
+ .fbar .tools .chk{height:34px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--bg);font-size:.84rem}
+ .fbar .tools .chk:has(input:checked){border-color:var(--acc);background:var(--accsoft);color:var(--acc);font-weight:600}
+ .fbar #aiscore{background:var(--accsoft);border-color:var(--acc);color:var(--acc)}
+}
+.tw{border-radius:12px}
+.seg{border-radius:12px}
+
+/* ===== Tampilan tablet dan HP: sidebar jadi menu geser ===== */
+@media (max-width:900px){
+ .shell{grid-template-columns:minmax(0,1fr)}
+ .side{position:fixed;left:0;top:0;bottom:0;height:auto;width:min(290px,86vw);transform:translateX(-104%);transition:transform .22s ease}
+ body.navopen .side{transform:none;box-shadow:0 0 48px rgba(0,0,0,.4)}
+ body.navopen{overflow:hidden}
+ body.navopen .scrim{display:block;position:fixed;inset:0;background:rgba(10,14,12,.5);z-index:40}
+ .tab[aria-selected="true"]::before{left:-14px}
+ .mbar{display:flex;position:sticky;top:env(safe-area-inset-top,0px);z-index:30;align-items:center;gap:12px;height:54px;padding:0 14px;background:var(--surf);border-bottom:1px solid var(--line)}
+ .mbar .mmenu{flex:none;width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);cursor:pointer;padding:0}
+ .mbar .mmenu svg{width:20px;height:20px;margin:0;color:inherit}
+ .mbar b{font-size:1rem;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ main.wrap{padding:20px 16px 56px}
+ .pagehead{margin-bottom:16px}
+}
+@media (max-width:760px){
+ main.wrap{padding:16px 14px 48px}
+ .pagehead h1{font-size:1.3rem}
+ .pagehead p{font-size:.88rem}
+ .fbar{padding:12px}
+}
+@media (prefers-reduced-motion:reduce){.side{transition:none}}
+.lbox .bmark{width:44px;height:44px}
 </style>
 </head>
 <body>
 <div id="boot" class="boot" role="status" aria-label="Memuat"><div class="spin"></div></div>
 <section id="login" hidden><form id="lform" class="panel lbox">
+  <div class="bmark"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z'/><circle cx='12' cy='10' r='3'/></svg></div>
   <h1>Pencari prospek hair extension</h1>
   <p class="sub">Halaman pribadi. Masukkan kata sandi untuk melanjutkan.</p>
   <div class="f"><label for="pw">Kata sandi</label><div class="pwwrap"><input type="password" id="pw" autocomplete="current-password" required><button type="button" id="pwtoggle" class="pwtoggle" aria-controls="pw">Tampilkan</button></div></div>
@@ -483,21 +545,33 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <button class="go" id="lgo" type="submit">Masuk</button>
 </form></section>
 <div id="app" hidden>
-<header class="top"><div class="wrap head">
-  <div><h1>Pencari prospek hair extension</h1>
-  <p class="sub">Salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya.</p></div>
-  <div class="hbtns"><div class="usage" id="usage" title="Sisa kuota pencarian SerpApi bulan ini"><div class="usk"><i></i><i></i></div></div><button class="ghost" id="setb" type="button">Pengaturan</button><button class="ghost" id="outb" type="button">Keluar</button></div>
-  <div class="tabs" role="tablist">
-    <button class="tab" role="tab" id="t1" aria-selected="true">Cari tempat</button>
-    <button class="tab" role="tab" id="t2" aria-selected="false">Siapa yang membeli?</button>
-    <button class="tab" role="tab" id="t3" aria-selected="false">Tersimpan <em class="tn tsk" id="t3n"></em></button>
-    <button class="tab" role="tab" id="t4" aria-selected="false">Email</button>
-    <button class="tab" role="tab" id="t5" aria-selected="false">Otomatis <em class="tn" id="t5n"></em></button>
+<div class="shell">
+<aside class="side" id="side" aria-label="Menu utama">
+  <div class="brand"><div class="bmark"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z'/><circle cx='12' cy='10' r='3'/></svg></div><div class="btx"><b>Pencari Prospek</b><span>Hair extension wholesale</span></div></div>
+  <nav aria-label="Menu utama" style="display:flex;flex-direction:column;gap:2px">
+    <div class="ngl">Cari pembeli</div>
+    <button class="tab" type="button" id="t1" aria-selected="true" aria-current="page"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><circle cx='11' cy='11' r='7'/><path d='M21 21l-4.3-4.3'/></svg><span>Cari tempat</span></button>
+    <button class="tab" type="button" id="t2" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75'/></svg><span>Siapa yang membeli?</span></button>
+    <button class="tab" type="button" id="t3" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z'/></svg><span>Tersimpan</span><em class="tn tsk" id="t3n"></em></button>
+    <div class="ngl">Hubungi &amp; otomatisasi</div>
+    <button class="tab" type="button" id="t4" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><rect x='2' y='4' width='20' height='16' rx='2'/><path d='M22 7l-10 6L2 7'/></svg><span>Email</span></button>
+    <button class="tab" type="button" id="t5" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/></svg><span>Otomatis</span><em class="tn" id="t5n"></em></button>
+  </nav>
+  <div class="sidefoot">
+    <div class="sidequota"><div class="sidelabel">Kuota SerpApi bulan ini</div><div class="usage" id="usage" title="Sisa kuota pencarian SerpApi bulan ini"><div class="usk"><i></i><i></i></div></div></div>
+    <button class="tab" type="button" id="setb"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4'/></svg><span>Pengaturan</span></button>
+    <button class="tab" type="button" id="outb"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9'/></svg><span>Keluar</span></button>
   </div>
-</div></header>
+</aside>
+<div class="scrim" id="scrim"></div>
+<div class="content">
+<div class="mbar"><button class="mmenu" id="mmenu" type="button" aria-label="Buka menu" aria-controls="side" aria-expanded="false"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' aria-hidden='true'><path d='M4 6h16M4 12h16M4 18h16'/></svg></button><b id="mtitle">Cari tempat</b></div>
 <main class="wrap">
+<div class="pagehead"><h1 id="ptitle">Cari tempat</h1><p id="pdesc">Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya.</p></div>
 <section id="p1">
-  <div class="panel form">
+  <div class="panel">
+  <div class="ph"><b>Pencarian baru</b><span>Pilih lokasi dan jenis tempat, lalu tekan Cari.</span></div>
+  <div class="form">
     <div class="f combo"><label for="country">Negara</label>
       <input type="text" id="country" autocomplete="off" placeholder="Ketik untuk cari negara">
       <div class="combo-list" id="countryList" hidden></div></div>
@@ -511,11 +585,13 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       <select id="source"><option value="google">Google Maps (lengkap)</option><option value="osm">OpenStreetMap (gratis, tipis)</option></select></div>
     <button class="go" id="run"><span id="runtxt">Cari</span></button>
   </div>
+  </div>
   <div id="slot1"><div id="resbox">
   <div class="status" id="status" aria-live="polite"><p class="info">Pilih negara dan kota, lalu tekan Cari. Hasilnya bisa diurutkan dan difilter.</p></div>
   <div id="res" hidden>
     <div class="stats" id="stats"></div>
     <p class="meta" id="cinfo" hidden></p>
+    <div class="panel fbar">
     <div class="tools">
       <input type="search" class="q" id="q" placeholder="Cari nama atau alamat" aria-label="Cari nama atau alamat">
       <select id="fst" class="sortsel" aria-label="Filter status prospek"><option value="all">Semua status</option><option value="baru">Belum dihubungi</option><option value="chat">Sudah dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak cocok</option></select>
@@ -535,6 +611,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       <button class="ghost" id="findall" type="button" title="Cari email dan WhatsApp dari website semua tempat di tampilan ini yang belum dicek">Cari email semua</button>
       <button class="ghost" id="aiscore" type="button" title="AI memberi skor 0-100 dan alasan untuk tiap tempat di tampilan ini">Nilai dengan AI</button>
       <div class="dls"><button class="ghost" id="dl" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="dlmenu">Unduh CSV <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="dlmenu" id="dlmenu" role="menu" hidden><button type="button" role="menuitem" id="dlall"></button><button type="button" role="menuitem" id="dlem"></button><button type="button" role="menuitem" id="dlwa"></button></div></div>
+    </div>
     </div>
     <p class="meta" id="shown"></p>
     <div class="tw"><table>
@@ -655,6 +732,8 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   </details>
 </section>
 </main>
+</div>
+</div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <dialog id="pdlg" aria-label="Foto tempat"><figure><img id="pimg" alt=""><figcaption id="pcap"></figcaption></figure></dialog>
 <dialog id="dlg" aria-label="Detail tempat"><div id="dbody"></div></dialog>
@@ -1809,7 +1888,12 @@ $("elist").addEventListener("change",function(e){
   emCount();
 });
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"]];
-function tab(n){[1,2,3,4,5].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}
+var PG=[null,["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],["Siapa yang membeli?","Kelompok pembeli yang paling mungkin tertarik pada hair extension."],["Tersimpan","Prospek yang sudah kamu tandai dan pencarian yang pernah disimpan."],["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],["Otomatis","Kirim email, follow-up, dan pencarian ulang berjalan sendiri setiap hari."]];
+function navOpen(v){document.body.classList.toggle("navopen",!!v);$("mmenu").setAttribute("aria-expanded",!!v)}
+$("mmenu").onclick=function(){navOpen(!document.body.classList.contains("navopen"))};
+$("scrim").onclick=function(){navOpen(false)};
+document.addEventListener("keydown",function(e){if(e.key==="Escape")navOpen(false)});
+function tab(n){[1,2,3,4,5].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i);$("t"+i).setAttribute("aria-current",n===i?"page":"false")});$("ptitle").textContent=PG[n][0];$("pdesc").textContent=PG[n][1];$("mtitle").textContent=PG[n][0];navOpen(false);window.scrollTo(0,0)}
 $("t5").onclick=function(){tab(5);auLoad(!AU.st)};$("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};$("t4").onclick=function(){tab(4);renderMail();loadMailTab()};$("t3").onclick=function(){if($("t3").getAttribute("aria-selected")==="true"){$("svres").hidden=true;$("svbox").hidden=false}tab(3)};
 $("segs").innerHTML=SEG.map(function(s,i){return"<div class='seg'><div class='n'>"+(i+1)+"</div><div><b>"+s[0]+"</b><span>"+s[1]+"</span>"+(s[2]?"<div><button class='ghost' data-i='"+i+"'>Cari tempat ini</button></div>":"")+"</div></div>"}).join("");
 document.querySelectorAll("#segs button").forEach(function(b){b.onclick=function(){$("kind").value=SEG[+b.getAttribute("data-i")][2];tab(1);$("city").focus()}});
@@ -1900,7 +1984,7 @@ function auStatus(){
   var pz=s.pause,pb=$("aupz");
   pb.hidden=!pz;if(pz)pb.textContent=(pz.auto?"Dijeda otomatis: ":"Dijeda: ")+pz.why+" ("+fmtDate(pz.t)+"). Semua kirim dan tugas otomatis berhenti sampai kamu klik Lanjutkan.";
   $("aupause").textContent=pz?"Lanjutkan":"Jeda semua";
-  var n=c.pending||0,bn=$("t5n");bn.textContent=n?"("+n+")":"";
+  var n=c.pending||0,bn=$("t5n");bn.textContent=n?String(n):"";
 }
 function auJobText(k,j){
   if(!j)return"";
