@@ -1036,7 +1036,7 @@ async function run(force){
     if(r.status===401){loading(false);return showLogin("Sesi habis, silakan masuk lagi.")}
     try{j=JSON.parse(tx)}catch(x){throw new Error("server membalas error ("+r.status+"). Cek Logs di dashboard Vercel.")}
     if(!r.ok)throw new Error(j.error||"Gagal");
-    rows=j.results;hydrate(rows);lastDupes=j.dupes||0;loading(false);if($("source").value!=="osm"&&!j.cached)usageAfterSearch();
+    rows=j.results;hydrate(rows);lastDupes=j.dupes||0;loading(false);serpSwitched(j);if($("source").value!=="osm"&&!j.cached)usageAfterSearch();
     if(!rows.length)return say("info","Tidak ada data "+LABEL[kind]+" di "+esc(city)+" dari sumber ini. Coba kota lain, jenis tempat lain, atau ganti sumber data.");
     lastQ=LABEL[kind]+" di "+city;lastCountry=$("country").value;sKey="";sDir=1;
     MORE=!!j.more&&$("source").value!=="osm";NEXT=j.next||20;mCity=city;mKind=kind;
@@ -1054,7 +1054,7 @@ $("more").onclick=async function(){
     if(r.status===401)return showLogin("Sesi habis, silakan masuk lagi.");
     try{j=JSON.parse(tx)}catch(x){throw new Error("server membalas error ("+r.status+")")}
     if(!r.ok)throw new Error(j.error||"Gagal");
-    rows=j.results;hydrate(rows);lastDupes=j.dupes||0;usageAfterSearch();
+    rows=j.results;hydrate(rows);lastDupes=j.dupes||0;serpSwitched(j);usageAfterSearch();
     MORE=!!j.more;NEXT=j.next||NEXT+20;
     render();
     flash(j.added>0?"Ditambah "+j.added+" tempat baru.":"Tidak ada tempat tambahan lagi.");
@@ -1368,6 +1368,9 @@ function renderUsage(j){var u=$("usage"),a=j.accounts||[];if(!a.length){u.hidden
     var sel=a.filter(function(x){return x.n===+n})[0],q=ucls(sel);t.innerHTML="<div class='urow"+q.c+"'><span><b>"+sel.used+" / "+sel.limit+"</b> pencarian · "+sel.label+CH+"</span><div class='ubar'><i style='width:"+q.pct+"%'></i></div></div>"}})
 }
 var lastU=null;
+// Server memindah akun SerpApi otomatis: samakan meter di pojok kanan atas dan beri tahu
+function serpSwitched(j){var w=j&&j.switched;if(!w)return;if(lastU)lastU.active=w.to;
+  flash("Akun SerpApi dipindah ke Akun "+w.to+(w.why==="error"?" (kuota Akun "+w.from+" habis)":" (sisa kuota Akun "+w.from+" tinggal "+w.left+")"))}
 function loadUsage(f){fetch("/api/usage").then(function(r){return r.json()}).then(function(j){if(f)f(j);lastU=j;try{localStorage.setItem("hl_usage",JSON.stringify(j))}catch(e){}renderUsage(j)}).catch(function(){})}
 // Setelah pencarian Google Maps: tampilkan +1 langsung, lalu samakan dengan angka resmi SerpApi (yang bisa telat update)
 function usageAfterSearch(){
@@ -1828,7 +1831,7 @@ function auJobText(k,j){
   if(j.skip)return AUN[k]+": dilewati ("+j.skip+")";
   var t="";
   if(k==="mail")t="terkirim "+(j.sent||0)+" + "+(j.followups||0)+" follow-up"+(j.note?" ("+j.note+")":"");
-  else if(k==="refresh")t=(j.searches||0)+" pencarian, "+(j.added||0)+" tempat baru"+(j.note?" ("+j.note+")":"");
+  else if(k==="refresh")t=(j.searches||0)+" pencarian"+(j.pages?" (termasuk "+j.pages+" halaman tambahan)":"")+", "+(j.added||0)+" tempat baru"+(j.note?" ("+j.note+")":"")+(j.switched?", pindah akun: "+j.switched:"")+(j.areas?", area: "+j.areas.join("; "):"")+(j.off?", dinonaktifkan: "+j.off.join("; "):"");
   else if(k==="enrich")t=(j.done||0)+" website dicek, "+(j.found||0)+" punya kontak"+(j.left?", sisa "+j.left:"")+(j.retry?", "+j.retry+" gagal dibuka (dicoba ulang besok)":"");
   else if(k==="clean"){var cp=[];
     if(j.places)cp.push(j.places+" tempat tanpa kontak");if(j.searches)cp.push(j.searches+" pencarian lama");
@@ -1980,12 +1983,21 @@ function auCfg(){
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_cd'>Umur data (hari)</label><input type='number' id='au_cd' min='7' max='365' value='"+cl.days+"'></div></div>"
     +"<p class='hint2'>Menjaga ukuran database Upstash gratis. Pada pencarian yang lebih tua dari angka di atas (dan tidak dicentang untuk cari ulang), yang dibuang hanya tempat tanpa telepon, email, dan WhatsApp setelah websitenya dicek. Tempat yang punya status atau catatan, pernah dikirimi email, atau ada di antrean tidak pernah dibuang. Cache domain email dan statistik lebih dari 90 hari ikut dibersihkan. Berjalan paling banyak sekali sehari.</p>"
     +(pr&&pr.t?"<p class='hint2'>Terakhir: "+esc(fmtDate(pr.t))+" · "+(pr.places||0)+" tempat, "+(pr.searches||0)+" pencarian, "+(pr.mx||0)+" cache domain, "+(pr.stats||0)+" statistik.</p>":""));
+  var sp=c.serp||{auto:true,below:20};
+  h+=auSec("Akun SerpApi",onoff(sp.auto),
+    "<label class='chk'><input type='checkbox' id='au_sa'"+(sp.auto?" checked":"")+"> Pindah akun otomatis kalau sisa kuota akun aktif menipis</label>"
+    +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_sb'>Pindah kalau sisa di bawah</label><input type='number' id='au_sb' min='0' max='1000' value='"+sp.below+"'></div></div>"
+    +"<p class='hint2'>Berlaku untuk pencarian manual dan cari ulang otomatis, dan hanya kalau Akun 1 dan Akun 2 sama-sama sudah diisi. Sebelum tiap pencarian, sisa kuota akun aktif dicek (gratis, tidak memakai kuota). Kalau di bawah angka ini dan akun lain punya sisa lebih banyak, akun aktif dipindah (sama dengan switch di pojok kanan atas). Kalau SerpApi menolak karena kuota habis, pencarian diulang sekali dengan akun lain. Pindah akun lewat jadwal harian dikabari lewat email peringatan.</p>");
   h+=auSec("Cari ulang",onoff(r.on),
     "<label class='chk'><input type='checkbox' id='au_ron'"+(r.on?" checked":"")+"> Ulangi pencarian tersimpan secara berkala (hanya tempat baru yang ditambahkan)</label>"
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_rd'>Ulangi setiap (hari)</label><input type='number' id='au_rd' min='1' max='60' value='"+r.everyDays+"'></div>"
-    +"<div class='f'><label for='au_rm'>Maks pencarian per hari</label><input type='number' id='au_rm' min='1' max='10' value='"+r.maxSearches+"'></div>"
-    +"<div class='f'><label for='au_rr'>Sisakan kuota SerpApi</label><input type='number' id='au_rr' min='0' max='1000' value='"+r.reserve+"'></div></div>"
-    +"<p class='hint2'>Tiap pencarian Google Maps memakai 1 kuota SerpApi, dan dilewati kalau sisa kuota di bawah angka yang disisakan. Pilih pencarian yang mau diulang:</p>"
+    +"<div class='f'><label for='au_rm'>Maks pencarian per hari</label><input type='number' id='au_rm' min='1' max='30' value='"+r.maxSearches+"'></div>"
+    +"<div class='f'><label for='au_rr'>Sisakan kuota SerpApi</label><input type='number' id='au_rr' min='0' max='1000' value='"+r.reserve+"'></div>"
+    +"<div class='f'><label for='au_rp'>Halaman per pencarian (1-3)</label><input type='number' id='au_rp' min='1' max='3' value='"+r.pages+"'></div>"
+    +"<div class='f'><label for='au_rs'>Nonaktifkan setelah (kali, 0 = tidak)</label><input type='number' id='au_rs' min='0' max='10' value='"+r.stopAfter+"'></div></div>"
+    +"<label class='chk'><input type='checkbox' id='au_rrot'"+(r.rotate?" checked":"")+"> Putar area kota otomatis (utara, selatan, timur, barat, pusat, pinggiran)</label>"
+    +"<p class='hint2'>Tiap cari ulang memakai bagian kota berikutnya, jadi Google Maps tidak mengembalikan daftar yang sama terus. Hasilnya tetap digabung ke pencarian aslinya. Pencarian yang berturut-turut tidak menemukan tempat baru sebanyak angka di atas otomatis dicabut centangnya (tidak berlaku kalau terhenti karena kuota atau error). Cari ulang yang memakai OpenStreetMap tidak diputar.</p>"
+    +"<p class='hint2'>Tiap halaman Google Maps (20 tempat) memakai 1 kuota SerpApi dan dihitung ke \"Maks pencarian per hari\". Halaman 2 dan 3 hanya diambil kalau seluruh isi halaman sebelumnya tempat baru; isi 1 kalau hanya mau halaman pertama. Pencarian dilewati kalau sisa kuota di bawah angka yang disisakan. Pilih pencarian yang mau diulang:</p>"
     +(se.length?"<div class='mlist aulist' id='au_rk'>"+se.map(function(x){
       return"<label class='mrow'><input type='checkbox' data-k='"+esc(x.key)+"'"+(r.keys.indexOf(x.key)>-1?" checked":"")+"><span><b>"+esc(x.city)+" · "+esc(L[x.kind]||x.kind)+"</b><small>"+(x.source==="osm"?"OpenStreetMap":"Google Maps")+" · "+x.n+" tempat</small></span></label>";
     }).join("")+"</div>":"<p class='info'>Belum ada pencarian tersimpan. Lakukan pencarian di tab Cari tempat dulu.</p>"));
@@ -2005,7 +2017,8 @@ function auCollect(){
     notify:{digest:$("au_ndg").checked,alerts:$("au_nal").checked,to:$("au_nto").value.trim()},
     clean:{on:$("au_con").checked,days:+$("au_cd").value},
     enrich:{on:$("au_eon").checked,max:+$("au_em").value},
-    refresh:{on:$("au_ron").checked,everyDays:+$("au_rd").value,maxSearches:+$("au_rm").value,reserve:+$("au_rr").value,
+    serp:{auto:$("au_sa").checked,below:+$("au_sb").value},
+    refresh:{on:$("au_ron").checked,everyDays:+$("au_rd").value,maxSearches:+$("au_rm").value,reserve:+$("au_rr").value,pages:+$("au_rp").value,rotate:$("au_rrot").checked,stopAfter:+$("au_rs").value,
       keys:[].map.call(document.querySelectorAll("#au_rk input:checked"),function(i){return i.getAttribute("data-k")})},
     mail:{on:$("au_mon").checked,approve:$("au_mapp").checked,followOn:$("au_mfo").checked,minScore:+$("au_msc").value,perDay:+$("au_mpd").value,maxBounce:+$("au_mbn").value,warm:{on:$("au_won").checked,start:+$("au_wst").value,add:+$("au_wad").value,everyDays:+$("au_wev").value},steps:auReadSteps()}
   };

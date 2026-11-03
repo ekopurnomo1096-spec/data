@@ -1,6 +1,7 @@
 // Vercel serverless function: cari tempat. API key diambil dari database (diisi lewat Pengaturan), cadangan: env Vercel
 const { isAuthed } = require("./_auth");
-const { getKey, getActive, dbConfigured, cmd } = require("./_store");
+const { getKey, dbConfigured, cmd } = require("./_store");
+const { pickSerp, switchAfterError, EXHAUSTED } = require("./_serp");
 const { dedupe } = require("./_leads");
 const CACHE = "hairleads:cache", META = "hairleads:cmeta";
 const FILTERS = {
@@ -124,10 +125,12 @@ async function overpassSearch(pt, kind) {
 
 // ---- Google Maps lewat SerpApi (data paling lengkap; butuh SERPAPI_KEY) ----
 const SERP_TERM = { salon: "hair extension salon", wig: "wig shop", beauty: "beauty supply store" };
+// Putaran area kota untuk cari ulang otomatis: "" = pencarian asli, lainnya = bagian kota ("... in north Houston"), supaya hasilnya tidak mengulang yang sama
+const AREAS = ["", "north", "south", "east", "west", "central", "suburbs"];
 
-async function serpSearch(city, kind, key, start, ll) {
+async function serpSearch(city, kind, key, start, ll, area) {
   let url = "https://serpapi.com/search.json?engine=google_maps&type=search&q=" +
-    encodeURIComponent(SERP_TERM[kind] + " in " + city) + "&api_key=" + encodeURIComponent(key);
+    encodeURIComponent(SERP_TERM[kind] + " in " + (area ? area + " " : "") + city) + "&api_key=" + encodeURIComponent(key);
   if (start > 0) url += "&start=" + start + (ll ? "&ll=" + encodeURIComponent(ll) : "");
   const j = await getJSON(url, { headers: UA }, 25000);
   if (j.error) {
@@ -166,6 +169,7 @@ async function searchCore(q, opts) {
   const source = q.source === "osm" ? "osm" : "google";
   const ckey = source + "|" + kind + "|" + city.toLowerCase().replace(/\s+/g, " ");
   const refresh = !!q.refresh;
+  const area = source === "google" && AREAS.indexOf(q.area) > 0 ? q.area : ""; // area putaran (hanya Google Maps)
   // start > 0: ambil halaman berikutnya (20 tempat per halaman), hanya untuk sumber Google
   const start = source === "google" ? Math.min(Math.max(parseInt(q.start, 10) || 0, 0), 400) : 0;
 
@@ -180,7 +184,7 @@ async function searchCore(q, opts) {
     } catch (e) { /* cache rusak atau Redis bermasalah: cari seperti biasa */ }
   }
 
-  let results, more = false, ll = "", prev = [], prevDupes = 0, hit = null;
+  let results, more = false, ll = "", prev = [], prevDupes = 0, hit = null, acct = 0, switched = null, pageMore = false;
   if ((start > 0 || opts.merge) && dbConfigured()) {
     try {
       const raw = await cmd(["HGET", CACHE, ckey]);
@@ -188,23 +192,36 @@ async function searchCore(q, opts) {
       if (hit && Array.isArray(hit.results)) { prev = hit.results; ll = hit.ll || ""; prevDupes = hit.dupes || 0; } else hit = null;
     } catch (e) { hit = null; /* tanpa cache: halaman tambahan tetap diambil, hanya tidak digabung */ }
   }
+  const baseLl = ll;
+  if (area) ll = String(q.ll || ""); // area punya koordinat sendiri; ll tersimpan milik pencarian asli
   if (source === "osm") {
     const pt = await geocode(city);
     if (!pt) throw fail("Kota tidak ditemukan", 404);
     const key = (await getKey("geo")) || process.env.GEOAPIFY_KEY;
     results = key ? await geoSearch(pt, kind, key) : await overpassSearch(pt, kind);
   } else {
-    const [k1, k2, act] = await Promise.all([getKey("serp"), getKey("serp2"), getActive()]);
-    const a1 = k1 || process.env.SERPAPI_KEY;
-    if (!a1 && !k2) throw fail("API key SerpApi belum diisi. Buka Pengaturan lalu masukkan key-nya");
-    // Akun yang dipakai dipilih manual lewat switch di pojok kanan atas (default akun 1)
-    const useN = act === "2" && k2 ? 2 : (a1 ? 1 : 2);
+    // Akun dipilih lewat _serp.js: akun aktif (switch di pojok kanan atas), dan pindah otomatis
+    // kalau sisa kuotanya di bawah batas (Pengaturan otomatis > Akun SerpApi).
+    const sp = await pickSerp();
+    if (!sp) throw fail("API key SerpApi belum diisi. Buka Pengaturan lalu masukkan key-nya");
+    const two = !!sp.other || !!sp.switched;
+    acct = sp.n; switched = sp.switched;
     try {
-      const sr = await serpSearch(city, kind, useN === 2 ? k2 : a1, start, ll);
-      results = sr.list; more = sr.more; ll = sr.ll;
+      const sr = await serpSearch(city, kind, sp.key, start, ll, area);
+      results = sr.list; more = sr.more; ll = sr.ll; pageMore = sr.more;
+    } catch (e) {
+      // Kuota akun ini habis atau key bermasalah: coba sekali dengan akun lain (kalau pindah otomatis menyala)
+      if (sp.auto && sp.other && EXHAUSTED.test(e.message)) {
+        try {
+          const sr = await serpSearch(city, kind, sp.other.key, start, ll, area);
+          results = sr.list; more = sr.more; ll = sr.ll; pageMore = sr.more;
+          switched = await switchAfterError(sp);
+          acct = sp.other.n;
+        } catch (e2) { throw new Error(e2.message + " (Akun " + sp.other.n + ")"); }
+      } else throw two ? new Error(e.message + " (Akun " + sp.n + ")") : e;
     }
-    catch (e) { throw (a1 && k2) ? new Error(e.message + " (Akun " + useN + ")") : e; }
   }
+  const pageN = results.length; // isi mentah satu halaman, sebelum dibuang duplikatnya
   const before = prev.length;
   const d = dedupe(prev.concat(results));
   results = d.list;
@@ -214,6 +231,11 @@ async function searchCore(q, opts) {
   let next = more ? (start || 0) + 20 : 0;
   // Gabung tanpa memuat halaman lanjutan: penunjuk "Muat 20 lagi" tetap seperti semula
   if (opts.merge && !start && hit) { more = !!hit.more; next = hit.next || 0; ll = hit.ll || ll; }
+  // Gabung halaman 2-3 saat cari ulang otomatis: jangan memundurkan penunjuk kalau halaman lebih jauh sudah pernah dimuat
+  if (opts.merge && start > 0 && hit && (hit.next || 0) > next) { more = !!hit.more; next = hit.next; }
+  const outLl = ll;
+  // Hasil area digabung ke pencarian asli, tapi penunjuk "Muat 20 lagi" dan koordinat pencarian asli tidak berubah
+  if (area) { if (hit) { more = !!hit.more; next = hit.next || 0; } else { more = false; next = 0; } ll = hit ? baseLl : ""; }
   let saved = false;
   if (results.length && dbConfigured()) {
     try {
@@ -223,7 +245,7 @@ async function searchCore(q, opts) {
       saved = true;
     } catch (e) { /* gagal menyimpan tidak boleh menggagalkan pencarian */ }
   }
-  return { results, cached: false, saved, dupes: d.dupes, more, next, added };
+  return { results, cached: false, saved, dupes: d.dupes, more, next, added, pageN, pageMore, acct, switched, ll: outLl };
 }
 
 module.exports = async (req, res) => {
@@ -238,3 +260,4 @@ module.exports = async (req, res) => {
   }
 };
 module.exports.searchCore = searchCore;
+module.exports.AREAS = AREAS;

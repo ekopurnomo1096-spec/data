@@ -5,6 +5,7 @@
 //   queue   : isi antrean persetujuan dengan prospek yang skornya cukup (skor berbasis aturan, _score.js)
 // Semua data di Redis berawalan "hairleads:". Tidak memakai AI.
 const { dbConfigured, cmd, hgetall, getKey, getActive } = require("./_store");
+const { pickSerp, sanitizeSerp, DEFAULT: SERP_DEFAULT } = require("./_serp");
 const { sanitizeLead } = require("./_leads");
 const { findContacts } = require("./_contacts");
 const { scoreLead, FREE } = require("./_score");
@@ -34,7 +35,8 @@ const FU2B = "Hi!\n\nI will not keep filling your inbox. If you ever need a depe
 function defaultCfg() {
   return {
     enrich: { on: true, max: 60 },
-    refresh: { on: false, everyDays: 7, maxSearches: 3, reserve: 30, keys: [] },
+    refresh: { on: false, everyDays: 7, maxSearches: 3, reserve: 30, pages: 3, rotate: true, stopAfter: 3, keys: [] },
+    serp: { ...SERP_DEFAULT }, // pindah akun SerpApi otomatis kalau sisa kuota akun aktif di bawah "below"
     mail: {
       on: false, approve: true, minScore: 40, perDay: 20, followOn: true, maxBounce: 4,
       warm: { on: true, start: 10, add: 5, everyDays: 3 }, // pemanasan: batas harian mulai dari "start", naik "add" tiap "everyDays" hari sampai perDay
@@ -58,7 +60,8 @@ function sanitizeCfg(c) {
   const out = {
     enrich: { on: bool(e.on, d.enrich.on), max: num(e.max, 1, 200, d.enrich.max) },
     refresh: {
-      on: bool(r.on, false), everyDays: num(r.everyDays, 1, 60, 7), maxSearches: num(r.maxSearches, 1, 10, 3), reserve: num(r.reserve, 0, 1000, 30),
+      on: bool(r.on, false), everyDays: num(r.everyDays, 1, 60, 7), maxSearches: num(r.maxSearches, 1, 30, 3), reserve: num(r.reserve, 0, 1000, 30), pages: num(r.pages, 1, 3, 3),
+      rotate: bool(r.rotate, true), stopAfter: num(r.stopAfter, 0, 10, 3),
       keys: Array.isArray(r.keys) ? [...new Set(r.keys.map(k => String(k).slice(0, 300)).filter(Boolean))].slice(0, 40) : []
     },
     mail: { on: bool(m.on, false), approve: bool(m.approve, true), minScore: num(m.minScore, 0, 100, 40), perDay: num(m.perDay, 1, 100, 20), followOn: bool(m.followOn, true),
@@ -67,6 +70,7 @@ function sanitizeCfg(c) {
       steps: [] }
   };
   const nt = c.notify || {}, cl = c.clean || {}, nto = M.clean(nt.to, 120).toLowerCase();
+  out.serp = sanitizeSerp(c.serp);
   out.notify = { digest: bool(nt.digest, true), alerts: bool(nt.alerts, true), to: M.EMAIL.test(nto) ? nto : "" };
   out.clean = { on: bool(cl.on, true), days: num(cl.days, 7, 365, 30) };
   const raw = Array.isArray(m.steps) ? m.steps.slice(0, 4) : d.mail.steps;
@@ -194,18 +198,6 @@ async function jobEnrich(cfg, ctx) {
 }
 
 // ---- Refresh ----------------------------------------------------------------------------------------------
-async function serpLeft() {
-  try {
-    const [k1, k2, act] = await Promise.all([getKey("serp"), getKey("serp2"), getActive()]);
-    const a1 = k1 || process.env.SERPAPI_KEY;
-    const key = act === "2" && k2 ? k2 : (a1 || k2);
-    if (!key) return null;
-    const r = await fetch("https://serpapi.com/account.json?api_key=" + encodeURIComponent(key), { headers: { "User-Agent": "hair-leads-demo/1.0" }, signal: AbortSignal.timeout(10000) });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok || j.error || j.searches_per_month == null) return null;
-    return j.total_searches_left != null ? Number(j.total_searches_left) : Math.max((Number(j.searches_per_month) || 0) - (Number(j.this_month_usage) || 0), 0);
-  } catch (e) { return null; }
-}
 async function jobRefresh(cfg, ctx) {
   const rc = cfg.refresh;
   if (!rc.on && !ctx.force) return { skip: "mati" };
@@ -220,24 +212,70 @@ async function jobRefresh(cfg, ctx) {
   }
   if (!due.length) return { searches: 0, added: 0, note: "belum waktunya" };
   due.sort((a, b) => a.last - b.last);
-  let left = due.some(d => d.m.source !== "osm") ? await serpLeft() : null;
-  let searches = 0, added = 0, err = "", skipped = 0;
+  // Sisa kuota per akun SerpApi: dibaca segar sebelum tiap pencarian (pindah akun otomatis terjadi di sini dan di searchCore),
+  // lalu dikurangi hitungan lokal supaya tidak terkecoh data SerpApi yang telat update.
+  const tracked = {};
+  const leftNow = async () => {
+    const sp = await pickSerp();
+    if (!sp) return { n: 0, left: null, sw: null };
+    if (sp.left !== null) tracked[sp.n] = Math.min(tracked[sp.n] === undefined ? Infinity : tracked[sp.n], sp.left);
+    return { n: sp.n, left: sp.left === null ? null : tracked[sp.n], sw: sp.switched };
+  };
+  let searches = 0, added = 0, extra = 0, err = "", skipped = 0, stop = false;
+  const switches = [], areas = [], offKeys = [];
+  const AREAS = places.AREAS;
+  const noteSw = sw => { if (sw) switches.push(sw); };
   for (const d of due) {
-    if (searches >= rc.maxSearches) break;
-    if (ctx.softEnd - Date.now() < 30000) break; // satu pencarian bisa sampai 25 detik
-    if (d.m.source !== "osm") {
-      if (left !== null && left - 1 < rc.reserve) { skipped++; continue; } // sisakan kuota SerpApi
+    if (stop || searches >= rc.maxSearches) break;
+    // Halaman 2-3 hanya diambil kalau seluruh isi halaman sebelumnya baru. Tiap halaman memakai 1 kuota dan dihitung ke "Maks pencarian".
+    const pages = d.m.source === "osm" ? 1 : rc.pages;
+    // Putaran area: tiap cari ulang memakai bagian kota berikutnya (utara, selatan, ...), mulai dari yang bukan pencarian asli
+    const useRot = rc.rotate && d.m.source !== "osm";
+    let ai = 0, area = "", ll = "", ranOk = false, failed = false, addedD = 0;
+    if (useRot) { const rr = await cmd(["HGET", AUTO, "rot:" + d.key]); ai = rr == null ? 1 : (Number(rr) || 0) % AREAS.length; area = AREAS[ai]; }
+    for (let p = 0; p < pages; p++) {
+      if (searches >= rc.maxSearches) break;
+      if (ctx.softEnd - Date.now() < 30000) { stop = true; break; } // satu pencarian bisa sampai 25 detik
+      if (d.m.source !== "osm") {
+        const lf = await leftNow();
+        noteSw(lf.sw);
+        if (lf.left !== null && lf.left - 1 < rc.reserve) { skipped++; break; } // sisakan kuota SerpApi
+      }
+      let r;
+      try {
+        r = await places.searchCore({ city: d.m.city, kind: d.m.kind, source: d.m.source, refresh: true, start: p * 20, area, ll }, { merge: true });
+      } catch (e) { err = e.message; failed = true; if (/SerpApi|kuota|key/i.test(e.message)) stop = true; break; }
+      if (r.ll) ll = r.ll;
+      ranOk = true; addedD += r.added || 0;
+      noteSw(r.switched);
+      if (p === 0) await cmd(["HSET", AUTO, "rf:" + d.key, String(Date.now())]);
+      searches++; added += r.added || 0; if (p > 0) extra++;
+      if (r.acct && tracked[r.acct] !== undefined) tracked[r.acct]--;
+      // Lanjut ke halaman berikutnya hanya kalau halaman ini penuh tempat baru dan Google Maps masih punya halaman lagi
+      if (!(r.pageN > 0 && r.added >= r.pageN && r.pageMore)) break;
     }
-    try {
-      const r = await places.searchCore({ city: d.m.city, kind: d.m.kind, source: d.m.source, refresh: true }, { merge: true });
-      await cmd(["HSET", AUTO, "rf:" + d.key, String(Date.now())]);
-      searches++; added += r.added || 0;
-      if (d.m.source !== "osm" && left !== null) left--;
-    } catch (e) { err = e.message; if (/SerpApi|kuota|key/i.test(e.message)) break; }
+    // Hanya pencarian yang benar-benar berjalan yang dihitung (error atau dilewati karena kuota tidak dihitung)
+    if (ranOk && !failed) {
+      if (useRot) { await cmd(["HSET", AUTO, "rot:" + d.key, String((ai + 1) % AREAS.length)]); areas.push(d.m.city + (area ? " (" + area + ")" : "") + " +" + addedD); }
+      // Pencarian yang berturut-turut tidak menghasilkan tempat baru dinonaktifkan sendiri (stopAfter kali, 0 = tidak pernah)
+      const miss = addedD > 0 ? 0 : (Number(await cmd(["HGET", AUTO, "rz:" + d.key])) || 0) + 1;
+      await cmd(["HSET", AUTO, "rz:" + d.key, String(miss)]);
+      if (rc.stopAfter > 0 && miss >= rc.stopAfter) offKeys.push(d);
+    }
+  }
+  if (offKeys.length) {
+    const gone = new Set(offKeys.map(d => d.key));
+    rc.keys = rc.keys.filter(k => !gone.has(k));
+    await setCfg(cfg);
+    for (const d of offKeys) { try { await cmd(["HDEL", AUTO, "rz:" + d.key, "rot:" + d.key]); } catch (e) { /* abaikan */ } }
   }
   if (added) await M.stat("added", added);
   const out = { searches, added };
+  if (extra) out.pages = extra;
+  if (areas.length) out.areas = areas;
+  if (offKeys.length) out.off = offKeys.map(d => d.m.city + " · " + d.m.kind + " (" + rc.stopAfter + "x tanpa tempat baru)");
   if (skipped) out.note = "dilewati " + skipped + " (sisa kuota SerpApi di bawah batas aman)";
+  if (switches.length) { const w = switches[switches.length - 1]; out.switched = "Akun " + w.from + " -> Akun " + w.to + (w.why === "error" ? " (kuota habis)" : " (sisa " + w.left + ", di bawah batas)"); }
   if (err) out.err = err;
   return out;
 }
@@ -470,6 +508,7 @@ async function notifyAfter(cfg, out, o) {
     else if (k === "refresh" && /SerpApi|kuota|quota|key/i.test(e)) await ping("serp_quota", "Pencarian ulang gagal (SerpApi)", "Pencarian ulang berhenti: " + e + "\n\nCek kuota dan API key SerpApi di Pengaturan. Kalau kuota akun habis, ganti ke akun lain lewat switch di pojok kanan atas.");
     else errs.push((JN[k] || k) + ": " + e);
   }
+  if (j.refresh && j.refresh.switched) await ping("serp_switch", "Akun SerpApi dipindah otomatis", "Akun SerpApi aktif dipindah: " + j.refresh.switched + ".\n\nCek sisa kuota kedua akun di pojok kanan atas. Batas pindah bisa diubah di Pengaturan otomatis > Akun SerpApi.");
   if (j.refresh && /dilewati/.test(j.refresh.note || "")) await ping("serp_low", "Kuota SerpApi hampir habis", "Pencarian ulang dilewati: " + j.refresh.note + "\n\nTambah kuota, ganti akun SerpApi, atau turunkan angka \"Sisakan kuota SerpApi\" di Pengaturan otomatis.");
   if (errs.length) await ping("cron", "Jalan otomatis gagal", errs.join("\n") + "\n\nBuka tab Otomatis > Riwayat jalan untuk melihat detailnya.");
   try {
