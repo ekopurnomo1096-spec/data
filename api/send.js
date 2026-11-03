@@ -14,11 +14,11 @@ module.exports = async (req, res) => {
   try {
     res.setHeader("Cache-Control", "private, no-store");
     if (!isAuthed(req)) return res.status(401).json({ error: "Belum login" });
-    const { key, from, replyTo } = await M.config();
+    const { key, from, replyTo, addr, srcn } = await M.config();
 
     if (req.method === "GET") {
       // Template email dikosongkan: subjek dan isi harus ditulis sendiri sebelum kirim
-      const out = { ready: !!(key && from), hasKey: !!key, from, replyTo, max: M.MAX, subject: "", text: "" };
+      const out = { ready: !!(key && from), hasKey: !!key, from, replyTo, addr, srcn, max: M.MAX, subject: "", text: "" };
       if (req.query && req.query.sent && dbConfigured()) {
         out.daily = { used: await M.usedToday(), limit: M.DAILY };
         const all = await hgetall(M.MAIL);
@@ -42,6 +42,11 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, hidden });
     }
 
+    if (dbConfigured()) {
+      let why = "";
+      try { why = await M.checkHealth(); } catch (e) { /* abaikan */ }
+      if (why) return res.status(423).json({ error: "Pengiriman sedang dijeda: " + why + ". Lanjutkan di tab Otomatis kalau sudah aman.", paused: true });
+    }
     if (!key) return res.status(500).json({ error: "API key Resend belum diisi. Buka Pengaturan lalu masukkan key-nya" });
     if (!/@/.test(from)) return res.status(500).json({ error: "Alamat pengirim belum diisi. Buka Pengaturan lalu isi email pengirim (harus dari domain yang sudah diverifikasi di Resend)" });
 
@@ -87,7 +92,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: "Sisa kuota email hari ini " + left + " dari " + M.DAILY + ". Kurangi jumlah yang dipilih, atau tunggu reset jam 07.00 WIB.", daily: { used, limit: M.DAILY } });
     }
 
-    await M.sendBatch({ key, from, replyTo }, items, M.baseUrl(req));
+    await M.sendBatch({ key, from, replyTo, addr, srcn }, items, M.baseUrl(req));
     used = await M.recordSent(items, used);
     return res.status(200).json({ sent: items.map(i => i.id), skipped, bad, suppressed, daily: { used, limit: M.DAILY } });
   } catch (err) {

@@ -41,6 +41,7 @@ async function suppress(email, reason) {
   const had = await cmd(["HEXISTS", SUPP, email]);
   if (had) return true; // alasan pertama dipertahankan
   await cmd(["HSET", SUPP, email, JSON.stringify({ r: reason || "manual", t: Date.now() })]);
+  if (reason === "bounce" || reason === "spam" || reason === "unsub") await stat(reason, 1);
   return true;
 }
 
@@ -107,7 +108,10 @@ function textToHtmlBody(text) {
   if (inList) html += "</ul>";
   return html || '<p style="margin:0"></p>';
 }
-function buildHtml(text, unsub) {
+// Keterangan sumber kontak bawaan (bisa diganti di tab Email > Pengaturan email)
+const DEFAULT_SRC = "We found your email address on your business website or public listing.";
+function buildHtml(text, unsub, foot) {
+  foot = foot || {};
   const siteLabel = escHtml(BRAND.website.replace(/^https?:\/\//, "").replace(/\/$/, ""));
   return '<!doctype html><html><body style="margin:0;padding:0;background:#f3efe7;font-family:Arial,Helvetica,sans-serif">' +
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3efe7;padding:24px 0"><tr><td align="center">' +
@@ -118,6 +122,8 @@ function buildHtml(text, unsub) {
     '<div style="padding:18px 28px;background:#f6f3ec;border-top:1px solid #e7e1d4;font-size:12.5px;color:#4a4a4a">' +
     "<div style=\"margin-bottom:6px\"><b>" + escHtml(BRAND.name) + "</b> — " + escHtml(BRAND.tagline) + "</div>" +
     "<div>Website: <a href=\"" + escHtml(BRAND.website) + "\" style=\"color:#000000;text-decoration:underline\">" + siteLabel + "</a></div>" +
+    (foot.addr ? "<div style=\"margin-top:8px\">" + escHtml(foot.addr) + "</div>" : "") +
+    (foot.srcn ? "<div style=\"margin-top:8px;color:#6a6a6a\">" + escHtml(foot.srcn) + "</div>" : "") +
     (unsub ? "<div style=\"margin-top:10px;color:#6a6a6a\">Don’t want to hear from us? <a href=\"" + escHtml(unsub) + "\" style=\"color:#6a6a6a;text-decoration:underline\">Unsubscribe</a></div>" : "") +
     "</div></td></tr></table></td></tr></table></body></html>";
 }
@@ -133,7 +139,9 @@ async function config() {
   const key = (await getKey("rs")) || process.env.RESEND_API_KEY || "";
   const from = (await getKey("rsf")) || process.env.RESEND_FROM || "";
   const rt = ((await getKey("rrt")) || process.env.RESEND_REPLY_TO || "").trim();
-  return { key, from, replyTo: EMAIL.test(rt) || /<[^<>@\s]+@[^<>\s]+>$/.test(rt) ? rt : "" };
+  const addr = ((await getKey("addr")) || "").trim().slice(0, 300);
+  const srcn = ((await getKey("srcn")) || "").trim().slice(0, 300) || DEFAULT_SRC;
+  return { key, from, addr, srcn, replyTo: EMAIL.test(rt) || /<[^<>@\s]+@[^<>\s]+>$/.test(rt) ? rt : "" };
 }
 
 // Kirim satu batch (maksimal MAX) lewat Resend. items: [{to, subject, text}]. Melempar Error berpesan jelas kalau gagal.
@@ -142,8 +150,8 @@ async function sendBatch(cfg, items, base) {
     const u = unsubUrl(base, i.to);
     return {
       from: cfg.from, to: [i.to], subject: i.subject,
-      text: i.text + (u ? "\n\n--\nTo stop receiving emails from us, click here: " + u : ""),
-      html: buildHtml(i.text, u),
+      text: i.text + "\n\n--\n" + BRAND.name + (cfg.addr ? "\n" + cfg.addr : "") + (cfg.srcn ? "\n" + cfg.srcn : "") + (u ? "\nTo stop receiving emails from us, click here: " + u : ""),
+      html: buildHtml(i.text, u, { addr: cfg.addr, srcn: cfg.srcn }),
       ...(cfg.replyTo ? { reply_to: cfg.replyTo } : {}),
       ...(u ? { headers: { "List-Unsubscribe": "<" + u + ">", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } } : {})
     };
@@ -171,11 +179,80 @@ async function recordSent(items, used) {
   if (dbConfigured()) {
     for (const i of items) {
       if (i.fu) continue;
-      try { await cmd(["HSET", MAIL, i.id, JSON.stringify({ t, to: i.to })]); } catch (e) { /* gagal catat tidak boleh menggagalkan hasil */ }
+      const rec = { t, to: i.to };
+      if (i.v !== undefined) { rec.s = i.n || 0; rec.v = i.v; } // tahap dan variasi yang terkirim (untuk A/B)
+      try { await cmd(["HSET", MAIL, i.id, JSON.stringify(rec)]); } catch (e) { /* gagal catat tidak boleh menggagalkan hasil */ }
     }
+    try {
+      const fu = items.filter(i => i.fu).length;
+      await stat("sent", items.length - fu); await stat("fu", fu);
+      const per = {};
+      for (const i of items) if (i.v !== undefined) { const k = "s" + (i.n || 0) + "v" + i.v; per[k] = (per[k] || 0) + 1; }
+      for (const k of Object.keys(per)) await stat(k, per[k]);
+      await cmd(["HSETNX", AUTOK, "first", String(t)]); // tanggal kirim pertama, dasar pemanasan (warm-up)
+    } catch (e) { /* statistik gagal tidak boleh menggagalkan hasil */ }
     try { return await cmd(["HINCRBY", DAYK, today(), items.length]); } catch (e) { return used + items.length; }
   }
   return used + items.length;
+}
+
+// ---- Statistik harian, jeda (kill switch), dan batas bounce ----------------------------------------------
+const STATK = "hairleads:stats"; // field "YYYY-MM-DD:metrik" (UTC). Metrik: sent, fu, bounce, spam, unsub, added, found, queued, s{tahap}v{variasi}
+const AUTOK = "hairleads:auto";  // sama dengan AUTO di _jobs.js (field cfg, log, first, pause, pbase)
+async function stat(metric, n) {
+  if (!dbConfigured() || !n) return;
+  try { await cmd(["HINCRBY", STATK, today() + ":" + metric, Math.round(n)]); } catch (e) { /* abaikan */ }
+}
+// Mengembalikan [{d:"YYYY-MM-DD", sent, fu, bounce, spam, unsub, added, found, queued, v:{s0v0:n,...}}], terbaru dulu
+async function getStats(days) {
+  if (!dbConfigured()) return [];
+  const raw = (await cmd(["HGETALL", STATK])) || [], by = {};
+  const from = new Date(Date.now() - (days - 1) * 864e5).toISOString().slice(0, 10);
+  for (let i = 0; i + 1 < raw.length; i += 2) {
+    const [d, m] = String(raw[i]).split(":");
+    if (!m || d < from) continue;
+    const o = by[d] || (by[d] = { d, sent: 0, fu: 0, bounce: 0, spam: 0, unsub: 0, added: 0, found: 0, queued: 0, v: {} });
+    const n = parseInt(raw[i + 1], 10) || 0;
+    if (/^s\d+v\d+$/.test(m)) o.v[m] = n; else if (m in o) o[m] = n;
+  }
+  const out = [];
+  for (let k = 0; k < days; k++) { const d = new Date(Date.now() - k * 864e5).toISOString().slice(0, 10); out.push(by[d] || { d, sent: 0, fu: 0, bounce: 0, spam: 0, unsub: 0, added: 0, found: 0, queued: 0, v: {} }); }
+  return out;
+}
+async function getPause() {
+  if (!dbConfigured()) return null;
+  try { const v = parse(await cmd(["HGET", AUTOK, "pause"])); return v && v.t ? v : null; } catch (e) { return null; }
+}
+async function setPause(why, auto) {
+  await cmd(["HSET", AUTOK, "pause", JSON.stringify({ t: Date.now(), why: clean(why, 200) || "dijeda", auto: !!auto })]);
+}
+// Lanjutkan. Hitungan bounce/spam yang ada saat ini dijadikan titik nol supaya tidak langsung terjeda lagi.
+async function clearPause() {
+  const w = windowTotals(await getStats(3));
+  await cmd(["HSET", AUTOK, "pbase", JSON.stringify({ t: Date.now(), sent: w.sent, bounce: w.bounce, spam: w.spam })]);
+  await cmd(["HDEL", AUTOK, "pause"]);
+}
+const windowTotals = st => st.reduce((a, x) => ({ sent: a.sent + x.sent + x.fu, bounce: a.bounce + x.bounce, spam: a.spam + x.spam }), { sent: 0, bounce: 0, spam: 0 });
+// Cek 3 hari terakhir: bounce >= batas % (minimal 20 email terkirim), atau spam >= 2 dan >= 0,3%. Kalau terlewati, kirim otomatis dijeda.
+// Mengembalikan alasan (string) kalau baru saja dijeda atau sudah dijeda, "" kalau aman.
+async function checkHealth() {
+  if (!dbConfigured()) return "";
+  const pz = await getPause();
+  if (pz) return pz.why || "dijeda";
+  let max = 4;
+  try { const c = parse(await cmd(["HGET", AUTOK, "cfg"])); const v = c && c.mail && Number(c.mail.maxBounce); if (v >= 1 && v <= 20) max = v; } catch (e) { /* bawaan */ }
+  let w = windowTotals(await getStats(3));
+  try {
+    const b = parse(await cmd(["HGET", AUTOK, "pbase"]));
+    if (b && Date.now() - b.t < 3 * 864e5) w = { sent: Math.max(w.sent - b.sent, 0), bounce: Math.max(w.bounce - b.bounce, 0), spam: Math.max(w.spam - b.spam, 0) };
+  } catch (e) { /* tanpa titik nol */ }
+  if (w.sent < 20) return "";
+  const br = w.bounce / w.sent * 100, sr = w.spam / w.sent * 100;
+  let why = "";
+  if (br >= max) why = "Bounce " + br.toFixed(1) + "% (" + w.bounce + " dari " + w.sent + " email dalam 3 hari) melewati batas " + max + "%";
+  else if (w.spam >= 2 && sr >= 0.3) why = "Laporan spam " + w.spam + " dari " + w.sent + " email dalam 3 hari (" + sr.toFixed(2) + "%)";
+  if (why) { await setPause(why, true); return why; }
+  return "";
 }
 
 // ---- Verifikasi MX (gratis, tanpa API) -------------------------------------------------------------
@@ -252,5 +329,5 @@ async function flagLeads(email, reason) {
   return n;
 }
 
-module.exports = { mxCheck, domainOf, flagLeads, MAIL, DAYK, SUPP, MAX, DAILY, EMAIL, ID, clean, parse, escHtml, usedToday, suppressedSet, suppress,
+module.exports = { stat, getStats, getPause, setPause, clearPause, checkHealth, mxCheck, domainOf, flagLeads, MAIL, DAYK, SUPP, MAX, DAILY, EMAIL, ID, clean, parse, escHtml, usedToday, suppressedSet, suppress,
   unsubToken, tokenOk, baseUrl, unsubUrl, buildHtml, greet, config, sendBatch, recordSent };

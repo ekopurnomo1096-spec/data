@@ -419,16 +419,36 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 #aid.ai-run .acts{display:none}
 #aid.ai-run #aidbody{padding-bottom:24px}
 .aup input[type=number],.aup textarea{width:100%;font:inherit;font-size:.92rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:0 12px;height:42px}
-.aup textarea{height:auto;min-height:110px;padding:10px 12px;resize:vertical;line-height:1.45}
+.aup textarea{height:auto;min-height:84px;padding:10px 12px;resize:vertical;line-height:1.45}
 .aup textarea:focus-visible,.aup input[type=number]:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .aup+.aup{margin-top:16px}
 .aurow{display:flex;gap:12px;flex-wrap:wrap}
 .aurow .f{flex:1 1 130px;min-width:0}
-.austep{border:1px solid var(--line);border-radius:8px;padding:2px 14px 14px;margin:12px 0;background:var(--bg)}
-.austep h4{margin:12px 0 0;font-size:.9rem}
-.aust{display:flex;gap:4px 18px;flex-wrap:wrap;font-size:.86rem;color:var(--mute)}
-.aust b{color:var(--ink);font-weight:600}
-.aust .bad{color:var(--err)}
+.aupz{margin:0 0 12px;padding:10px 12px;border-radius:8px;background:var(--errbg);color:var(--err);font-size:.9rem}.austat{width:100%;border-collapse:collapse;font-size:.84rem;margin-top:8px}.austat th,.austat td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--line)}.austat th:first-child,.austat td:first-child{text-align:left}.austat th{color:var(--mute);font-weight:600}
+.aup{padding:14px 16px}
+.aup+.aup{margin-top:12px}
+.aust{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:2px}
+.ac{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:var(--bg);min-width:0}
+.ac small{display:block;color:var(--mute);font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.ac b{font-size:.95rem;font-weight:600}
+.ac.bad{grid-column:1/-1;color:var(--err);background:var(--errbg);border-color:transparent;font-size:.86rem}
+.aud>summary,.aus>summary,.austep>summary,.auv>summary,.aud2>summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none;font-weight:600;font-size:.92rem}
+.aud>summary::-webkit-details-marker,.aus>summary::-webkit-details-marker,.austep>summary::-webkit-details-marker,.auv>summary::-webkit-details-marker,.aud2>summary::-webkit-details-marker{display:none}
+.aud>summary::after,.aus>summary::after,.austep>summary::after,.auv>summary::after,.aud2>summary::after{content:"";margin-left:auto;flex:none;width:7px;height:7px;border:solid var(--mute);border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-3px}
+.aud[open]>summary::after,.aus[open]>summary::after,.austep[open]>summary::after,.auv[open]>summary::after,.aud2[open]>summary::after{transform:rotate(225deg);margin-top:3px}
+.aud>summary{text-transform:uppercase;letter-spacing:.06em;font-size:.72rem;color:var(--mute)}
+.aud2{margin-top:10px}.aud2>summary{font-size:.84rem;color:var(--mute);font-weight:500}
+.aub{padding-top:10px}
+.aus{border-top:1px solid var(--line);padding:11px 0}
+.aus:first-of-type{border-top:0;padding-top:2px}
+.aus .chk+.chk{margin-top:8px}
+.austep{border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin:10px 0 0;background:var(--bg)}
+.austep>summary{min-width:0}
+.austep .sm{flex:1;min-width:0;font-weight:400;color:var(--mute);font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.auv{margin:10px 0 0;padding-left:10px;border-left:3px solid var(--line)}
+.auv>summary{font-size:.84rem;color:var(--mute);font-weight:500}
+.austep .f,.auv .f{margin-top:8px}
+.austep .eacts{margin-top:10px}
 .aulog{margin:12px 0 0;padding:0;list-style:none;font-size:.84rem;color:var(--mute)}
 .aulog li{padding:6px 0;border-bottom:1px solid var(--soft)}
 .aulog li:last-child{border-bottom:0}
@@ -531,6 +551,8 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <div class="sf f" id="kf5"><label for="k5">API key Resend</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh5"></span></span><button class="btn" id="kc5" type="button">Ganti</button></div><div class="krow"><input type="password" id="k5" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx5" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://resend.com" target="_blank" rel="noopener">resend.com</a>. Dipakai untuk semua pengiriman email.</p></div>
   <div class="sf f" id="kf6"><label for="k6">Email pengirim (untuk Resend)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh6"></span></span><button class="btn" id="kc6" type="button">Ganti</button></div><div class="krow"><input type="text" id="k6" autocomplete="off" placeholder="EMA Hairshop Wholesale &lt;sales@wholesale.emahairshop.com&gt;" data-ph="1"><button class="btn" id="kx6" type="button" hidden>Batal</button></div><p class="hint2">Harus memakai domain yang sudah diverifikasi di Resend. Tidak bisa Gmail atau Yahoo.</p></div>
   <div class="sf f" id="kf7"><label for="k7">Reply-To (balasan masuk ke sini, opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh7"></span></span><button class="btn" id="kc7" type="button">Ganti</button></div><div class="krow"><input type="text" id="k7" autocomplete="off" placeholder="sales@emahairshop.com" data-ph="1"><button class="btn" id="kx7" type="button" hidden>Batal</button></div><p class="hint2">Email yang kamu baca. Kalau calon pembeli klik Balas, jawabannya masuk ke sini, bukan ke alamat pengirim.</p></div>
+  <div class="sf f" id="kf8"><label for="k8">Alamat fisik di footer email</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh8"></span></span><button class="btn" id="kc8" type="button">Ganti</button></div><div class="krow"><input type="text" id="k8" autocomplete="off" placeholder="Jl. Contoh No. 1, Kota, Provinsi, 12345, Indonesia" data-ph="1"><button class="btn" id="kx8" type="button" hidden>Batal</button></div><p class="hint2">Alamat pos yang valid (kantor, toko, atau PO Box). Tampil di bagian bawah setiap email sesuai aturan CAN-SPAM.</p></div>
+  <div class="sf f" id="kf9"><label for="k9">Keterangan sumber kontak (opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh9"></span></span><button class="btn" id="kc9" type="button">Ganti</button></div><div class="krow"><input type="text" id="k9" autocomplete="off" placeholder="Kosongkan untuk memakai teks bawaan" data-ph="1"><button class="btn" id="kx9" type="button" hidden>Batal</button></div><p class="hint2">Menjelaskan dari mana alamat email penerima didapat. Bawaan: We found your email address on your business website or public listing.</p></div>
     <label class="chk" id="emksw" style="margin-top:14px"><input type="checkbox" id="emks"> Tampilkan key</label>
     <p class="hint2" id="emkmsg" hidden></p>
     <div class="eacts"><button class="btn primary" id="emksave" type="button">Simpan</button><button class="btn" id="emkclear" type="button" hidden>Hapus pengaturan email</button></div>
@@ -577,27 +599,33 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 <section id="p5" hidden>
   <div class="panel aup">
     <div class="svh">Status</div>
+    <p class="aupz" id="aupz" hidden></p>
     <div class="aust" id="aust"><span>Memuat…</span></div>
-    <div class="eacts"><button class="btn primary" id="aurun" type="button">Jalankan sekarang</button><span class="hint2" id="aurunmsg" style="margin:0"></span></div>
-    <p class="hint2">Berjalan sendiri setiap hari jam 08.00 WIB (Vercel Cron). Tombol ini menjalankan semuanya sekarang: kirim yang sudah disetujui, cari ulang, cari email, lalu isi antrean. Bisa sampai 1 menit.</p>
-    <ul class="aulog" id="aulog"></ul>
+    <div class="eacts"><button class="btn primary" id="aurun" type="button">Jalankan sekarang</button><button class="ghost" id="aupause" type="button">Jeda semua</button><span class="hint2" id="aurunmsg" style="margin:0"></span></div>
+    <p class="hint2">Berjalan otomatis setiap hari pukul 08.00 WIB. “Jalankan sekarang” menjalankan semua tugas sekaligus (kirim, cari ulang, cari email, isi antrean) dan bisa sampai 1 menit.</p>
+    <details class="aud2"><summary>Riwayat jalan</summary><ul class="aulog" id="aulog"></ul></details>
   </div>
-  <div class="panel aup">
-    <div class="svh">Antrean persetujuan</div>
+  <details class="panel aup aud" open>
+    <summary>Antrean persetujuan <em class="tn" id="auqn"></em></summary>
     <div id="auq"></div>
-  </div>
+  </details>
+  <details class="panel aup aud">
+    <summary>Statistik 7 hari</summary>
+    <div id="austats"></div>
+    <p class="hint2">Tanggal memakai UTC (ganti hari pukul 07.00 WIB), sama seperti kuota Resend. Bounce dan spam tercatat saat webhook Resend masuk.</p>
+  </details>
   <div class="panel aup">
     <div class="svh">Pengaturan otomatis</div>
     <div id="aucfg"></div>
     <p class="aiwarn" id="auerr" hidden></p>
     <div class="eacts"><span class="sp"></span><button class="btn primary" id="ausave" type="button">Simpan pengaturan</button></div>
   </div>
-  <div class="panel aup">
-    <div class="svh">Daftar berhenti</div>
-    <p class="hint2" style="margin:0 0 10px">Alamat di sini tidak akan pernah dikirimi lagi, baik otomatis maupun manual. Terisi sendiri saat penerima klik berhenti berlangganan, atau email bounce / dilaporkan spam (lewat webhook Resend).</p>
+  <details class="panel aup aud">
+    <summary>Daftar berhenti <em class="tn" id="ausn"></em></summary>
+    <p class="hint2" style="margin:0 0 10px">Alamat di daftar ini tidak akan dikirimi lagi, baik otomatis maupun manual. Terisi sendiri saat penerima klik berhenti berlangganan, atau saat email bounce atau dilaporkan spam (lewat webhook Resend).</p>
     <div class="aurow"><div class="f" style="flex:3 1 220px;margin-top:0"><input type="text" id="ausa" placeholder="nama@contoh.com" autocomplete="off" aria-label="Tambah alamat ke daftar berhenti"></div><div style="flex:0 0 auto"><button class="ghost" id="ausab" type="button">Tambah</button></div></div>
     <div id="ausupp"></div>
-  </div>
+  </details>
 </section>
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -1349,7 +1377,7 @@ function usageAfterSearch(){
   var sync=function(final){loadUsage(function(r){var x=(r.accounts||[]).filter(function(y){return y.n===n})[0];if(!final&&x&&x.used<=base){x.used=base+1;x.left=Math.max(x.left-1,0)}})};
   setTimeout(function(){sync(false)},4000);setTimeout(function(){sync(true)},15000);
 }
-var KEYS=[["1","serp"],["2","serp2"],["3","geo"],["4","gem"]],MKEYS=[["5","rs"],["6","rsf"],["7","rrt"]],ALLK=KEYS.concat(MKEYS),was={};
+var KEYS=[["1","serp"],["2","serp2"],["3","geo"],["4","gem"]],MKEYS=[["5","rs"],["6","rsf"],["7","rrt"],["8","addr"],["9","srcn"]],ALLK=KEYS.concat(MKEYS),was={};
 function isSaved(n){return $("kf"+n).classList.contains("saved")}
 function keyState(j){
   ALLK.forEach(function(p){var on=j[p[1]].set;$("kf"+p[0]).classList.toggle("saved",on);was[p[0]]=on;$("kh"+p[0]).textContent=on?"("+j[p[1]].hint+")":"";$("k"+p[0]).value=""});
@@ -1423,7 +1451,7 @@ function mailWarn(j,inTab){
   if(!j.from)return"Email pengirim belum diisi. "+where+" Alamatnya harus dari domain yang sudah diverifikasi di Resend.";
   return"";
 }
-function mailFrom(j){return j.ready?"Dikirim dari "+j.from+"."+(j.replyTo?" Balasan masuk ke "+j.replyTo+".":" Reply-To belum diisi, balasan akan menuju alamat pengirim."):""}
+function mailFrom(j){return j.ready?"Dikirim dari "+j.from+"."+(j.replyTo?" Balasan masuk ke "+j.replyTo+".":" Reply-To belum diisi, balasan akan menuju alamat pengirim.")+(j.addr?"":" Alamat fisik di footer belum diisi."):""}
 function postSend(items,force){
   return fetch("/api/send",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({force:!!force,items:items})})
     .then(function(r){return r.json().then(function(j){return{ok:r.ok,st:r.status,j:j}})});
@@ -1607,7 +1635,7 @@ function saveMKeys(body,okMsg){
     .then(function(){b.disabled=false;$("emkclear").disabled=false});
 }
 $("emksave").onclick=function(){var b={},n=0;MKEYS.forEach(function(p){var v=$("k"+p[0]).value.trim();if(v){b[p[1]]=v;n++}});if(!n){mkmsg("Tidak ada yang diubah.");return}saveMKeys(b,"Tersimpan di server.")};
-$("emkclear").onclick=function(){if(confirm("Hapus pengaturan email yang tersimpan di server?"))saveMKeys({rs:"",rsf:"",rrt:""},"Pengaturan email dihapus.")};
+$("emkclear").onclick=function(){if(confirm("Hapus pengaturan email yang tersimpan di server?"))saveMKeys({rs:"",rsf:"",rrt:"",addr:"",srcn:""},"Pengaturan email dihapus.")};
 $("emks").onchange=function(){$("k5").type=this.checked?"text":"password"};
 // Pratinjau email: meniru pembungkus HTML (header+footer) yang dipakai saat kirim sungguhan (lihat api/send.js)
 var EMBRAND={name:"EMAHAIRSHOP",tagline:"Human hair supplier from Indonesia",phone:"+62 895-3799-94528",waLink:"https://wa.me/6289537994528",website:"https://emahairshop.com/"};
@@ -1636,7 +1664,7 @@ function emPrevBody(text){
   if(inList)add("</ul>");
   return html||'<p style="margin:0"></p>';
 }
-function emPrevHtml(text){
+function emPrevHtml(text,c){
   var siteLabel=EMBRAND.website.replace(/^https?:\/\//,"").replace(/\/$/,"");
   return '<!doctype html><html><body style="margin:0;padding:0;background:#f3efe7;font-family:Arial,Helvetica,sans-serif">'+
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3efe7;padding:24px 0"><tr><td align="center">'+
@@ -1646,14 +1674,15 @@ function emPrevHtml(text){
     '<div style="padding:28px;color:#2a2a2a;font-size:15px;line-height:1.55">'+emPrevBody(text)+'</div>'+
     '<div style="padding:18px 28px;background:#f6f3ec;border-top:1px solid #e7e1d4;font-size:12.5px;color:#4a4a4a">'+
     '<div style="margin-bottom:6px"><b>'+esc(EMBRAND.name)+'</b> — '+esc(EMBRAND.tagline)+'</div>'+
-    '<div>Website: <a href="'+esc(EMBRAND.website)+'" style="color:#000000;text-decoration:underline">'+esc(siteLabel)+'</a></div></div>'+
+    '<div>Website: <a href="'+esc(EMBRAND.website)+'" style="color:#000000;text-decoration:underline">'+esc(siteLabel)+'</a></div>'+
+    (c&&c.addr?'<div style="margin-top:8px">'+esc(c.addr)+'</div>':'')+(c&&c.srcn?'<div style="margin-top:8px;color:#6a6a6a">'+esc(c.srcn)+'</div>':'')+'</div>'+
     '</td></tr></table></td></tr></table></body></html>';
 }
 $("emprevbtn").onclick=function(){
   var sj=$("emsj").value.trim(),tx=$("emtx").value;
   if(!tx.trim()){emErr("Isi email masih kosong, tulis dulu sebelum pratinjau.");return}
   $("emprevsj").textContent="Subjek: "+(sj||"(kosong)");
-  $("emprevfr").srcdoc=emPrevHtml(greet(tx,"Salon Anda"));
+  $("emprevfr").srcdoc=emPrevHtml(greet(tx,"Salon Anda"),EM.cfg);
   $("emprevd").showModal();
 };
 $("emprevx").onclick=function(){$("emprevd").close()};
@@ -1768,20 +1797,31 @@ function auLoad(full){
     AU.st=o.j;
     if(o.j.nodb){$("aust").innerHTML="<span class='bad'>Database belum terhubung. Hubungkan Upstash Redis di Vercel lalu Redeploy.</span>";return}
     if(full||!AU.cfg)AU.cfg=o.j.cfg;
-    auStatus();auQueue();auSupp();auLog();
+    auStatus();auQueue();auSupp();auLog();auStats();
     if(full)auCfg();
   }).catch(function(e){if(e!==0)$("aust").innerHTML="<span class='bad'>Tidak bisa menghubungi server.</span>"});
 }
+function acT(l,v){return"<div class='ac'><small>"+l+"</small><b>"+v+"</b></div>"}
+function acB(t){return"<div class='ac bad'>"+t+"</div>"}
 function auStatus(){
-  var s=AU.st,f=s.flags||{},m=s.mail||{},c=s.counts||{},q=s.seq||{},h=[];
-  h.push(m.ready?"<span>Resend: <b>siap</b></span>":"<span class='bad'>Resend belum diisi (tab Email &gt; Pengaturan email)</span>");
-  h.push("<span>Email hari ini: <b>"+(m.used||0)+(m.limit?" / "+m.limit:"")+"</b></span>");
-  h.push(f.cron?"<span>Jadwal harian: <b>aktif</b></span>":"<span class='bad'>Jadwal harian belum aktif: isi CRON_SECRET di Vercel lalu Redeploy</span>");
-  h.push(f.webhook?"<span>Webhook bounce: <b>aktif</b></span>":"<span class='bad'>Webhook bounce belum aktif: isi RESEND_WEBHOOK_SECRET di Vercel</span>");
-  h.push("<span>Menunggu persetujuan: <b>"+(c.pending||0)+"</b></span>");
-  h.push("<span>Follow-up berjalan: <b>"+(q.active||0)+"</b></span>");
-  $("aust").innerHTML=h.join("");
-  var n=c.pending||0,b=$("t5n");b.textContent=n?"("+n+")":"";
+  var s=AU.st,f=s.flags||{},m=s.mail||{},c=s.counts||{},q=s.seq||{},w=s.warm||{},t=[],b=[];
+  var lim=w.on?w.eff:(w.target||0),warming=w.on&&w.eff<w.target;
+  t.push(m.ready?acT("Resend","Siap"):"");
+  t.push(acT("Email hari ini",(m.used||0)+(m.limit?" / "+m.limit:"")));
+  t.push(acT("Batas hari ini"+(warming?" · pemanasan hari ke-"+(w.day+1):""),warming?lim+" dari "+w.target:lim));
+  t.push(acT("Menunggu persetujuan",c.pending||0));
+  t.push(acT("Follow-up berjalan",q.active||0));
+  t.push(f.cron?acT("Jadwal harian","Aktif"):"");
+  t.push(f.webhook?acT("Webhook bounce","Aktif"):"");
+  if(!m.ready)b.push(acB("Resend belum diisi. Buka tab Email &gt; Pengaturan email."));
+  if(!f.cron)b.push(acB("Jadwal harian belum aktif. Isi CRON_SECRET di Vercel lalu Redeploy."));
+  if(!f.webhook)b.push(acB("Webhook bounce belum aktif. Isi RESEND_WEBHOOK_SECRET di Vercel."));
+  if(m.ready&&!m.addr)b.push(acB("Alamat fisik belum diisi. Isi di tab Email &gt; Pengaturan email sebelum kirim sungguhan."));
+  $("aust").innerHTML=t.filter(Boolean).concat(b).join("");
+  var pz=s.pause,pb=$("aupz");
+  pb.hidden=!pz;if(pz)pb.textContent=(pz.auto?"Dijeda otomatis: ":"Dijeda: ")+pz.why+" ("+fmtDate(pz.t)+"). Semua kirim dan tugas otomatis berhenti sampai kamu klik Lanjutkan.";
+  $("aupause").textContent=pz?"Lanjutkan":"Jeda semua";
+  var n=c.pending||0,bn=$("t5n");bn.textContent=n?"("+n+")":"";
 }
 function auJobText(k,j){
   if(!j)return"";
@@ -1789,8 +1829,8 @@ function auJobText(k,j){
   var t="";
   if(k==="mail")t="terkirim "+(j.sent||0)+" + "+(j.followups||0)+" follow-up"+(j.note?" ("+j.note+")":"");
   else if(k==="refresh")t=(j.searches||0)+" pencarian, "+(j.added||0)+" tempat baru"+(j.note?" ("+j.note+")":"");
-  else if(k==="enrich")t=(j.done||0)+" website dicek, "+(j.found||0)+" punya kontak"+(j.left?", sisa "+j.left:"");
-  else if(k==="queue")t="antrean +"+(j.added||0)+(j.waiting?", "+j.waiting+" lagi menunggu ruang":"");
+  else if(k==="enrich")t=(j.done||0)+" website dicek, "+(j.found||0)+" punya kontak"+(j.left?", sisa "+j.left:"")+(j.retry?", "+j.retry+" gagal dibuka (dicoba ulang besok)":"");
+  else if(k==="queue")t="antrean +"+(j.added||0)+(j.waiting?", "+j.waiting+" lagi menunggu ruang":"")+(j.noMx?", "+j.noMx+" dibuang (domain email tidak valid)":"")+(j.dupDomain?", "+j.dupDomain+" dilewati (bisnis sama)":"")+(j.mxLater?", "+j.mxLater+" menunggu cek domain":"");
   if(j.err)t+=(t?" · ":"")+"gagal: "+j.err;
   return AUN[k]+": "+t;
 }
@@ -1798,6 +1838,7 @@ var AUN={mail:"Kirim",refresh:"Cari ulang",enrich:"Cari email",queue:"Antrean"};
 function auLogLine(e){
   var parts=["mail","refresh","enrich","queue"].filter(function(k){return e.jobs&&e.jobs[k]}).map(function(k){return auJobText(k,e.jobs[k])});
   if(e.error)parts.push("gagal: "+e.error);
+  if(e.paused)parts.push("dihentikan: "+e.paused);
   return"<li><b>"+esc(fmtDate(e.t))+"</b> · "+(e.src==="cron"?"otomatis":"manual")+(parts.length?"<br>"+parts.map(esc).join("<br>"):"")+"</li>";
 }
 function auLog(){
@@ -1814,8 +1855,8 @@ function auQueue(){
     }).join("")+"</div>";
     h+="<div class='eacts'><button class='ghost' id='auqall' type='button'>Pilih semua</button><button class='ghost' id='auqnone' type='button'>Kosongkan</button><span class='sp'></span><button class='ghost' id='auqno' type='button'>Tolak terpilih</button><button class='btn primary' id='auqok' type='button'>Setujui terpilih</button></div>";
   }
-  if(ok.length)h+="<p class='hint2'>"+ok.length+" prospek sudah disetujui dan menunggu giliran kirim (maksimal "+cfg.mail.perDay+" per hari, mengikuti sisa kuota Resend).</p>";
-  $("auq").innerHTML=h;
+  if(ok.length)h+="<p class='hint2'>"+ok.length+" prospek sudah disetujui dan menunggu giliran kirim (sesuai batas harian dan sisa kuota Resend).</p>";
+  $("auq").innerHTML=h;$("auqn").textContent=pend.length?"("+pend.length+" menunggu)":"";
   function ids(){return[].slice.call(document.querySelectorAll("#auq input[data-id]:checked")).map(function(i){return i.getAttribute("data-id")})}
   function setAll(v){[].forEach.call(document.querySelectorAll("#auq input[data-id]"),function(i){i.checked=v})}
   function act(a){var l=ids();if(!l.length){flash("Pilih dulu prospeknya");return}
@@ -1825,6 +1866,7 @@ function auQueue(){
 var AUR={unsub:"berhenti berlangganan",bounce:"bounce",spam:"lapor spam",manual:"manual"};
 function auSupp(){
   var s=AU.st.supp||{n:0,list:[]};
+  $("ausn").textContent=s.n?"("+s.n+")":"";
   $("ausupp").innerHTML=s.n?"<div class='mlist aulist' style='margin-top:12px'>"+s.list.map(function(x){
     return"<div class='mrow' style='cursor:default'><span><b>"+esc(x.e)+"</b><small>"+esc(AUR[x.r]||x.r||"")+(x.t?" · "+esc(fmtDate(x.t)):"")+"</small></span><button class='ghost' type='button' data-e='"+esc(x.e)+"'>Hapus</button></div>";
   }).join("")+"</div>"+(s.n>s.list.length?"<p class='hint2'>"+s.list.length+" terbaru dari "+s.n+".</p>":""):"<p class='info'>Belum ada.</p>";
@@ -1838,58 +1880,108 @@ $("ausab").onclick=function(){
 };
 $("ausa").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();$("ausab").click()}};
 
-function auStepHtml(st,i){
-  return"<div class='austep' data-i='"+i+"'><h4>"+(i===0?"Email pertama":"Follow-up "+i)+"</h4>"
-    +(i>0?"<div class='f'><label>Kirim pada hari ke- (sejak email pertama)</label><input type='number' class='sd' min='1' max='60' value='"+(st.days||"")+"'></div>":"")
-    +"<div class='f'><label>Subjek</label><input type='text' class='ss' maxlength='200' value='"+esc(st.subject||"")+"'></div>"
-    +"<div class='f'><label>Isi email</label><textarea class='sx' rows='"+(i===0?12:7)+"' maxlength='5000'>"+esc(st.text||"")+"</textarea>"
-    +(i===0?"<p class='hint2'>Baris pertama yang diawali Hi! otomatis jadi Hi Nama team!. Tautan berhenti berlangganan ditambahkan otomatis di bagian bawah.</p>":"")+"</div>"
-    +(i>0?"<button class='ghost sdel' type='button'>Hapus follow-up ini</button>":"")+"</div>";
+function auAltHtml(a,j){
+  return"<details class='auv'"+(a.open?" open":"")+"><summary>Variasi "+String.fromCharCode(66+j)+"</summary><div class='aub'>"
+    +"<p class='hint2' style='margin:0'>Diputar bergantian dengan teks utama.</p>"
+    +"<div class='f'><label>Subjek</label><input type='text' class='vs' maxlength='200' value='"+esc(a.subject||"")+"'></div>"
+    +"<div class='f'><label>Isi email</label><textarea class='vx' rows='5' maxlength='5000'>"+esc(a.text||"")+"</textarea></div>"
+    +"<div class='eacts'><button class='ghost vdel' type='button' data-j='"+j+"'>Hapus variasi ini</button></div></div></details>";
 }
-function auSteps(steps){
-  $("austeps").innerHTML=steps.map(auStepHtml).join("");
+function auMeta(st,i){
+  var alts=st.alts||[];
+  return(i>0&&st.days?"hari ke-"+st.days+" · ":"")+(alts.length?(alts.length+1)+" teks · ":"")+(st.subject||"(subjek kosong)");
+}
+function auStepHtml(st,i,open){
+  var alts=st.alts||[];
+  return"<details class='austep' data-i='"+i+"'"+(open?" open":"")+"><summary><b>"+(i===0?"Email pertama":"Follow-up "+i)+"</b><span class='sm'>"+esc(auMeta(st,i))+"</span></summary><div class='aub'>"
+    +(i>0?"<div class='f' style='margin-top:0'><label>Kirim pada hari ke- (sejak email pertama)</label><input type='number' class='sd' min='1' max='60' value='"+(st.days||"")+"'></div>":"")
+    +"<div class='f'"+(i>0?"":" style='margin-top:0'")+"><label>Subjek</label><input type='text' class='ss' maxlength='200' value='"+esc(st.subject||"")+"'></div>"
+    +"<div class='f'><label>Isi email</label><textarea class='sx' rows='"+(i===0?9:5)+"' maxlength='5000'>"+esc(st.text||"")+"</textarea></div>"
+    +alts.map(auAltHtml).join("")
+    +"<div class='eacts'>"+(alts.length<2?"<button class='ghost vadd' type='button'>+ Tambah variasi</button>":"")
+    +(i>0?"<button class='ghost sdel' type='button'>Hapus follow-up ini</button>":"")+"</div></div></details>";
+}
+function auSteps(steps,openI,openAlt){
+  var was=[].map.call(document.querySelectorAll("#austeps>.austep"),function(d){return d.open});
+  steps.forEach(function(st,i){(st.alts||[]).forEach(function(a,j){a.open=(openAlt&&openAlt[0]===i&&openAlt[1]===j)})});
+  $("austeps").innerHTML=steps.map(function(st,i){return auStepHtml(st,i,was[i]||i===openI)}).join("");
   $("auadd").hidden=steps.length>=4;
+  var sn=$("aus_n");if(sn)sn.textContent=steps.length+" tahap";
   [].forEach.call(document.querySelectorAll("#austeps .sdel"),function(b){b.onclick=function(){
-    var st=auReadSteps();st.splice(+b.parentNode.getAttribute("data-i"),1);auSteps(st)}});
+    var st=auReadSteps();st.splice(+b.closest(".austep").getAttribute("data-i"),1);auSteps(st,-1)}});
+  [].forEach.call(document.querySelectorAll("#austeps .vadd"),function(b){b.onclick=function(){
+    var st=auReadSteps(),i=+b.closest(".austep").getAttribute("data-i");st[i].alts.push({subject:"",text:""});auSteps(st,i,[i,st[i].alts.length-1])}});
+  [].forEach.call(document.querySelectorAll("#austeps .vdel"),function(b){b.onclick=function(){
+    var st=auReadSteps(),i=+b.closest(".austep").getAttribute("data-i");st[i].alts.splice(+b.getAttribute("data-j"),1);auSteps(st,i)}});
+  $("austeps").oninput=function(e){
+    var t=e.target;if(!t.classList||!(t.classList.contains("ss")||t.classList.contains("sd")))return;
+    var d=t.closest(".austep"),i=+d.getAttribute("data-i");d.querySelector("summary .sm").textContent=auMeta(auReadSteps()[i],i);
+  };
 }
 function auReadSteps(){
-  return[].map.call(document.querySelectorAll("#austeps .austep"),function(r,i){
-    return{days:i===0?0:+r.querySelector(".sd").value,subject:r.querySelector(".ss").value,text:r.querySelector(".sx").value};
+  return[].map.call(document.querySelectorAll("#austeps>.austep"),function(r,i){
+    return{days:i===0?0:+r.querySelector(".sd").value,subject:r.querySelector(".ss").value,text:r.querySelector(".sx").value,
+      alts:[].map.call(r.querySelectorAll(".auv"),function(v){return{subject:v.querySelector(".vs").value,text:v.querySelector(".vx").value}})};
   });
+}
+function auStats(){
+  var st=(AU.st&&AU.st.stats||[]).slice(0,7);
+  if(!st.length){$("austats").innerHTML="<p class='info'>Belum ada data.</p>";return}
+  var h="<div class='tw'><table class='austat'><thead><tr><th>Tanggal</th><th>Email</th><th>Follow-up</th><th>Bounce</th><th>Spam</th><th>Berhenti</th><th>Tempat baru</th><th>Ada kontak</th></tr></thead><tbody>";
+  st.forEach(function(x){h+="<tr><td>"+esc(x.d.slice(5))+"</td><td>"+x.sent+"</td><td>"+x.fu+"</td><td>"+x.bounce+"</td><td>"+x.spam+"</td><td>"+x.unsub+"</td><td>"+x.added+"</td><td>"+x.found+"</td></tr>"});
+  h+="</tbody></table></div>";
+  var tot={};(AU.st.stats||[]).forEach(function(x){Object.keys(x.v||{}).forEach(function(k){tot[k]=(tot[k]||0)+x.v[k]})});
+  var ks=Object.keys(tot).sort();
+  if(ks.length)h+="<p class='hint2'>Variasi terkirim (14 hari): "+ks.map(function(k){var m=/^s(\d+)v(\d+)$/.exec(k);return(m[1]==="0"?"Email pertama":"Follow-up "+m[1])+" "+String.fromCharCode(65+ +m[2])+": "+tot[k]}).join(" · ")+"</p>";
+  $("austats").innerHTML=h;
+}
+function auSec(title,badge,body,open){
+  return"<details class='aus'"+(open?" open":"")+"><summary>"+title+(badge?" <em class='tn'>"+badge+"</em>":"")+"</summary><div class='aub'>"+body+"</div></details>";
 }
 function auCfg(){
   var c=AU.cfg,m=c.mail,r=c.refresh,e=c.enrich,se=AU.st.searches||[],L={salon:"Salon",wig:"Toko wig",beauty:"Kecantikan"};
+  var onoff=function(v){return v?"aktif":"mati"};
   var h="";
-  h+="<div class='ausub' style='margin-top:0'>Kirim email otomatis</div>"
-    +"<label class='chk'><input type='checkbox' id='au_mon'"+(m.on?" checked":"")+"> Aktifkan kirim otomatis</label>"
-    +"<label class='chk' style='margin-top:8px'><input type='checkbox' id='au_mapp'"+(m.approve?" checked":"")+"> Minta persetujuan dulu (disarankan). Kalau dimatikan, prospek yang lolos langsung dikirimi.</label>"
-    +"<label class='chk' style='margin-top:8px'><input type='checkbox' id='au_mfo'"+(m.followOn?" checked":"")+"> Kirim follow-up otomatis (berhenti kalau status berubah ke Dibalas, Deal, atau Tidak cocok)</label>"
-    +"<div class='aurow'><div class='f'><label for='au_msc'>Skor minimal (0-100)</label><input type='number' id='au_msc' min='0' max='100' value='"+m.minScore+"'></div>"
-    +"<div class='f'><label for='au_mpd'>Maksimal email per hari</label><input type='number' id='au_mpd' min='1' max='100' value='"+m.perDay+"'></div></div>"
-    +"<p class='hint2'>Skor dihitung dari kelengkapan data (email, website, WhatsApp, rating, ulasan, kata di nama tempat). Hanya prospek berstatus Belum dihubungi yang berminat dikirimi, dan alamat di Daftar berhenti selalu dilewati.</p>"
-    +"<div id='austeps'></div><button class='ghost' id='auadd' type='button'>+ Tambah follow-up</button>";
-  h+="<div class='ausub'>Cari ulang otomatis</div>"
-    +"<label class='chk'><input type='checkbox' id='au_ron'"+(r.on?" checked":"")+"> Cari ulang pencarian tersimpan secara berkala (hanya tempat baru yang masuk)</label>"
-    +"<div class='aurow'><div class='f'><label for='au_rd'>Setiap (hari)</label><input type='number' id='au_rd' min='1' max='60' value='"+r.everyDays+"'></div>"
+  h+=auSec("Kirim otomatis",onoff(m.on),
+    "<label class='chk'><input type='checkbox' id='au_mon'"+(m.on?" checked":"")+"> Aktifkan kirim otomatis</label>"
+    +"<label class='chk'><input type='checkbox' id='au_mapp'"+(m.approve?" checked":"")+"> Minta persetujuan dulu (disarankan)</label>"
+    +"<label class='chk'><input type='checkbox' id='au_mfo'"+(m.followOn?" checked":"")+"> Kirim follow-up otomatis</label>"
+    +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_msc'>Skor minimal (0-100)</label><input type='number' id='au_msc' min='0' max='100' value='"+m.minScore+"'></div>"
+    +"<div class='f'><label for='au_mpd'>Target email per hari</label><input type='number' id='au_mpd' min='1' max='100' value='"+m.perDay+"'></div>"
+    +"<div class='f'><label for='au_mbn'>Jeda jika bounce (%)</label><input type='number' id='au_mbn' min='1' max='20' value='"+m.maxBounce+"'></div></div>"
+    +"<p class='hint2'>Tanpa persetujuan, prospek yang lolos langsung dikirimi. Follow-up berhenti sendiri kalau status berubah ke Dibalas, Deal, atau Tidak cocok. Skor dihitung dari kelengkapan data prospek, dan hanya yang berstatus Belum dihubungi yang dikirimi. Alamat di Daftar berhenti selalu dilewati.</p>"
+    +"<p class='hint2'>Jika bounce 3 hari terakhir melewati batas di atas, atau ada 2 laporan spam atau lebih, semua kirim berhenti sampai kamu klik Lanjutkan.</p>",true);
+  h+=auSec("Pemanasan domain",onoff(m.warm.on),
+    "<label class='chk'><input type='checkbox' id='au_won'"+(m.warm.on?" checked":"")+"> Naikkan batas kirim bertahap (disarankan untuk domain pengirim baru)</label>"
+    +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_wst'>Mulai dari (email/hari)</label><input type='number' id='au_wst' min='1' max='100' value='"+m.warm.start+"'></div>"
+    +"<div class='f'><label for='au_wad'>Naik sebanyak</label><input type='number' id='au_wad' min='1' max='100' value='"+m.warm.add+"'></div>"
+    +"<div class='f'><label for='au_wev'>Setiap (hari)</label><input type='number' id='au_wev' min='1' max='30' value='"+m.warm.everyDays+"'></div></div>"
+    +"<p class='hint2'>Dihitung sejak email pertama terkirim, sampai mencapai target per hari. Batas ini berlaku untuk total email hari itu, termasuk follow-up dan kirim manual.</p>");
+  h+=auSec("Teks email","<span id='aus_n'></span>",
+    "<div id='austeps'></div><div class='eacts'><button class='ghost' id='auadd' type='button'>+ Tambah follow-up</button></div>"
+    +"<p class='hint2'>Baris pertama yang diawali Hi! otomatis menjadi Hi Nama team!. Tautan berhenti berlangganan, alamat fisik, dan keterangan sumber kontak ditambahkan otomatis di bagian bawah.</p>");
+  h+=auSec("Cari ulang",onoff(r.on),
+    "<label class='chk'><input type='checkbox' id='au_ron'"+(r.on?" checked":"")+"> Ulangi pencarian tersimpan secara berkala (hanya tempat baru yang ditambahkan)</label>"
+    +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_rd'>Ulangi setiap (hari)</label><input type='number' id='au_rd' min='1' max='60' value='"+r.everyDays+"'></div>"
     +"<div class='f'><label for='au_rm'>Maks pencarian per hari</label><input type='number' id='au_rm' min='1' max='10' value='"+r.maxSearches+"'></div>"
     +"<div class='f'><label for='au_rr'>Sisakan kuota SerpApi</label><input type='number' id='au_rr' min='0' max='1000' value='"+r.reserve+"'></div></div>"
-    +"<p class='hint2'>Setiap pencarian Google Maps memakai 1 kuota SerpApi. Pencarian dilewati kalau sisa kuota sudah di bawah angka yang disisakan. Centang pencarian yang mau diulang:</p>"
+    +"<p class='hint2'>Tiap pencarian Google Maps memakai 1 kuota SerpApi, dan dilewati kalau sisa kuota di bawah angka yang disisakan. Pilih pencarian yang mau diulang:</p>"
     +(se.length?"<div class='mlist aulist' id='au_rk'>"+se.map(function(x){
       return"<label class='mrow'><input type='checkbox' data-k='"+esc(x.key)+"'"+(r.keys.indexOf(x.key)>-1?" checked":"")+"><span><b>"+esc(x.city)+" · "+esc(L[x.kind]||x.kind)+"</b><small>"+(x.source==="osm"?"OpenStreetMap":"Google Maps")+" · "+x.n+" tempat</small></span></label>";
-    }).join("")+"</div>":"<p class='info'>Belum ada pencarian tersimpan. Lakukan pencarian di tab Cari tempat dulu.</p>");
-  h+="<div class='ausub'>Cari email otomatis</div>"
-    +"<label class='chk'><input type='checkbox' id='au_eon'"+(e.on?" checked":"")+"> Cek website tempat baru untuk mencari email dan WhatsApp</label>"
-    +"<div class='aurow'><div class='f'><label for='au_em'>Maks website per jalan</label><input type='number' id='au_em' min='1' max='200' value='"+e.max+"'></div></div>";
+    }).join("")+"</div>":"<p class='info'>Belum ada pencarian tersimpan. Lakukan pencarian di tab Cari tempat dulu.</p>"));
+  h+=auSec("Cari email",onoff(e.on),
+    "<label class='chk'><input type='checkbox' id='au_eon'"+(e.on?" checked":"")+"> Cek website tempat baru untuk mencari email dan WhatsApp</label>"
+    +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_em'>Maks website per jalan</label><input type='number' id='au_em' min='1' max='200' value='"+e.max+"'></div></div>");
   $("aucfg").innerHTML=h;
   auSteps(m.steps);
-  $("auadd").onclick=function(){var st=auReadSteps();st.push({days:(st.length?st[st.length-1].days:0)+6,subject:"",text:""});auSteps(st)};
+  $("auadd").onclick=function(){var st=auReadSteps();st.push({days:(st.length?st[st.length-1].days:0)+6,subject:"",text:"",alts:[]});auSteps(st,st.length-1)};
 }
 function auCollect(){
   return{
     enrich:{on:$("au_eon").checked,max:+$("au_em").value},
     refresh:{on:$("au_ron").checked,everyDays:+$("au_rd").value,maxSearches:+$("au_rm").value,reserve:+$("au_rr").value,
       keys:[].map.call(document.querySelectorAll("#au_rk input:checked"),function(i){return i.getAttribute("data-k")})},
-    mail:{on:$("au_mon").checked,approve:$("au_mapp").checked,followOn:$("au_mfo").checked,minScore:+$("au_msc").value,perDay:+$("au_mpd").value,steps:auReadSteps()}
+    mail:{on:$("au_mon").checked,approve:$("au_mapp").checked,followOn:$("au_mfo").checked,minScore:+$("au_msc").value,perDay:+$("au_mpd").value,maxBounce:+$("au_mbn").value,warm:{on:$("au_won").checked,start:+$("au_wst").value,add:+$("au_wad").value,everyDays:+$("au_wev").value},steps:auReadSteps()}
   };
 }
 $("ausave").onclick=function(){
@@ -1910,9 +2002,15 @@ $("aurun").onclick=function(){
   auApi({action:"run",job:"all"}).then(function(o){
     AU.busy=false;b.disabled=false;b.setAttribute("aria-busy","false");
     if(!o.ok&&!o.j.jobs){$("aurunmsg").textContent=o.j.error||"Gagal menjalankan";return}
-    $("aurunmsg").textContent="Selesai dalam "+Math.round((o.j.ms||0)/1000)+" detik.";
+    $("aurunmsg").textContent=o.j.paused?"Tidak berjalan: "+o.j.paused:"Selesai dalam "+Math.round((o.j.ms||0)/1000)+" detik.";
     auLoad(false);
   }).catch(function(e){AU.busy=false;b.disabled=false;b.setAttribute("aria-busy","false");if(e!==0)$("aurunmsg").textContent="Tidak bisa menghubungi server. Cek lagi riwayat sebentar lagi."});
+};
+$("aupause").onclick=function(){
+  var on=!(AU.st&&AU.st.pause),b=this;
+  if(on&&!confirm("Jeda semua? Kirim otomatis, follow-up, dan kirim manual berhenti sampai kamu klik Lanjutkan."))return;
+  b.disabled=true;
+  auApi({action:"pause",on:on}).then(function(o){b.disabled=false;if(!o.ok){flash(o.j.error||"Gagal");return}flash(on?"Semua kirim dijeda":"Dilanjutkan");auLoad(false)}).catch(function(){b.disabled=false});
 };
 fetch("/api/session").then(function(r){return r.json()}).then(function(j){
   if(j.authed)showApp();else{showLogin(j.configured===false?"APP_PASSWORD belum diisi di Vercel, jadi belum ada kata sandi.":"")}

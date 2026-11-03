@@ -59,3 +59,22 @@ PENYEMPURNAAN TAMBAHAN
 - Antrean: alamat harus punya MX/alamat A (dicek lewat DNS, tanpa API, hasil disimpan di hairleads:mx, 14 hari untuk valid, 3 hari untuk gagal). Domain yang belum bisa dipastikan ditunda ke jalan berikutnya, bukan ditolak.
 - Antrean: satu bisnis satu email. Domain email milik sendiri (bukan Gmail dkk) dan host website yang sama dengan yang sudah dikirimi/diantrekan dilewati, jadi info@ dan owner@ domain yang sama tidak keduanya terkirim, dan cabang dengan website yang sama tidak terkirim berulang. Website sosial/marketplace (Facebook, Instagram, Shopify dll) tidak dihitung.
 - Bounce, laporan spam, dan berhenti berlangganan sekarang juga mengubah status prospek jadi "Tidak cocok" + catatan (hanya kalau statusnya masih Belum dihubungi / Sudah dihubungi; Dibalas/Deal tidak diubah).
+
+VARIASI, PEMANASAN, JEDA, STATISTIK (tab Otomatis)
+- Variasi email: tiap tahap (email pertama dan tiap follow-up) bisa punya sampai 2 variasi tambahan (A, B, C). Penerima berurutan mendapat A, B, C, A, ... per tahap. Variasi yang terkirim dicatat di urutan (hairleads:seq, field vs) dan di statistik harian (metrik s{tahap}v{variasi}), jadi nanti bisa dibandingkan mana yang dibalas. Follow-up bawaan sudah punya 1 variasi tambahan; ubah sesukamu.
+- Pemanasan: batas harian mulai dari 10, naik 5 tiap 3 hari sampai target (bawaan 20), dihitung dari hari email pertama terkirim (hairleads:auto, field first). Batas ini adalah TOTAL per hari (otomatis + follow-up + kirim manual), jadi menekan "Jalankan sekarang" berkali-kali tidak melewatinya. Matikan di Pengaturan otomatis kalau domain sudah lama dipakai.
+- Statistik harian: hairleads:stats, field "YYYY-MM-DD:metrik" (UTC). Tampil 7 hari di tab Otomatis.
+- Jeda semua (kill switch): tombol di bagian Status. Menghentikan kirim otomatis, follow-up, semua pekerjaan cron, DAN kirim manual dari tab Email sampai klik Lanjutkan.
+- Jeda otomatis: kalau bounce 3 hari terakhir >= batas (bawaan 4%, minimal 20 email terkirim) atau ada 2+ laporan spam (>= 0,3%), sistem menjeda sendiri. Dicek tiap webhook bounce/spam masuk dan tiap kali pekerjaan berjalan. Setelah Lanjutkan, hitungan bounce yang ada dijadikan titik nol supaya tidak langsung terjeda lagi.
+
+FOOTER EMAIL (alamat fisik dan sumber kontak)
+- Tab Email > Pengaturan email > isi "Alamat fisik di footer email" (kantor, toko, atau PO Box). Tampil di bawah SETIAP email (otomatis dan manual), di versi HTML maupun teks.
+- "Keterangan sumber kontak" opsional. Kalau kosong, memakai teks bawaan: We found your email address on your business website or public listing.
+- Isi dua kolom ini SEBELUM kirim sungguhan. Tab Otomatis menampilkan peringatan merah selama alamat fisik belum diisi. Pengiriman tidak diblokir.
+- Disimpan terenkripsi di Redis bersama key lain (field addr dan srcn di hairleads:keys).
+
+TAMPILAN TAB OTOMATIS
+- Status tampil sebagai kartu kecil, riwayat jalan dilipat.
+- Antrean, Statistik, dan Daftar berhenti berupa panel yang bisa dibuka-tutup.
+- Pengaturan dipecah per bagian yang bisa dilipat: Kirim otomatis, Pemanasan domain, Teks email, Cari ulang, Cari email.
+- Teks email: tiap tahap (email pertama, follow-up) dan tiap variasi dilipat. Judulnya menampilkan hari kirim, jumlah teks, dan subjek.

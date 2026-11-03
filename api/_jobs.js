@@ -13,6 +13,7 @@ const M = require("./_mail");
 const places = require("./places");
 
 const LEADS = "hairleads:leads", CACHE = "hairleads:cache", META = "hairleads:cmeta";
+const VARC = "hairleads:varc"; // penghitung rotasi variasi per tahap
 const AUTO = "hairleads:auto", QUEUE = "hairleads:queue", SEQ = "hairleads:seq", LOCK = "hairleads:autolock";
 const DAY = 864e5;
 const QUEUE_ROOM = 50; // paling banyak segini prospek menunggu persetujuan sekaligus
@@ -24,16 +25,22 @@ const FU1 = "Hi!\n\nJust following up on my earlier message. We supply wholesale
 const FU2 = "Hi!\n\nThis is our last note. If you are ever looking for a reliable hair extension supplier, you are welcome to contact us anytime, by replying to this email or on WhatsApp: " +
   BRAND.phone + ".\n\nWebsite: " + BRAND.website + "\n\nHave a great week!";
 
+const FU1B = "Hi!\n\nQuick follow-up in case my last email got buried. We are a direct supplier of human hair extensions from Indonesia (weft, bulk, tape, nano ring, I/U/K/V tip and more), with wholesale pricing for salons and resellers.\n\n" +
+  "Happy to send our catalog and price list. Just reply here or message us on WhatsApp: " + BRAND.phone + ".\n\nBest regards!";
+const FU2B = "Hi!\n\nI will not keep filling your inbox. If you ever need a dependable wholesale supplier for hair extensions, reply to this email or reach us on WhatsApp: " +
+  BRAND.phone + ".\n\nWebsite: " + BRAND.website + "\n\nWishing you a great week!";
+
 function defaultCfg() {
   return {
     enrich: { on: true, max: 60 },
     refresh: { on: false, everyDays: 7, maxSearches: 3, reserve: 30, keys: [] },
     mail: {
-      on: false, approve: true, minScore: 40, perDay: 20, followOn: true,
+      on: false, approve: true, minScore: 40, perDay: 20, followOn: true, maxBounce: 4,
+      warm: { on: true, start: 10, add: 5, everyDays: 3 }, // pemanasan: batas harian mulai dari "start", naik "add" tiap "everyDays" hari sampai perDay
       steps: [
         { days: 0, subject: "Human hair extension supplier from Indonesia", text: TEMPLATE },
-        { days: 4, subject: "Following up: human hair extension supplier", text: FU1 },
-        { days: 10, subject: "Last note: hair extension supplier from Indonesia", text: FU2 }
+        { days: 4, subject: "Following up: human hair extension supplier", text: FU1, alts: [{ subject: "Quick follow-up: hair extension supplier", text: FU1B }] },
+        { days: 10, subject: "Last note: hair extension supplier from Indonesia", text: FU2, alts: [{ subject: "Closing the loop: hair extensions from Indonesia", text: FU2B }] }
       ]
     }
   };
@@ -51,19 +58,27 @@ function sanitizeCfg(c) {
       on: bool(r.on, false), everyDays: num(r.everyDays, 1, 60, 7), maxSearches: num(r.maxSearches, 1, 10, 3), reserve: num(r.reserve, 0, 1000, 30),
       keys: Array.isArray(r.keys) ? [...new Set(r.keys.map(k => String(k).slice(0, 300)).filter(Boolean))].slice(0, 40) : []
     },
-    mail: { on: bool(m.on, false), approve: bool(m.approve, true), minScore: num(m.minScore, 0, 100, 40), perDay: num(m.perDay, 1, 100, 20), followOn: bool(m.followOn, true), steps: [] }
+    mail: { on: bool(m.on, false), approve: bool(m.approve, true), minScore: num(m.minScore, 0, 100, 40), perDay: num(m.perDay, 1, 100, 20), followOn: bool(m.followOn, true),
+      maxBounce: num(m.maxBounce, 1, 20, 4),
+      warm: { on: bool((m.warm || {}).on, true), start: num((m.warm || {}).start, 1, 100, 10), add: num((m.warm || {}).add, 1, 100, 5), everyDays: num((m.warm || {}).everyDays, 1, 30, 3) },
+      steps: [] }
   };
   const raw = Array.isArray(m.steps) ? m.steps.slice(0, 4) : d.mail.steps;
   let prev = 0;
+  // Variasi tambahan per tahap (maks 2), diputar bergantian per penerima. Yang kosong dibuang.
+  const altsOf = s => (Array.isArray(s.alts) ? s.alts : []).slice(0, 8).map(a => {
+    a = a && typeof a === "object" ? a : {};
+    return { subject: M.clean(a.subject, 200), text: typeof a.text === "string" ? a.text.trim().slice(0, 5000) : "" };
+  }).filter(a => a.subject && a.text).slice(0, 2);
   raw.forEach((s, i) => {
     s = s && typeof s === "object" ? s : {};
     const subject = M.clean(s.subject, 200), text = typeof s.text === "string" ? s.text.trim().slice(0, 5000) : "";
-    if (i === 0) { out.mail.steps.push({ days: 0, subject: subject || d.mail.steps[0].subject, text: text || d.mail.steps[0].text }); return; }
+    if (i === 0) { out.mail.steps.push({ days: 0, subject: subject || d.mail.steps[0].subject, text: text || d.mail.steps[0].text, alts: altsOf(s) }); return; }
     if (!subject || !text) return; // follow-up yang kosong dibuang
     prev = Math.max(prev + 1, num(s.days, 1, 60, 4 * i));
-    out.mail.steps.push({ days: prev, subject, text });
+    out.mail.steps.push({ days: prev, subject, text, alts: altsOf(s) });
   });
-  if (!out.mail.steps.length) out.mail.steps.push({ days: 0, subject: d.mail.steps[0].subject, text: d.mail.steps[0].text });
+  if (!out.mail.steps.length) out.mail.steps.push({ days: 0, subject: d.mail.steps[0].subject, text: d.mail.steps[0].text, alts: [] });
   return out;
 }
 async function getCfg() {
@@ -83,6 +98,16 @@ async function pushLog(entry) {
   const arr = await getLog();
   arr.unshift(entry);
   await cmd(["HSET", AUTO, "log", JSON.stringify(arr.slice(0, 20))]);
+}
+
+// Batas kirim hari ini menurut pemanasan: mulai dari warm.start, naik warm.add tiap warm.everyDays hari sejak email pertama terkirim, sampai perDay
+async function warmInfo(cfg) {
+  const target = cfg.mail.perDay, w = cfg.mail.warm;
+  if (!w.on) return { on: false, eff: target, target, day: 0 };
+  let first = 0;
+  try { first = Number(await cmd(["HGET", AUTO, "first"])) || 0; } catch (e) { /* hari ke-0 */ }
+  const day = first ? Math.floor((Date.now() - first) / DAY) : 0;
+  return { on: true, eff: Math.min(target, w.start + Math.floor(day / w.everyDays) * w.add), target, day };
 }
 
 // ---- Data -------------------------------------------------------------------------------------------------
@@ -154,6 +179,7 @@ async function jobEnrich(cfg, ctx) {
     }
   }
   await Promise.all([worker(), worker(), worker(), worker(), worker()]);
+  if (found) await M.stat("found", found);
   const out = { done, found, left: Math.max(all.length - done, 0) };
   if (failed) out.retry = failed;
   if (waiting) out.waiting = waiting;
@@ -202,6 +228,7 @@ async function jobRefresh(cfg, ctx) {
       if (d.m.source !== "osm" && left !== null) left--;
     } catch (e) { err = e.message; if (/SerpApi|kuota|key/i.test(e.message)) break; }
   }
+  if (added) await M.stat("added", added);
   const out = { searches, added };
   if (skipped) out.note = "dilewati " + skipped + " (sisa kuota SerpApi di bawah batas aman)";
   if (err) out.err = err;
@@ -260,6 +287,7 @@ async function jobQueue(cfg, ctx) {
     args.push(c.x.id, JSON.stringify({ id: c.x.id, to: c.to, name: M.clean(c.x.name, 80), sc: c.sc.s, why: c.sc.why.slice(0, 3), st: cfg.mail.approve ? "pending" : "ok", t: now }));
   }
   for (let i = 0; i < args.length; i += 200) await cmd(["HSET", QUEUE, ...args.slice(i, i + 200)]);
+  if (take.length) await M.stat("queued", take.length);
   const res = { added: take.length, pending: pending + (cfg.mail.approve ? take.length : 0), waiting: Math.max(ok.length - take.length, 0) };
   if (badMx) res.noMx = badMx;
   if (dupDomain) res.dupDomain = dupDomain;
@@ -285,8 +313,10 @@ async function jobMailSend(cfg, ctx) {
   const rc = await M.config();
   if (!rc.key || !/@/.test(rc.from)) return { skip: "Resend belum diisi (API key dan email pengirim)" };
   let used = await M.usedToday();
-  const cap = Math.min(cfg.mail.perDay, M.DAILY > 0 ? Math.max(M.DAILY - used, 0) : Infinity);
-  if (cap <= 0) return { skip: "kuota email hari ini habis" };
+  const wi = await warmInfo(cfg);
+  // perDay (setelah pemanasan) adalah batas TOTAL per hari, termasuk email yang sudah terkirim hari ini
+  const cap = Math.min(Math.max(wi.eff - used, 0), M.DAILY > 0 ? Math.max(M.DAILY - used, 0) : Infinity);
+  if (cap <= 0) return { skip: (M.DAILY > 0 && used >= M.DAILY ? "kuota email hari ini habis" : "batas harian tercapai (" + used + " dari " + wi.eff + (wi.on && wi.eff < wi.target ? ", pemanasan hari ke-" + (wi.day + 1) : "") + ")") };
   const steps = cfg.mail.steps, now = Date.now();
 
   const seqRaw = await hgetall(SEQ), qRaw = await hgetall(QUEUE);
@@ -326,25 +356,39 @@ async function jobMailSend(cfg, ctx) {
   }
   if (!list.length) return { sent: 0, followups: 0, note: "tidak ada yang perlu dikirim" };
 
+  // Variasi diputar bergantian per tahap: penghitung disimpan di VARC (s0, s1, ...) dan hanya naik untuk email yang benar-benar terkirim
+  const vc = {}, vraw = await hgetall(VARC);
+  Object.keys(vraw).forEach(k => { vc[k] = parseInt(vraw[k], 10) || 0; });
+  const variant = (n, v) => (v === 0 ? steps[n] : steps[n].alts[v - 1]);
+  for (const c of list) {
+    const total = 1 + ((steps[c.n].alts || []).length), k = "s" + c.n;
+    c.v = (vc[k] || 0) % total;
+    vc[k] = (vc[k] || 0) + 1;
+  }
   let sent = 0, sentFu = 0, err = "";
   for (let i = 0; i < list.length; i += M.MAX) {
     const chunk = list.slice(i, i + M.MAX);
     try {
-      await M.sendBatch(rc, chunk.map(c => ({ to: c.to, subject: steps[c.n].subject, text: M.greet(steps[c.n].text, c.name) })), ctx.base);
+      await M.sendBatch(rc, chunk.map(c => { const v = variant(c.n, c.v); return { to: c.to, subject: v.subject, text: M.greet(v.text, c.name) }; }), ctx.base);
     } catch (e) { err = e.message; break; }
     used = await M.recordSent(chunk, used);
+    const bump = {};
+    chunk.forEach(c => { bump["s" + c.n] = (bump["s" + c.n] || 0) + 1; });
+    for (const k of Object.keys(bump)) { try { await cmd(["HINCRBY", VARC, k, bump[k]]); } catch (e) { /* abaikan */ } }
     for (const c of chunk) {
       const t = Date.now();
       try {
         const prev = c.fu ? parse(seqRaw[c.id]) : null;
-        await cmd(["HSET", SEQ, c.id, JSON.stringify({ to: c.to, name: c.name, n: c.n + 1, first: prev ? prev.first : t, last: t })]);
+        const vs = prev && Array.isArray(prev.vs) ? prev.vs.slice() : [];
+        vs[c.n] = c.v;
+        await cmd(["HSET", SEQ, c.id, JSON.stringify({ to: c.to, name: c.name, n: c.n + 1, first: prev ? prev.first : t, last: t, vs })]);
         if (!c.fu) await cmd(["HDEL", QUEUE, c.id]);
         await markEmailed(ctx, c.id, ctx.data.map.get(c.id) || { name: c.name });
       } catch (e) { /* gagal mencatat tidak boleh menghentikan sisanya; email sudah terkirim */ }
       if (c.fu) sentFu++; else sent++;
     }
   }
-  const out = { sent, followups: sentFu };
+  const out = { sent, followups: sentFu, cap: wi.eff };
   if (err) out.err = err;
   return out;
 }
@@ -360,6 +404,8 @@ async function runAuto(opts) {
   const t0 = Date.now(), out = { t: t0, src: opts.src || "manual", jobs: {} };
   try {
     const budget = opts.budgetMs || 44000;
+    const why = await M.checkHealth(); // sudah dijeda manual, atau bounce/spam melewati batas: semua pekerjaan berhenti
+    if (why) { out.paused = why; out.ms = Date.now() - t0; try { await pushLog(out); } catch (e) { /* abaikan */ } return out; }
     const cfg = await getCfg();
     const ctx = { softEnd: t0 + budget, hardEnd: t0 + budget + 6000, base: opts.base || "", force: opts.src === "manual", data: await loadData() };
     const want = j => opts.jobs === "all" || opts.jobs === j;
@@ -381,4 +427,4 @@ async function runAuto(opts) {
   return out;
 }
 
-module.exports = { QUEUE, SEQ, AUTO, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData };
+module.exports = { QUEUE, SEQ, AUTO, warmInfo, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData };

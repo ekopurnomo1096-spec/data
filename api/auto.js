@@ -26,7 +26,10 @@ async function state(req) {
   const cfg = await J.getCfg();
   const out = { cfg, queue: [], log: [], supp: { n: 0, list: [] }, searches: [], flags: {} };
   const rc = await M.config();
-  out.mail = { ready: !!(rc.key && /@/.test(rc.from)), used: await M.usedToday(), limit: M.DAILY };
+  out.mail = { ready: !!(rc.key && /@/.test(rc.from)), addr: !!rc.addr, used: await M.usedToday(), limit: M.DAILY };
+  out.pause = await M.getPause();
+  out.warm = await J.warmInfo(cfg);
+  out.stats = await M.getStats(14);
   out.flags = { cron: !!process.env.CRON_SECRET, webhook: !!process.env.RESEND_WEBHOOK_SECRET, publicUrl: M.baseUrl(req) };
   const q = await hgetall(J.QUEUE);
   out.queue = Object.keys(q).map(k => parse(q[k])).filter(Boolean).filter(v => v.st === "pending" || v.st === "ok")
@@ -55,7 +58,7 @@ module.exports = async (req, res) => {
     if (a === "cron") {
       if (!cronOk(req)) return res.status(401).json({ error: "CRON_SECRET belum diisi di Vercel, atau tidak cocok" });
       const r = await J.runAuto({ jobs: "all", src: "cron", base: M.baseUrl(req) });
-      return res.status(r.error && !r.jobs ? 500 : 200).json(r);
+      return res.status(r.error && !r.jobs && !r.paused ? 500 : 200).json(r);
     }
 
     if (!isAuthed(req)) return res.status(401).json({ error: "Belum login" });
@@ -89,7 +92,11 @@ module.exports = async (req, res) => {
     if (b.action === "run") {
       const job = ["all", "mail", "refresh", "enrich"].includes(b.job) ? b.job : "all";
       const r = await J.runAuto({ jobs: job, src: "manual", base: M.baseUrl(req) });
-      return res.status(r.error && !r.jobs ? 409 : 200).json(r);
+      return res.status(r.error && !r.jobs && !r.paused ? 409 : 200).json(r);
+    }
+    if (b.action === "pause") {
+      if (b.on) await M.setPause("Dijeda manual", false); else await M.clearPause();
+      return res.status(200).json({ ok: true, pause: await M.getPause() });
     }
     if (b.action === "suppadd") {
       const e = String(b.email || "").trim().toLowerCase();

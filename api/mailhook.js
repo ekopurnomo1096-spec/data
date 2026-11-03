@@ -95,6 +95,7 @@ module.exports = async (req, res) => {
           if (await M.suppress(a1, reason)) { n++; try { await M.flagLeads(a1, reason); } catch (x) { /* abaikan */ } }
         }
       }
+      if (n && (reason === "bounce" || reason === "spam")) { try { await M.checkHealth(); } catch (x) { /* abaikan */ } }
       return res.status(200).json({ ok: true, suppressed: n });
     }
 
