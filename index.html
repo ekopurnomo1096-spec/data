@@ -445,6 +445,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       <label class="chk"><input type="checkbox" id="fnt"> Catatan</label>
       <span class="sp"></span>
       <span id="copied" class="info" hidden></span>
+      <button class="ghost" id="findall" type="button" title="Cari email dan WhatsApp dari website semua tempat di tampilan ini yang belum dicek">Cari email semua</button>
       <button class="ghost" id="aiscore" type="button" title="AI memberi skor 0-100 dan alasan untuk tiap tempat di tampilan ini">Nilai dengan AI</button>
       <div class="dls"><button class="ghost" id="dl" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="dlmenu">Unduh CSV <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="dlmenu" id="dlmenu" role="menu" hidden><button type="button" role="menuitem" id="dlall"></button><button type="button" role="menuitem" id="dlem"></button><button type="button" role="menuitem" id="dlwa"></button></div></div>
     </div>
@@ -1118,6 +1119,35 @@ $("aiscore").onclick=async function(){
     else{render();aidShow("err","Penilaian gagal",m+(n?" ("+n+" tempat sebelumnya sudah dinilai.)":""),tot?n/tot*100:0);$("aids").hidden=!/Pengaturan/.test(m)}
   }
   b.disabled=false;
+};
+$("findall").onclick=async function(){
+  var b=this,list=view().filter(function(x){return x.id&&x.website&&!x.looked});
+  if(!list.length){flash("Semua tempat di tampilan ini sudah dicek emailnya.");return}
+  b.disabled=true;b.setAttribute("aria-busy","true");
+  var tot=list.length,done=0,got=0,idx=0,stop=false;
+  function upd(){b.textContent="Mencari "+done+"/"+tot+"…"}
+  upd();
+  async function worker(){
+    while(!stop&&idx<tot){
+      var x=list[idx++];
+      try{
+        var r=await fetch("/api/email?url="+encodeURIComponent(x.website));
+        if(r.status===401){stop=true;showLogin("Sesi habis, silakan masuk lagi.");return}
+        if(!r.ok)throw 0;
+        var j=await r.json(),m=j.emails||[],w=(j.whatsapp||[])[0];
+        x.looked=true;
+        if(m.length){x.emails=m;x.email=m[0]}
+        if(w)x.wa=w;
+        x.found=!!(m.length||w);
+        if(x.found){got++;saveLead(x,{})}
+      }catch(e){}
+      done++;upd();
+    }
+  }
+  await Promise.all([worker(),worker(),worker(),worker()]);
+  b.disabled=false;b.setAttribute("aria-busy","false");b.textContent="Cari email semua";
+  render();if($("emq"))renderMail();
+  flash("Selesai. "+got+" dari "+tot+" tempat punya email atau WhatsApp.");
 };
 function tickBtn(b){
   clearTimeout(b._t);b.innerHTML=IC.ok;b.classList.add("done");
