@@ -1395,7 +1395,7 @@ function renderHist(){
   if(!ids.length){box.innerHTML="<p class='info'>Belum ada email terkirim lewat aplikasi ini.</p>";return}
   var h="<div class='mlist rd' style='margin-top:0'>"+ids.slice(0,15).map(function(id){
     var r=EM.sent[id],nm=nameOf(id);
-    return"<div class='mrow'><span><b>"+esc(nm||r.to)+"</b><small>"+esc(r.to)+"</small></span><em class='mtag'>"+esc(fmtDate(r.t))+"</em></div>";
+    return"<div class='mrow'><span><b>"+esc(nm||r.to)+"</b>"+(nm?"<small>"+esc(r.to)+"</small>":"")+"</span><em class='mtag'>"+esc(fmtDate(r.t))+"</em></div>";
   }).join("")+"</div>";
   h+="<p class='hint2'>"+ids.length+" email terkirim"+(ids.length>15?", 15 terbaru ditampilkan":"")+".</p>";
   box.innerHTML=h;
