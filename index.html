@@ -345,9 +345,10 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 #aid.ai-err .aipb i{background:var(--err)}
 #aid .acts{margin-top:18px;justify-content:center}
 #aid .acts:has(#aids[hidden]){display:none}
-.aidx{position:absolute;top:10px;right:10px;width:32px;height:32px;display:grid;place-items:center;padding:0;border:0;border-radius:8px;background:transparent;color:var(--mute);opacity:.9;cursor:pointer}
-.aidx:hover{opacity:1;background:var(--soft)}
-.aidx:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.aidx{position:absolute;top:10px;right:10px;width:32px;height:32px;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:none;box-shadow:none;color:var(--mute);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.aidx:hover{color:var(--ink)}
+.aidx:focus{outline:none}
+.aidx:focus-visible{outline:2px solid var(--acc);outline-offset:0}
 .aidx[hidden]{display:none}
 .aidx svg{width:18px;height:18px}
 #aid .dr{margin-top:6px}
@@ -1004,6 +1005,7 @@ function aidShow(st,title,msg,pct){
   $("aidpb").hidden=st==="info";
   $("aidx").hidden=st==="run";$("aids").hidden=true;
   if(!d.open)d.showModal();
+  $("aidbody").focus({preventScroll:true});
 }
 $("aid").addEventListener("cancel",function(e){if(this.classList.contains("ai-run"))e.preventDefault()});
 $("aidx").onclick=function(){$("aid").close()};
