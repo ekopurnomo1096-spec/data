@@ -185,16 +185,16 @@ function combo(inputId,listId,opts){
 function comboAsync(inputId,listId,opts){
   var inp=$(inputId),list=$(listId),hi=-1,cur="",t=null,seq=0;
   function show(html){list.innerHTML=html;list.hidden=false}
-  function render(results){
+  function render(results,cname){
     hi=-1;
-    if(!results.length){show("<div class='none'>Tidak ditemukan</div>");return}
+    if(!results.length){show("<div class='none'>Tidak ditemukan"+(cname?" di "+esc(cname):"")+"</div>");return}
     show(results.map(function(r,i){return"<div data-i='"+i+"'>"+esc(r.label)+"</div>"}).join(""));
     list._data=results;
   }
   function search(q){
     var mySeq=++seq;
     show("<div class='none'>Mencari…</div>");
-    opts.fetch(q,function(results){if(mySeq===seq)render(results)},function(){if(mySeq===seq)show("<div class='none'>Gagal mencari (cek koneksi), coba lagi</div>")});
+    opts.fetch(q,function(results,cname){if(mySeq===seq)render(results,cname)},function(){if(mySeq===seq)show("<div class='none'>Gagal mencari (cek koneksi), coba lagi</div>")});
   }
   function pick(r){inp.value=r.label;cur=r.label;list.hidden=true;if(opts.onPick)opts.onPick(r)}
   list.addEventListener("mousedown",function(e){
@@ -229,14 +229,14 @@ function comboAsync(inputId,listId,opts){
   cityAsync=comboAsync("citysel","cityselList",{
     fetch:function(q,ok,fail){
       var cname=$("country").value.trim(),code=COUNTRY_CODES[cname];
-      var url="https://geocoding-api.open-meteo.com/v1/search?count=10&language=id&format=json&name="+encodeURIComponent(q);
-      if(code)url+="&country_code="+code;
+      var url="https://geocoding-api.open-meteo.com/v1/search?count=100&language=id&format=json&name="+encodeURIComponent(q);
       fetch(url).then(function(r){return r.json()}).then(function(j){
         var list=j.results||[];
-        ok(list.map(function(x){
+        if(code)list=list.filter(function(x){return(x.country_code||"").toUpperCase()===code});
+        ok(list.slice(0,10).map(function(x){
           var bits=[x.name,x.admin1,x.country].filter(Boolean);
           return{label:bits.join(", "),name:x.name,country:x.country||""};
-        }));
+        }),code?cname:"");
       }).catch(fail);
     },
     onPick:function(r){$("city").value=r.label;$("city").focus()}
