@@ -55,13 +55,19 @@ h1{font:700 clamp(1.5rem,3vw,2rem)/1.15 "Instrument Sans",system-ui,sans-serif;l
 .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--warm);font-weight:600}
 main.wrap{padding:24px 20px 64px}
 :is(button,input,select,a):focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+#pw{outline:none}
+#pw:focus,#pw:focus-visible{outline:none}
 .panel{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:18px}
 .form{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 16px}
 @media (max-width:900px){.form{grid-template-columns:1fr 1fr}}
 @media (max-width:560px){.form{grid-template-columns:1fr}}
 .combo{position:relative}
 .f label{display:block;font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:5px}
-input[type=text],input[type=search],input[type=password],select{width:100%;height:42px;font:inherit;font-size:.92rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:0 12px}
+input[type=text],input[type=search],input[type=password],select{width:100%;height:42px;font:inherit;font-size:.92rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:0 12px;-webkit-tap-highlight-color:transparent}
+.pwwrap{position:relative}
+.pwwrap input{padding-right:92px}
+.pwtoggle{position:absolute;top:50%;right:10px;transform:translateY(-50%);background:none;border:0;padding:4px 2px;font:inherit;font-size:.8rem;font-weight:600;color:var(--acc);cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none}
+.pwtoggle:focus,.pwtoggle:focus-visible{outline:none}
 input::placeholder{color:var(--mute);opacity:.8}
 .go{align-self:end;height:42px;background:var(--acc);color:var(--onacc);border:0;border-radius:8px;padding:0 22px;font:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px}
 .go[disabled]{opacity:.7;cursor:not-allowed}
@@ -407,7 +413,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 <section id="login" hidden><form id="lform" class="panel lbox">
   <h1>Pencari prospek hair extension</h1>
   <p class="sub">Halaman pribadi. Masukkan kata sandi untuk melanjutkan.</p>
-  <div class="f"><label for="pw">Kata sandi</label><input type="password" id="pw" autocomplete="current-password" required></div>
+  <div class="f"><label for="pw">Kata sandi</label><div class="pwwrap"><input type="password" id="pw" autocomplete="current-password" required><button type="button" id="pwtoggle" class="pwtoggle" aria-controls="pw">Tampilkan</button></div></div>
   <p class="err" id="lerr" hidden></p>
   <button class="go" id="lgo" type="submit">Masuk</button>
 </form></section>
@@ -1310,6 +1316,7 @@ function openSet(){
   }).catch(function(e){if(e!==0){$("kload").hidden=true;$("kbody").hidden=false;kmsg("Tidak bisa menghubungi server.")}});
 }
 function kmsg(t){$("kmsg").textContent=t;$("kmsg").hidden=false}
+$("pwtoggle").onclick=function(){var p=$("pw"),show=p.type==="password";p.type=show?"text":"password";this.textContent=show?"Sembunyikan":"Tampilkan"};
 $("lform").onsubmit=function(e){
   e.preventDefault();var b=$("lgo");b.disabled=true;$("lerr").hidden=true;
   fetch("/api/session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:$("pw").value})})
