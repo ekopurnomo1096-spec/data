@@ -1385,8 +1385,9 @@ function selIds(){return Object.keys(EM.sel).filter(function(k){return EM.sel[k]
 function emErr(t){var e=$("emerr");e.textContent=t||"";e.hidden=!t}
 function emCount(){
   var n=selIds().length,b=$("emsend"),cap=emCap();
-  b.disabled=EM.busy||!n||!(EM.cfg&&EM.cfg.ready);b.setAttribute("aria-busy",EM.busy?"true":"false");
-  b.textContent=EM.busy?"Mengirim…":"Kirim "+(n>1?n+" email":"email");
+  var mine=EM.busy&&EM.who==="list";
+  b.disabled=EM.busy||!n||!(EM.cfg&&EM.cfg.ready);b.setAttribute("aria-busy",mine?"true":"false");
+  b.textContent=mine?"Mengirim…":"Kirim "+(n>1?n+" email":"email");
   $("emsel").textContent=cap?n+" dipilih, maksimal "+cap+" sekali kirim.":"Kuota email hari ini habis. Reset jam 07.00 WIB.";
   $("emall").textContent=cap?"Pilih "+cap+" pertama":"Pilih penerima";$("emall").disabled=!cap;
 }
@@ -1464,7 +1465,7 @@ function emSend(force){
   var sj=$("emsj").value.trim(),tx=$("emtx").value;
   if(!picks.length)return;
   if(!tx.trim()){emErr("Isi email masih kosong.");return}
-  emErr("");EM.busy=true;emCount();
+  emErr("");EM.busy=true;EM.who="list";emCount();
   postSend(picks.map(function(x){return{id:x.id,to:emailsOf(x)[0],name:x.name,subject:sj,text:greet(tx,x.name)}}),force).then(function(o){
     EM.busy=false;
     if(o.st===401){showLogin("Sesi habis, silakan masuk lagi.");return}
@@ -1504,8 +1505,8 @@ function emManual(force){
     if(x)lead[id]=x;
     return{id:id,to:e,name:name,subject:sj,text:greet(tx,name)};
   });
-  emmErr("");EM.busy=true;$("emmsend").disabled=true;$("emmsend").textContent="Mengirim…";emCount();
-  function done(){EM.busy=false;$("emmsend").disabled=false;$("emmsend").textContent="Kirim email";emCount()}
+  emmErr("");EM.busy=true;EM.who="manual";$("emmsend").disabled=true;$("emmsend").setAttribute("aria-busy","true");$("emmsend").textContent="Mengirim…";emCount();
+  function done(){EM.busy=false;EM.who="";$("emmsend").disabled=false;$("emmsend").setAttribute("aria-busy","false");$("emmsend").textContent="Kirim email";emCount()}
   postSend(items,force).then(function(o){
     if(o.st===401){done();showLogin("Sesi habis, silakan masuk lagi.");return}
     setDaily(o.j.daily);
