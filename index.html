@@ -18,16 +18,24 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sa
 .head{display:flex;flex-wrap:wrap;gap:0 12px;align-items:flex-start;padding-top:22px}
 .head>div:first-child{flex:1 1 auto}
 .hbtns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.usage{display:flex;flex-direction:column;gap:7px;min-width:150px;margin-right:6px;font-size:.8rem;color:var(--mute)}
+.usage{position:relative;display:flex;flex-direction:column;gap:7px;min-width:150px;margin-right:6px;font-size:.8rem;color:var(--mute)}
 .usage b{color:var(--ink);font-weight:600}
 .ubar{height:8px;border-radius:99px;background:var(--soft);border:1px solid var(--line);overflow:hidden}
 .ubar i{display:block;height:100%;width:0;background:var(--acc);border-radius:99px;transition:width .4s}
 .urow{display:flex;flex-direction:column;gap:4px}
-.urow.pick{cursor:pointer;padding:2px 4px;margin:-2px -4px;border-radius:6px}
-.urow.pick:hover{background:var(--soft)}
-.rd{display:inline-block;width:11px;height:11px;border-radius:50%;border:2px solid var(--mute);margin-right:6px;vertical-align:-1px;box-sizing:border-box}
-.urow.act .rd{border-color:var(--acc);background:var(--acc);box-shadow:inset 0 0 0 2px var(--surf)}
-.urow.act>span{color:var(--ink)}
+.utrig{background:none;border:0;padding:2px 4px;margin:-2px -4px;border-radius:6px;font:inherit;color:inherit;text-align:left;cursor:pointer;width:calc(100% + 8px)}
+.utrig:hover,.utrig[aria-expanded="true"]{background:var(--soft)}
+.utrig .ch{margin-left:4px;vertical-align:-2px;transition:transform .15s}
+.utrig[aria-expanded="true"] .ch{transform:rotate(180deg)}
+.umenu{position:absolute;top:calc(100% + 8px);left:-8px;z-index:30;min-width:230px;background:var(--surf);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:6px}
+.uopt{display:flex;flex-direction:column;gap:5px;width:100%;background:none;border:0;border-radius:7px;padding:8px 10px;font:inherit;font-size:.82rem;color:var(--mute);text-align:left;cursor:pointer}
+.uopt:hover{background:var(--soft)}
+.uopt .ot{display:flex;align-items:center;gap:6px;color:var(--ink)}
+.uopt .ot em{font-style:normal;margin-left:auto;color:var(--mute)}
+.uopt .ubar{display:block}
+.uopt .ck{color:var(--acc);visibility:hidden;flex:none}
+.uopt[aria-selected="true"] .ck{visibility:visible}
+.uopt[aria-selected="true"] .ot b{color:var(--acc)}
 .urow.low .ubar i{background:var(--warm)}
 .urow.out .ubar i{background:var(--err)}
 .head .tabs{flex:0 0 100%}
@@ -155,6 +163,8 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .hint2{color:var(--mute);font-size:.8rem;margin:5px 0 0}
 .btn .spin{width:14px;height:14px;margin-right:8px;border-width:2px;border-color:rgba(255,255,255,.35);border-top-color:var(--onacc)}
 .ksaved{display:none;align-items:center;gap:10px;justify-content:space-between;height:42px;padding:0 6px 0 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:.92rem}
+.boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+.boot .spin{width:30px;height:30px}
 .kload{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:150px;color:var(--mute);font-size:.9rem}
 .kload[hidden]{display:none}
 .kload .spin{width:28px;height:28px}
@@ -171,6 +181,7 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 </style>
 </head>
 <body>
+<div id="boot" class="boot" role="status" aria-label="Memuat"><div class="spin"></div></div>
 <section id="login" hidden><form id="lform" class="panel lbox">
   <h1>Pencari prospek hair extension</h1>
   <p class="sub">Halaman pribadi. Masukkan kata sandi untuk melanjutkan.</p>
@@ -511,7 +522,7 @@ async function run(){
     if(r.status===401){loading(false);return showLogin("Sesi habis, silakan masuk lagi.")}
     try{j=JSON.parse(tx)}catch(x){throw new Error("server membalas error ("+r.status+"). Cek Logs di dashboard Vercel.")}
     if(!r.ok)throw new Error(j.error||"Gagal");
-    rows=j.results;loading(false);if($("source").value!=="osm")loadUsage();
+    rows=j.results;loading(false);if($("source").value!=="osm")usageAfterSearch();
     if(!rows.length)return say("info","Tidak ada data "+LABEL[kind]+" di "+esc(city)+" dari sumber ini. Coba kota lain, jenis tempat lain, atau ganti sumber data.");
     lastQ=LABEL[kind]+" di "+city;lastCountry=$("country").value;sKey="";sDir=1;
     render();
@@ -588,15 +599,35 @@ $("tb").onclick=function(e){if(e.target.closest("a"))return;var tr=e.target.clos
 $("tb").onkeydown=function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr[data-i]")){e.preventDefault();openD(rows[+e.target.getAttribute("data-i")])}};
 $("dlg").onclick=function(e){if(e.target===this)this.close()};
 function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
-function showLogin(msg){$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
-function showApp(){$("login").hidden=true;$("app").hidden=false;loadUsage()}
-function loadUsage(){fetch("/api/usage").then(function(r){return r.json()}).then(function(j){var u=$("usage"),a=j.accounts||[],multi=a.length>1;if(!a.length){u.hidden=true;return}
-  u.setAttribute("role",multi?"radiogroup":"");
-  u.innerHTML=a.map(function(x){var pct=x.limit?Math.min(100,Math.round(x.used/x.limit*100)):0,c=x.left<=0?" out":pct>=80?" low":"",on=multi&&x.n===j.active;
-    return"<div class='urow"+c+(multi?" pick":"")+(on?" act":"")+"' data-n='"+x.n+"'"+(multi?" role='radio' tabindex='0' aria-checked='"+on+"' title='Klik untuk memakai "+x.label+". Sisa "+x.left+" pencarian bulan ini'":" title='Sisa "+x.left+" pencarian bulan ini'")+"><span>"+(multi?"<i class='rd'></i>":"")+"<b>"+x.used+" / "+x.limit+"</b> pencarian"+(multi?" · "+x.label:"")+"</span><div class='ubar'><i style='width:"+pct+"%'></i></div></div>"}).join("");
+function showLogin(msg){$("boot").hidden=true;$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
+function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;loadUsage()}
+var CK="<svg class='ck' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M5 12.5l4.5 4.5L19 7.5'/></svg>",CH="<svg class='ch' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M6 9l6 6 6-6'/></svg>";
+function umClose(){var m=document.querySelector(".umenu"),t=document.querySelector(".utrig");if(m)m.hidden=true;if(t)t.setAttribute("aria-expanded","false")}
+document.addEventListener("click",function(e){if(!e.target.closest("#usage"))umClose()});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")umClose()});
+function ucls(x){var pct=x.limit?Math.min(100,Math.round(x.used/x.limit*100)):0;return{pct:pct,c:x.left<=0?" out":pct>=80?" low":""}}
+function renderUsage(j){var u=$("usage"),a=j.accounts||[];if(!a.length){u.hidden=true;return}
+  var cur=a.filter(function(x){return x.n===j.active})[0]||a[0],k=ucls(cur);
+  var row="<div class='urow"+k.c+"'><span><b>"+cur.used+" / "+cur.limit+"</b> pencarian"+(a.length>1?" · "+cur.label+CH:"")+"</span><div class='ubar'><i style='width:"+k.pct+"%'></i></div></div>";
+  if(a.length<2){u.innerHTML=row.replace("<div class='urow","<div title='Sisa "+cur.left+" pencarian bulan ini' class='urow");u.hidden=false;return}
+  u.innerHTML="<button type='button' class='utrig' aria-haspopup='listbox' aria-expanded='false' title='Klik untuk ganti akun SerpApi'>"+row+"</button><div class='umenu' role='listbox' hidden>"+a.map(function(x){var q=ucls(x);return"<button type='button' class='uopt' role='option' data-n='"+x.n+"' aria-selected='"+(x===cur)+"'><span class='ot'>"+CK+"<b>"+x.label+"</b><em>"+x.used+" / "+x.limit+"</em></span><span class='urow"+q.c+"'><span class='ubar'><i style='width:"+q.pct+"%'></i></span></span></button>"}).join("")+"</div>";
   u.hidden=false;
-  if(multi)u.querySelectorAll(".urow").forEach(function(r){var go=function(){var n=r.getAttribute("data-n");if(r.classList.contains("act"))return;u.querySelectorAll(".urow").forEach(function(o){var on=o===r;o.classList.toggle("act",on);o.setAttribute("aria-checked",on)});fetch("/api/keys",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({active:n})}).then(function(x){if(!x.ok)loadUsage()}).catch(loadUsage)};r.onclick=go;r.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}})
-}).catch(function(){})}
+  var t=u.querySelector(".utrig"),m=u.querySelector(".umenu");
+  t.onclick=function(){var open=m.hidden;m.hidden=!open;t.setAttribute("aria-expanded",open)};
+  u.querySelectorAll(".uopt").forEach(function(o){o.onclick=function(){var n=o.getAttribute("data-n");umClose();if(+n===cur.n)return;
+    fetch("/api/keys",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({active:n})}).then(function(x){loadUsage()}).catch(loadUsage);
+    var sel=a.filter(function(x){return x.n===+n})[0],q=ucls(sel);t.innerHTML="<div class='urow"+q.c+"'><span><b>"+sel.used+" / "+sel.limit+"</b> pencarian · "+sel.label+CH+"</span><div class='ubar'><i style='width:"+q.pct+"%'></i></div></div>"}})
+}
+var lastU=null;
+function loadUsage(f){fetch("/api/usage").then(function(r){return r.json()}).then(function(j){if(f)f(j);lastU=j;renderUsage(j)}).catch(function(){})}
+// Setelah pencarian Google Maps: tampilkan +1 langsung, lalu samakan dengan angka resmi SerpApi (yang bisa telat update)
+function usageAfterSearch(){
+  var j=lastU,n=j&&j.active,a=j&&(j.accounts||[]).filter(function(x){return x.n===n})[0];
+  if(!a){loadUsage();return}
+  var base=a.used;a.used=base+1;a.left=Math.max(a.left-1,0);renderUsage(j);
+  var sync=function(final){loadUsage(function(r){var x=(r.accounts||[]).filter(function(y){return y.n===n})[0];if(!final&&x&&x.used<=base){x.used=base+1;x.left=Math.max(x.left-1,0)}})};
+  setTimeout(function(){sync(false)},4000);setTimeout(function(){sync(true)},15000);
+}
 var KEYS=[["1","serp"],["2","serp2"],["3","geo"]],was={};
 function isSaved(n){return $("kf"+n).classList.contains("saved")}
 function keyState(j){
