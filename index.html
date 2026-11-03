@@ -364,6 +364,9 @@ var IC={tel:ic("<path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.0
 mail:ic("<rect width='20' height='16' x='2' y='4' rx='2'/><path d='m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7'/>"),
 web:ic("<circle cx='12' cy='12' r='10'/><path d='M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20'/><path d='M2 12h20'/>"),
 pin:ic("<path d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/><circle cx='12' cy='10' r='3'/>")};
+IC.st=ic("<path d='M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z'/><path d='M4 22v-7'/>");
+IC.rev=ic("<path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/>");
+IC.star="<svg viewBox='0 0 24 24' width='19' height='19' fill='currentColor' stroke='currentColor' stroke-width='2' stroke-linejoin='round' style='color:var(--star)' aria-hidden='true'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>";
 function stars(rating){
   var pct=Math.max(0,Math.min(100,(parseFloat(rating)||0)/5*100));
   return"<span class='stars'><i>&#9733;&#9733;&#9733;&#9733;&#9733;</i><em style='width:"+pct.toFixed(0)+"%'>&#9733;&#9733;&#9733;&#9733;&#9733;</em></span>";
@@ -557,7 +560,7 @@ function stOf(x){var r=LS[x.id];return r&&r.s||""}
 function noteOf(x){var r=LS[x.id];return r&&r.n||""}
 function stLabel(k){for(var i=0;i<STAT.length;i++)if(STAT[i][0]===k)return STAT[i][1];return STAT[0][1]}
 function stSel(x,id,extra){var s=stOf(x);return"<select"+(id?" id='"+id+"'":"")+" class='stsel st-"+(s||"baru")+"'"+(extra||"")+" aria-label='Status prospek'>"+STAT.map(function(p){return"<option value='"+p[0]+"'"+(p[0]===s?" selected":"")+">"+p[1]+"</option>"}).join("")+"</select>"}
-function stCell(x){return"<td data-l='Status'>"+stSel(x,"","  data-ri='"+rows.indexOf(x)+"'")+"</td>"}
+function stCell(x){return"<td data-l='Status'>"+IC.st+stSel(x,"","  data-ri='"+rows.indexOf(x)+"'")+"</td>"}
 function noteLine(x){var n=noteOf(x);return n?"<small class='nt'>Catatan: "+esc(n.length>80?n.slice(0,80)+"…":n)+"</small>":""}
 function flash(t){var el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true},2400);var d=$("dsv");if(d)d.textContent=t}
 function fmtDate(ms){return new Date(ms).toLocaleString("id-ID",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}
@@ -694,12 +697,12 @@ function render(){
     var ph=x.phone?x.phone.split(/[;,]/)[0].trim():"",site=x.website?href(x.website):"",sc=score(x);
     return"<tr class='clk' tabindex='0' data-i='"+rows.indexOf(x)+"'><td class='nm'><div class='nmw'>"+thumb(x)+"<div><b>"+esc(x.name)+aiBadge(x)+"</b><small>"+(x.address?esc(x.address):"Alamat belum diisi")+"</small>"+noteLine(x)+"</div></div></td>"
       +stCell(x)
-      +"<td class='num' data-l='Rating'>"+(x.rating?"<span class='star'>★</span> "+esc(x.rating):NA)+"</td>"
-      +"<td class='num' data-l='Ulasan'>"+(x.reviews?esc(x.reviews):NA)+"</td>"
-      +"<td class='clip' data-l='Telepon'>"+(ph?IC.tel+"<a class='lk' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":NA)+"</td>"
-      +"<td class='clip' data-l='Email'>"+(x.email?IC.mail+"<a class='lk' href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>":NA)+"</td>"
-      +"<td class='clip' data-l='Website'>"+(site?IC.web+"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":NA)+"</td>"
-      +"<td class='pt' data-l='Peta'>"+(x.osm?IC.pin+"<a class='lk' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Buka</a>":NA)+"</td></tr>";
+      +"<td class='num' data-l='Rating'>"+(x.rating?IC.star+esc(x.rating):IC.star+NA)+"</td>"
+      +"<td class='num' data-l='Ulasan'>"+(x.reviews?IC.rev+esc(x.reviews):IC.rev+NA)+"</td>"
+      +"<td class='clip' data-l='Telepon'>"+(ph?IC.tel+"<a class='lk' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":IC.tel+NA)+"</td>"
+      +"<td class='clip' data-l='Email'>"+(x.email?IC.mail+"<a class='lk' href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>":IC.mail+NA)+"</td>"
+      +"<td class='clip' data-l='Website'>"+(site?IC.web+"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":IC.web+NA)+"</td>"
+      +"<td class='pt' data-l='Peta'>"+(x.osm?IC.pin+"<a class='lk' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Buka</a>":IC.pin+NA)+"</td></tr>";
   }).join(""):"<tr><td colspan='8'><p class='info'>Tidak ada tempat yang cocok dengan filter. Ubah atau matikan filter untuk melihat semuanya.</p></td></tr>";
   syncSort();
   $("morebox").hidden=!(MORE&&lastQ!=="Prospek saya");
