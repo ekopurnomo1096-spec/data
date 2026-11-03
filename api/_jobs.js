@@ -11,6 +11,7 @@ const { scoreLead, FREE } = require("./_score");
 const { TEMPLATE, BRAND } = require("./_template");
 const M = require("./_mail");
 const places = require("./places");
+const { pruneData } = require("./_clean");
 
 const LEADS = "hairleads:leads", CACHE = "hairleads:cache", META = "hairleads:cmeta";
 const VARC = "hairleads:varc"; // penghitung rotasi variasi per tahap
@@ -42,7 +43,9 @@ function defaultCfg() {
         { days: 4, subject: "Following up: human hair extension supplier", text: FU1, alts: [{ subject: "Quick follow-up: hair extension supplier", text: FU1B }] },
         { days: 10, subject: "Last note: hair extension supplier from Indonesia", text: FU2, alts: [{ subject: "Closing the loop: hair extensions from Indonesia", text: FU2B }] }
       ]
-    }
+    },
+    notify: { digest: true, alerts: true, to: "" }, // laporan harian dan peringatan lewat email; to kosong = pakai Reply-To
+    clean: { on: true, days: 30 }                   // pembersihan data lama
   };
 }
 const num = (v, a, b, d) => { v = Math.round(Number(v)); return isFinite(v) ? Math.max(a, Math.min(b, v)) : d; };
@@ -63,6 +66,9 @@ function sanitizeCfg(c) {
       warm: { on: bool((m.warm || {}).on, true), start: num((m.warm || {}).start, 1, 100, 10), add: num((m.warm || {}).add, 1, 100, 5), everyDays: num((m.warm || {}).everyDays, 1, 30, 3) },
       steps: [] }
   };
+  const nt = c.notify || {}, cl = c.clean || {}, nto = M.clean(nt.to, 120).toLowerCase();
+  out.notify = { digest: bool(nt.digest, true), alerts: bool(nt.alerts, true), to: M.EMAIL.test(nto) ? nto : "" };
+  out.clean = { on: bool(cl.on, true), days: num(cl.days, 7, 365, 30) };
   const raw = Array.isArray(m.steps) ? m.steps.slice(0, 4) : d.mail.steps;
   let prev = 0;
   // Variasi tambahan per tahap (maks 2), diputar bergantian per penerima. Yang kosong dibuang.
@@ -122,7 +128,8 @@ async function loadData() {
   Object.keys(lraw).forEach(k => { const v = parse(lraw[k]); if (v) leads[k] = v; });
   // Satu peta id -> data tempat: hasil pencarian tersimpan, ditimpa data tersimpan (email/WA hasil cek, status)
   const map = new Map();
-  for (const e of entries) for (const r of e.results) if (r && r.id && !map.has(r.id)) map.set(r.id, { ...r });
+  const refs = new Map(); // id tempat -> jumlah pencarian yang memuatnya (dipakai pembersih data)
+  for (const e of entries) for (const r of e.results) if (r && r.id) { refs.set(r.id, (refs.get(r.id) || 0) + 1); if (!map.has(r.id)) map.set(r.id, { ...r }); }
   for (const id of Object.keys(leads)) {
     const l = leads[id] && leads[id].lead;
     if (!l) continue;
@@ -133,7 +140,7 @@ async function loadData() {
     if (l.retry) { base.retry = l.retry; base.rt = l.rt || 0; }
     map.set(id, base);
   }
-  return { map, leads };
+  return { map, leads, refs };
 }
 const firstEmail = x => {
   const e = (x.emails && x.emails.length ? x.emails[0] : x.email) || "";
@@ -393,6 +400,85 @@ async function jobMailSend(cfg, ctx) {
   return out;
 }
 
+// ---- Laporan harian dan peringatan ------------------------------------------------------------------------
+async function serpAccounts() {
+  try {
+    const [k1, k2] = await Promise.all([getKey("serp"), getKey("serp2")]);
+    const list = [[1, k1 || process.env.SERPAPI_KEY], [2, k2]].filter(x => x[1]);
+    const got = await Promise.all(list.map(async ([n, key]) => {
+      try {
+        const r = await fetch("https://serpapi.com/account.json?api_key=" + encodeURIComponent(key), { headers: { "User-Agent": "hair-leads-demo/1.0" }, signal: AbortSignal.timeout(8000) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || j.error || j.searches_per_month == null) return null;
+        const limit = Number(j.searches_per_month) || 0, used = Number(j.this_month_usage) || 0;
+        return { n, limit, used, left: j.total_searches_left != null ? Number(j.total_searches_left) : Math.max(limit - used, 0) };
+      } catch (e) { return null; }
+    }));
+    return got.filter(Boolean);
+  } catch (e) { return []; }
+}
+async function buildDigest(cfg, base) {
+  const st = await M.getStats(2), t = st[0] || {}, y = st[1] || {};
+  const used = await M.usedToday(), pz = await M.getPause();
+  const q = await hgetall(QUEUE); let pending = 0;
+  Object.keys(q).forEach(k => { const v = parse(q[k]); if (v && v.st === "pending") pending++; });
+  const seq = await hgetall(SEQ), steps = cfg.mail.steps.length; let active = 0;
+  Object.keys(seq).forEach(k => { const v = parse(seq[k]); if (v && v.n < steps) active++; });
+  const acc = await serpAccounts();
+  const row = (l, a, b) => l.padEnd(24) + String(a == null ? 0 : a).padStart(9) + String(b == null ? 0 : b).padStart(9);
+  const L = [];
+  L.push("Ringkasan harian " + BRAND.name, shortDate() + " " + new Date(Date.now() + 7 * 36e5).getUTCFullYear() + " (WIB)", "");
+  L.push(row("", "Hari ini", "Kemarin"));
+  L.push(row("Prospek baru", t.added, y.added), row("Punya kontak (hasil cek)", t.found, y.found));
+  L.push(row("Email pertama terkirim", t.sent, y.sent), row("Follow-up terkirim", t.fu, y.fu));
+  L.push(row("Bounce", t.bounce, y.bounce), row("Lapor spam", t.spam, y.spam), row("Berhenti langganan", t.unsub, y.unsub));
+  L.push("", "Hari ini = sejak pukul 07.00 WIB, termasuk jalan otomatis pagi ini.", "");
+  L.push("Status");
+  L.push("- Kirim otomatis: " + (cfg.mail.on ? "aktif" : "mati") + (pz ? " (DIJEDA: " + pz.why + ")" : ""));
+  L.push("- Menunggu persetujuan: " + pending + " prospek", "- Follow-up berjalan: " + active, "");
+  L.push("Kuota");
+  L.push("- Resend hari ini: " + used + (M.DAILY > 0 ? " dari " + M.DAILY + " (sisa " + Math.max(M.DAILY - used, 0) + ")" : " (tanpa batas)"));
+  if (acc.length) acc.forEach(a => L.push("- SerpApi akun " + a.n + ": sisa " + a.left + " dari " + a.limit));
+  else L.push("- SerpApi: tidak bisa dicek");
+  if (base) L.push("", "Buka halaman: " + base);
+  return { subject: "Ringkasan harian " + BRAND.name + ", " + shortDate(), text: L.join("\n") };
+}
+// force = kirim tes (abaikan batas sekali sehari dan pengaturan mati/hidup)
+async function sendDigest(cfg, base, force) {
+  const n = await M.notifyTarget();
+  if (!force && !n.digest) return { skip: "mati" };
+  if (!n.to) return { skip: "belum ada email penerima (isi di Pengaturan > Laporan, atau Reply-To di tab Email)" };
+  if (!force) { try { if ((await cmd(["HGET", AUTO, "digest"])) === M.today()) return { skip: "sudah terkirim hari ini" }; } catch (e) { /* kirim saja */ } }
+  const d = await buildDigest(cfg, base);
+  await M.sendNotice(n.to, d.subject, d.text);
+  try { await cmd(["HSET", AUTO, "digest", M.today()]); } catch (e) { /* abaikan */ }
+  return { sent: true, to: n.to };
+}
+const JN = { mail: "Kirim", refresh: "Cari ulang", enrich: "Cari email", queue: "Antrean", clean: "Pembersihan" };
+// Dipanggil setelah jalan otomatis (cron). Mengembalikan {digest, alerts:[jenis], err?}
+async function notifyAfter(cfg, out, o) {
+  const res = { alerts: [] }, j = out.jobs || {};
+  const ping = async (kind, subject, text) => { try { if (await M.alertNotice(kind, subject, text)) res.alerts.push(kind); } catch (e) { res.err = e.message; } };
+  const errs = [];
+  if (o.prevCronT && out.t - o.prevCronT > 30 * 36e5) {
+    await ping("missed", "Jadwal harian terlewat", "Jalan otomatis terakhir sebelum ini terjadi " + Math.round((out.t - o.prevCronT) / 36e5) + " jam lalu, padahal seharusnya tiap hari.\n\nCek di Vercel: tab Logs dan Settings > Cron Jobs, serta CRON_SECRET di Environment Variables.");
+  }
+  if (out.error) errs.push("Pekerjaan gagal: " + out.error);
+  for (const k of Object.keys(j)) {
+    const e = j[k] && j[k].err; if (!e) continue;
+    if (k === "mail" && /kuota|quota|429|terlalu cepat/i.test(e)) await ping("resend_quota", "Kuota Resend habis atau terlalu cepat", "Pengiriman email berhenti: " + e + "\n\nKuota Resend reset pukul 07.00 WIB. Kalau sering terjadi, naikkan paket Resend lalu isi RESEND_DAILY_LIMIT di Vercel.");
+    else if (k === "refresh" && /SerpApi|kuota|quota|key/i.test(e)) await ping("serp_quota", "Pencarian ulang gagal (SerpApi)", "Pencarian ulang berhenti: " + e + "\n\nCek kuota dan API key SerpApi di Pengaturan. Kalau kuota akun habis, ganti ke akun lain lewat switch di pojok kanan atas.");
+    else errs.push((JN[k] || k) + ": " + e);
+  }
+  if (j.refresh && /dilewati/.test(j.refresh.note || "")) await ping("serp_low", "Kuota SerpApi hampir habis", "Pencarian ulang dilewati: " + j.refresh.note + "\n\nTambah kuota, ganti akun SerpApi, atau turunkan angka \"Sisakan kuota SerpApi\" di Pengaturan otomatis.");
+  if (errs.length) await ping("cron", "Jalan otomatis gagal", errs.join("\n") + "\n\nBuka tab Otomatis > Riwayat jalan untuk melihat detailnya.");
+  try {
+    const d = await sendDigest(cfg, o.base, false);
+    res.digest = d.sent ? "terkirim" : d.skip;
+  } catch (e) { res.digest = "gagal"; res.err = e.message; }
+  return res;
+}
+
 // ---- Pengendali -------------------------------------------------------------------------------------------
 async function lock() { return (await cmd(["SET", LOCK, "1", "NX", "EX", "120"])) === "OK"; }
 async function unlock() { try { await cmd(["DEL", LOCK]); } catch (e) { /* kunci hangus sendiri dalam 2 menit */ } }
@@ -402,29 +488,39 @@ async function runAuto(opts) {
   if (!dbConfigured()) return { error: "Database belum terhubung. Hubungkan Upstash Redis di Vercel lalu Redeploy" };
   if (!(await lock())) return { error: "Pekerjaan otomatis sedang berjalan. Coba lagi sebentar lagi" };
   const t0 = Date.now(), out = { t: t0, src: opts.src || "manual", jobs: {} };
+  const isCron = out.src === "cron";
+  let cfg = null, prevCronT = 0;
   try {
-    const budget = opts.budgetMs || 44000;
+    if (isCron) { const prev = (await getLog()).find(e => e.src === "cron"); prevCronT = prev ? prev.t : 0; }
+    const budget = opts.budgetMs || (isCron ? 40000 : 44000); // cron menyisakan waktu untuk email laporan
+    cfg = await getCfg();
     const why = await M.checkHealth(); // sudah dijeda manual, atau bounce/spam melewati batas: semua pekerjaan berhenti
-    if (why) { out.paused = why; out.ms = Date.now() - t0; try { await pushLog(out); } catch (e) { /* abaikan */ } return out; }
-    const cfg = await getCfg();
-    const ctx = { softEnd: t0 + budget, hardEnd: t0 + budget + 6000, base: opts.base || "", force: opts.src === "manual", data: await loadData() };
-    const want = j => opts.jobs === "all" || opts.jobs === j;
-    const guard = async (name, fn) => { try { out.jobs[name] = await fn(); } catch (e) { out.jobs[name] = { err: e.message }; } };
-    if (want("mail")) await guard("mail", () => jobMailSend(cfg, ctx));
-    if (want("refresh")) {
-      await guard("refresh", () => jobRefresh(cfg, ctx));
-      if (out.jobs.refresh && out.jobs.refresh.added) ctx.data = await loadData();
+    if (why) out.paused = why;
+    else {
+      const ctx = { softEnd: t0 + budget, hardEnd: t0 + budget + 6000, base: opts.base || "", force: opts.src === "manual", data: await loadData() };
+      const want = j => opts.jobs === "all" || opts.jobs === j;
+      const guard = async (name, fn) => { try { out.jobs[name] = await fn(); } catch (e) { out.jobs[name] = { err: e.message }; } };
+      if (want("mail")) await guard("mail", () => jobMailSend(cfg, ctx));
+      if (want("refresh")) {
+        await guard("refresh", () => jobRefresh(cfg, ctx));
+        if (out.jobs.refresh && out.jobs.refresh.added) ctx.data = await loadData();
+      }
+      if (want("enrich")) await guard("enrich", () => jobEnrich(cfg, ctx));
+      if (want("mail")) await guard("queue", () => jobQueue(cfg, ctx));
+      if (opts.jobs === "all") await guard("clean", () => pruneData(cfg, ctx));
     }
-    if (want("enrich")) await guard("enrich", () => jobEnrich(cfg, ctx));
-    if (want("mail")) await guard("queue", () => jobQueue(cfg, ctx));
   } catch (e) {
     out.error = e.message;
   } finally {
     await unlock();
   }
   out.ms = Date.now() - t0;
+  // Laporan dan peringatan hanya untuk jalan terjadwal (cron). Tetap dikirim walau sedang dijeda, kalau masih ada waktu.
+  if (isCron && cfg && Date.now() - t0 < 50000) {
+    try { out.notify = await notifyAfter(cfg, out, { prevCronT, base: opts.base }); } catch (e) { out.notify = { err: e.message }; }
+  }
   try { await pushLog(out); } catch (e) { /* log gagal tidak penting */ }
   return out;
 }
 
-module.exports = { QUEUE, SEQ, AUTO, warmInfo, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData };
+module.exports = { QUEUE, SEQ, AUTO, warmInfo, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, notifyAfter };

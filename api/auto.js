@@ -5,6 +5,7 @@
 // POST {action:"approve", ids?|all?}     setujui prospek di antrean (all = semua yang menunggu)
 // POST {action:"reject", ids}            tolak (tidak akan diantrekan lagi)
 // POST {action:"run", job}               jalankan sekarang: "all" | "mail" | "refresh" | "enrich"
+// POST {action:"digest"}                    kirim tes ringkasan harian ke email penerima laporan
 // POST {action:"suppadd", email} / {action:"suppdel", email}   kelola daftar berhenti
 const crypto = require("crypto");
 const { isAuthed } = require("./_auth");
@@ -41,6 +42,8 @@ async function state(req) {
   out.seq = { active: 0, done: 0 };
   Object.keys(seq).forEach(k => { const v = parse(seq[k]); if (v) (v.n >= steps ? out.seq.done++ : out.seq.active++); });
   out.log = (await J.getLog()).slice(0, 10);
+  try { out.clean = M.parse(await cmd(["HGET", J.AUTO, "pruned"])); } catch (e) { out.clean = null; }
+  try { const nt = await M.notifyTarget(); out.notify = { to: nt.to }; } catch (e) { out.notify = { to: "" }; }
   const sp = await hgetall(M.SUPP);
   const sl = Object.keys(sp).map(e => ({ e, ...(parse(sp[e]) || {}) })).sort((a, b) => (b.t || 0) - (a.t || 0));
   out.supp = { n: sl.length, list: sl.slice(0, 100) };
@@ -93,6 +96,13 @@ module.exports = async (req, res) => {
       const job = ["all", "mail", "refresh", "enrich"].includes(b.job) ? b.job : "all";
       const r = await J.runAuto({ jobs: job, src: "manual", base: M.baseUrl(req) });
       return res.status(r.error && !r.jobs && !r.paused ? 409 : 200).json(r);
+    }
+    if (b.action === "digest") { // kirim tes ringkasan harian sekarang
+      try {
+        const r = await J.sendDigest(await J.getCfg(), M.baseUrl(req), true);
+        if (!r.sent) return res.status(400).json({ error: "Tidak terkirim: " + (r.skip || "tanpa penerima") });
+        return res.status(200).json({ ok: true, to: r.to });
+      } catch (e) { return res.status(400).json({ error: e.message }); }
     }
     if (b.action === "pause") {
       if (b.on) await M.setPause("Dijeda manual", false); else await M.clearPause();

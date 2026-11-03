@@ -225,6 +225,53 @@ async function getPause() {
 }
 async function setPause(why, auto) {
   await cmd(["HSET", AUTOK, "pause", JSON.stringify({ t: Date.now(), why: clean(why, 200) || "dijeda", auto: !!auto })]);
+  if (auto) { // jeda karena bounce/spam: selalu diberi tahu lewat email (kalau Resend dan penerima laporan sudah ada)
+    try {
+      await alertNotice("pause", "Kirim email dijeda otomatis",
+        "Semua kirim email dan pekerjaan otomatis dihentikan.\n\nAlasan: " + clean(why, 200) +
+        "\n\nYang perlu dilakukan:\n- Cek email yang bounce atau dilaporkan spam di dashboard Resend.\n- Periksa sumber alamat email yang dipakai.\n- Setelah aman, buka tab Otomatis lalu klik Lanjutkan.", true);
+    } catch (e) { /* peringatan gagal terkirim tidak boleh menggagalkan jeda */ }
+  }
+}
+
+// ---- Laporan dan peringatan lewat email ----------------------------------------------------------------------
+// Penerima: pengaturan notify.to di tab Otomatis, kalau kosong memakai alamat Reply-To. Dikirim lewat Resend yang sama,
+// langsung (bukan lewat batch kirim prospek), jadi tidak ikut meter "email hari ini" dan tidak diberi tautan berhenti.
+async function notifyTarget() {
+  let n = {};
+  try { const c = parse(await cmd(["HGET", AUTOK, "cfg"])); n = (c && c.notify) || {}; } catch (e) { /* bawaan */ }
+  let to = String(n.to || "").trim();
+  if (!EMAIL.test(to)) {
+    let rt = "";
+    try { rt = (await config()).replyTo || ""; } catch (e) { /* tanpa Reply-To */ }
+    const m = /<([^<>]+)>/.exec(rt), r = (m ? m[1] : rt).trim();
+    to = EMAIL.test(r) ? r : "";
+  }
+  return { to, alerts: n.alerts !== false, digest: n.digest !== false };
+}
+async function sendNotice(to, subject, text) {
+  const rc = await config();
+  if (!rc.key || !/@/.test(rc.from)) throw new Error("Resend belum diisi (API key dan email pengirim)");
+  const html = '<div style="font-family:Consolas,Menlo,monospace;font-size:13px;line-height:1.55;color:#222;white-space:pre-wrap">' + escHtml(text) + "</div>";
+  const r = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + rc.key, "Content-Type": "application/json" },
+    body: JSON.stringify({ from: rc.from, to: [to], subject: clean(subject, 200), text, html }),
+    signal: AbortSignal.timeout(12000)
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error("Resend: " + String(j.message || j.error || r.status));
+}
+// Peringatan: sekali sehari per jenis (kind), kecuali every=true. Mengembalikan true kalau terkirim.
+async function alertNotice(kind, subject, text, every) {
+  if (!dbConfigured()) return false;
+  const n = await notifyTarget();
+  if (!n.alerts || !n.to) return false;
+  const field = "al:" + kind;
+  if (!every) { try { if ((await cmd(["HGET", AUTOK, field])) === today()) return false; } catch (e) { /* kirim saja */ } }
+  await sendNotice(n.to, "[Peringatan] " + subject, text);
+  try { await cmd(["HSET", AUTOK, field, today()]); } catch (e) { /* abaikan */ }
+  return true;
 }
 // Lanjutkan. Hitungan bounce/spam yang ada saat ini dijadikan titik nol supaya tidak langsung terjeda lagi.
 async function clearPause() {
@@ -330,4 +377,4 @@ async function flagLeads(email, reason) {
 }
 
 module.exports = { stat, getStats, getPause, setPause, clearPause, checkHealth, mxCheck, domainOf, flagLeads, MAIL, DAYK, SUPP, MAX, DAILY, EMAIL, ID, clean, parse, escHtml, usedToday, suppressedSet, suppress,
-  unsubToken, tokenOk, baseUrl, unsubUrl, buildHtml, greet, config, sendBatch, recordSent };
+  unsubToken, tokenOk, baseUrl, unsubUrl, buildHtml, greet, config, sendBatch, recordSent, notifyTarget, sendNotice, alertNotice, today };

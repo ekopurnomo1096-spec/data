@@ -1830,13 +1830,20 @@ function auJobText(k,j){
   if(k==="mail")t="terkirim "+(j.sent||0)+" + "+(j.followups||0)+" follow-up"+(j.note?" ("+j.note+")":"");
   else if(k==="refresh")t=(j.searches||0)+" pencarian, "+(j.added||0)+" tempat baru"+(j.note?" ("+j.note+")":"");
   else if(k==="enrich")t=(j.done||0)+" website dicek, "+(j.found||0)+" punya kontak"+(j.left?", sisa "+j.left:"")+(j.retry?", "+j.retry+" gagal dibuka (dicoba ulang besok)":"");
+  else if(k==="clean"){var cp=[];
+    if(j.places)cp.push(j.places+" tempat tanpa kontak");if(j.searches)cp.push(j.searches+" pencarian lama");
+    if(j.mx)cp.push(j.mx+" cache domain");if(j.stats)cp.push(j.stats+" statistik lama");
+    t=cp.length?"dibuang "+cp.join(", "):"tidak ada yang perlu dibuang"}
   else if(k==="queue")t="antrean +"+(j.added||0)+(j.waiting?", "+j.waiting+" lagi menunggu ruang":"")+(j.noMx?", "+j.noMx+" dibuang (domain email tidak valid)":"")+(j.dupDomain?", "+j.dupDomain+" dilewati (bisnis sama)":"")+(j.mxLater?", "+j.mxLater+" menunggu cek domain":"");
   if(j.err)t+=(t?" · ":"")+"gagal: "+j.err;
   return AUN[k]+": "+t;
 }
-var AUN={mail:"Kirim",refresh:"Cari ulang",enrich:"Cari email",queue:"Antrean"};
+var AUN={mail:"Kirim",refresh:"Cari ulang",enrich:"Cari email",queue:"Antrean",clean:"Pembersihan"};
 function auLogLine(e){
-  var parts=["mail","refresh","enrich","queue"].filter(function(k){return e.jobs&&e.jobs[k]}).map(function(k){return auJobText(k,e.jobs[k])});
+  var parts=["mail","refresh","enrich","queue","clean"].filter(function(k){return e.jobs&&e.jobs[k]}).map(function(k){return auJobText(k,e.jobs[k])});
+  if(e.notify){var nt=e.notify,np=[];
+    if(nt.digest)np.push("ringkasan "+nt.digest);if(nt.alerts&&nt.alerts.length)np.push(nt.alerts.length+" peringatan terkirim");if(nt.err)np.push("gagal: "+nt.err);
+    if(np.length)parts.push("Laporan: "+np.join(", "))}
   if(e.error)parts.push("gagal: "+e.error);
   if(e.paused)parts.push("dihentikan: "+e.paused);
   return"<li><b>"+esc(fmtDate(e.t))+"</b> · "+(e.src==="cron"?"otomatis":"manual")+(parts.length?"<br>"+parts.map(esc).join("<br>"):"")+"</li>";
@@ -1960,6 +1967,19 @@ function auCfg(){
   h+=auSec("Teks email","<span id='aus_n'></span>",
     "<div id='austeps'></div><div class='eacts'><button class='ghost' id='auadd' type='button'>+ Tambah follow-up</button></div>"
     +"<p class='hint2'>Baris pertama yang diawali Hi! otomatis menjadi Hi Nama team!. Tautan berhenti berlangganan, alamat fisik, dan keterangan sumber kontak ditambahkan otomatis di bagian bawah.</p>");
+  var nt=c.notify||{digest:true,alerts:true,to:""},cl=c.clean||{on:true,days:30},to=(AU.st.notify||{}).to||"",pr=AU.st.clean;
+  h+=auSec("Laporan dan peringatan",onoff(nt.digest||nt.alerts),
+    "<label class='chk'><input type='checkbox' id='au_ndg'"+(nt.digest?" checked":"")+"> Kirim ringkasan harian lewat email</label>"
+    +"<label class='chk'><input type='checkbox' id='au_nal'"+(nt.alerts?" checked":"")+"> Kirim peringatan kalau ada masalah</label>"
+    +"<div class='f' style='margin-top:10px'><label for='au_nto'>Kirim ke email</label><input type='text' id='au_nto' maxlength='120' autocomplete='off' placeholder='Kosongkan untuk memakai Reply-To' value='"+esc(nt.to||"")+"'></div>"
+    +"<p class='hint2'>"+(to?"Saat ini dikirim ke <b>"+esc(to)+"</b>.":"Belum ada penerima. Isi email di atas, atau isi Reply-To di tab Email.")+"</p>"
+    +"<div class='eacts' style='margin-top:10px'><button class='ghost' id='au_ntest' type='button'>Kirim tes ringkasan</button><span class='hint2' id='au_ntm' style='margin:0'></span></div>"
+    +"<p class='hint2'>Ringkasan berisi prospek baru, email terkirim, bounce, serta sisa kuota SerpApi dan Resend. Terkirim setelah jalan otomatis pagi. Peringatan dikirim untuk jadwal yang gagal atau terlewat, kuota habis, dan jeda otomatis karena bounce atau spam. Tiap jenis peringatan maksimal sekali sehari, kecuali jeda otomatis yang selalu dikirim. Simpan pengaturan dulu sebelum kirim tes.</p>");
+  h+=auSec("Pembersihan data",onoff(cl.on),
+    "<label class='chk'><input type='checkbox' id='au_con'"+(cl.on?" checked":"")+"> Bersihkan data lama otomatis</label>"
+    +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_cd'>Umur data (hari)</label><input type='number' id='au_cd' min='7' max='365' value='"+cl.days+"'></div></div>"
+    +"<p class='hint2'>Menjaga ukuran database Upstash gratis. Pada pencarian yang lebih tua dari angka di atas (dan tidak dicentang untuk cari ulang), yang dibuang hanya tempat tanpa telepon, email, dan WhatsApp setelah websitenya dicek. Tempat yang punya status atau catatan, pernah dikirimi email, atau ada di antrean tidak pernah dibuang. Cache domain email dan statistik lebih dari 90 hari ikut dibersihkan. Berjalan paling banyak sekali sehari.</p>"
+    +(pr&&pr.t?"<p class='hint2'>Terakhir: "+esc(fmtDate(pr.t))+" · "+(pr.places||0)+" tempat, "+(pr.searches||0)+" pencarian, "+(pr.mx||0)+" cache domain, "+(pr.stats||0)+" statistik.</p>":""));
   h+=auSec("Cari ulang",onoff(r.on),
     "<label class='chk'><input type='checkbox' id='au_ron'"+(r.on?" checked":"")+"> Ulangi pencarian tersimpan secara berkala (hanya tempat baru yang ditambahkan)</label>"
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_rd'>Ulangi setiap (hari)</label><input type='number' id='au_rd' min='1' max='60' value='"+r.everyDays+"'></div>"
@@ -1974,10 +1994,16 @@ function auCfg(){
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_em'>Maks website per jalan</label><input type='number' id='au_em' min='1' max='200' value='"+e.max+"'></div></div>");
   $("aucfg").innerHTML=h;
   auSteps(m.steps);
+  $("au_ntest").onclick=function(){
+    var b=this,msg=$("au_ntm");b.disabled=true;msg.textContent="Mengirim…";
+    auApi({action:"digest"}).then(function(o){b.disabled=false;msg.textContent=o.ok?"Terkirim ke "+o.j.to+".":(o.j.error||"Gagal mengirim")}).catch(function(){b.disabled=false;msg.textContent="Tidak bisa menghubungi server."});
+  };
   $("auadd").onclick=function(){var st=auReadSteps();st.push({days:(st.length?st[st.length-1].days:0)+6,subject:"",text:"",alts:[]});auSteps(st,st.length-1)};
 }
 function auCollect(){
   return{
+    notify:{digest:$("au_ndg").checked,alerts:$("au_nal").checked,to:$("au_nto").value.trim()},
+    clean:{on:$("au_con").checked,days:+$("au_cd").value},
     enrich:{on:$("au_eon").checked,max:+$("au_em").value},
     refresh:{on:$("au_ron").checked,everyDays:+$("au_rd").value,maxSearches:+$("au_rm").value,reserve:+$("au_rr").value,
       keys:[].map.call(document.querySelectorAll("#au_rk input:checked"),function(i){return i.getAttribute("data-k")})},

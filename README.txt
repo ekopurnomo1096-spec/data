@@ -78,3 +78,20 @@ TAMPILAN TAB OTOMATIS
 - Antrean, Statistik, dan Daftar berhenti berupa panel yang bisa dibuka-tutup.
 - Pengaturan dipecah per bagian yang bisa dilipat: Kirim otomatis, Pemanasan domain, Teks email, Cari ulang, Cari email.
 - Teks email: tiap tahap (email pertama, follow-up) dan tiap variasi dilipat. Judulnya menampilkan hari kirim, jumlah teks, dan subjek.
+
+RINGKASAN HARIAN, PERINGATAN, PEMBERSIHAN DATA (tab Otomatis > Pengaturan)
+- Ringkasan harian: dikirim lewat Resend setelah jalan otomatis pagi (08.00 WIB), sekali sehari. Isinya prospek baru, kontak ditemukan, email pertama dan follow-up terkirim, bounce, spam, berhenti langganan (hari ini dan kemarin), status kirim otomatis, jumlah menunggu persetujuan, sisa kuota Resend dan SerpApi tiap akun. Tombol "Kirim tes ringkasan" mengirim sekarang (simpan pengaturan dulu).
+- Penerima: isi "Kirim ke email". Kalau kosong, memakai Reply-To dari tab Email. Dikirim dari alamat pengirim Resend yang sama.
+- Peringatan (email terpisah, "[Peringatan] ..."), hanya dari jalan terjadwal dan webhook, maksimal sekali sehari per jenis:
+    * jeda otomatis karena bounce atau spam (selalu dikirim setiap terjadi)
+    * jadwal harian terlewat (jalan terakhir lebih dari 30 jam lalu, dicek saat jalan berikutnya)
+    * jalan otomatis gagal (error pekerjaan)
+    * kuota Resend habis atau terlalu cepat
+    * pencarian ulang gagal karena SerpApi, atau dilewati karena sisa kuota di bawah batas "Sisakan kuota SerpApi"
+  Batas: kalau cron Vercel tidak jalan sama sekali, tidak ada kode yang berjalan untuk memberi tahu. Peringatan "terlewat" baru terkirim saat jalan berikutnya. Untuk jaga-jaga, pasang monitor uptime eksternal.
+- Email laporan tidak ikut meter "email hari ini", tapi tetap memakai kuota Resend yang sebenarnya.
+- Pembersihan data: berjalan di akhir "Jalankan sekarang" dan jadwal harian, paling banyak sekali per 20 jam (maks 40 pencarian per jalan). Pada pencarian yang lebih tua dari "Umur data" (bawaan 30 hari) dan tidak dicentang untuk cari ulang:
+    * dibuang: tempat tanpa telepon, email, dan WhatsApp, setelah websitenya dicek (atau tanpa website). Pencarian yang jadi kosong ikut dihapus.
+    * ikut dibersihkan: skor AI dan catatan cek email milik tempat itu (kalau tidak dipakai pencarian lain), cache domain email yang kedaluwarsa, statistik harian lebih dari 90 hari.
+    * TIDAK PERNAH dibuang: tempat yang punya status atau catatan, pernah dikirimi email, ada di antrean, atau urutan follow-up, serta tempat yang websitenya belum dicek.
+  Hasilnya tampil di Riwayat jalan dan di bagian Pembersihan data. Data yang dibuang tidak diarsipkan, tapi pencarian yang sama bisa diulang kapan saja (memakai kuota SerpApi).
