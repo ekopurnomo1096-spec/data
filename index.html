@@ -602,7 +602,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
     <p class="aupz" id="aupz" hidden></p>
     <div class="aust" id="aust"><span>Memuat…</span></div>
     <div class="eacts"><button class="btn primary" id="aurun" type="button">Jalankan sekarang</button><button class="ghost" id="aupause" type="button">Jeda semua</button><span class="hint2" id="aurunmsg" style="margin:0"></span></div>
-    <p class="hint2">Berjalan otomatis setiap hari pukul 08.00 WIB. “Jalankan sekarang” menjalankan semua tugas sekaligus (kirim, cari ulang, cari email, isi antrean) dan bisa sampai 1 menit.</p>
+    <p class="hint2">Berjalan otomatis setiap hari pukul 08.00 WIB. “Jalankan sekarang” menjalankan semua tugas sekaligus (kirim, cari ulang, putaran kota, cari email, isi antrean) dan bisa sampai 1 menit.</p>
     <details class="aud2"><summary>Riwayat jalan</summary><ul class="aulog" id="aulog"></ul></details>
   </div>
   <details class="panel aup aud" open>
@@ -1831,7 +1831,8 @@ function auJobText(k,j){
   if(j.skip)return AUN[k]+": dilewati ("+j.skip+")";
   var t="";
   if(k==="mail")t="terkirim "+(j.sent||0)+" + "+(j.followups||0)+" follow-up"+(j.note?" ("+j.note+")":"");
-  else if(k==="refresh")t=(j.searches||0)+" pencarian"+(j.pages?" (termasuk "+j.pages+" halaman tambahan)":"")+", "+(j.added||0)+" tempat baru"+(j.note?" ("+j.note+")":"")+(j.switched?", pindah akun: "+j.switched:"");
+  else if(k==="refresh")t=(j.searches||0)+" pencarian"+(j.pages?" (termasuk "+j.pages+" halaman tambahan)":"")+", "+(j.added||0)+" tempat baru"+(j.note?" ("+j.note+")":"")+(j.switched?", pindah akun: "+j.switched:"")+(j.disabled&&j.disabled.length?". Dinonaktifkan karena tidak ada tempat baru: "+j.disabled.join(", "):"");
+  else if(k==="rotate")t=(j.searches||0)+" pencarian, "+(j.added||0)+" tempat baru"+(j.cities&&j.cities.length?" ("+j.cities.join(", ")+")":"")+(j.left!=null?", sisa "+j.left+" kota di daftar":"")+(j.note?" ("+j.note+")":"")+(j.switched?", pindah akun: "+j.switched:"");
   else if(k==="enrich")t=(j.done||0)+" website dicek, "+(j.found||0)+" punya kontak"+(j.left?", sisa "+j.left:"")+(j.retry?", "+j.retry+" gagal dibuka (dicoba ulang besok)":"");
   else if(k==="clean"){var cp=[];
     if(j.places)cp.push(j.places+" tempat tanpa kontak");if(j.searches)cp.push(j.searches+" pencarian lama");
@@ -1841,9 +1842,9 @@ function auJobText(k,j){
   if(j.err)t+=(t?" · ":"")+"gagal: "+j.err;
   return AUN[k]+": "+t;
 }
-var AUN={mail:"Kirim",refresh:"Cari ulang",enrich:"Cari email",queue:"Antrean",clean:"Pembersihan"};
+var AUN={mail:"Kirim",refresh:"Cari ulang",rotate:"Putaran kota",enrich:"Cari email",queue:"Antrean",clean:"Pembersihan"};
 function auLogLine(e){
-  var parts=["mail","refresh","enrich","queue","clean"].filter(function(k){return e.jobs&&e.jobs[k]}).map(function(k){return auJobText(k,e.jobs[k])});
+  var parts=["mail","refresh","rotate","enrich","queue","clean"].filter(function(k){return e.jobs&&e.jobs[k]}).map(function(k){return auJobText(k,e.jobs[k])});
   if(e.notify){var nt=e.notify,np=[];
     if(nt.digest)np.push("ringkasan "+nt.digest);if(nt.alerts&&nt.alerts.length)np.push(nt.alerts.length+" peringatan terkirim");if(nt.err)np.push("gagal: "+nt.err);
     if(np.length)parts.push("Laporan: "+np.join(", "))}
@@ -1993,11 +1994,22 @@ function auCfg(){
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_rd'>Ulangi setiap (hari)</label><input type='number' id='au_rd' min='1' max='60' value='"+r.everyDays+"'></div>"
     +"<div class='f'><label for='au_rm'>Maks pencarian per hari</label><input type='number' id='au_rm' min='1' max='30' value='"+r.maxSearches+"'></div>"
     +"<div class='f'><label for='au_rr'>Sisakan kuota SerpApi</label><input type='number' id='au_rr' min='0' max='1000' value='"+r.reserve+"'></div>"
-    +"<div class='f'><label for='au_rp'>Halaman per pencarian (1-3)</label><input type='number' id='au_rp' min='1' max='3' value='"+r.pages+"'></div></div>"
-    +"<p class='hint2'>Tiap halaman Google Maps (20 tempat) memakai 1 kuota SerpApi dan dihitung ke \"Maks pencarian per hari\". Halaman 2 dan 3 hanya diambil kalau seluruh isi halaman sebelumnya tempat baru; isi 1 kalau hanya mau halaman pertama. Pencarian dilewati kalau sisa kuota di bawah angka yang disisakan. Pilih pencarian yang mau diulang:</p>"
+    +"<div class='f'><label for='au_rp'>Halaman per pencarian (1-3)</label><input type='number' id='au_rp' min='1' max='3' value='"+r.pages+"'></div>"
+    +"<div class='f'><label for='au_rdy'>Matikan setelah kosong (kali)</label><input type='number' id='au_rdy' min='0' max='10' value='"+(r.dryMax==null?3:r.dryMax)+"'></div></div>"
+    +"<p class='hint2'>Tiap halaman Google Maps (20 tempat) memakai 1 kuota SerpApi dan dihitung ke \"Maks pencarian per hari\". Halaman 2 dan 3 hanya diambil kalau seluruh isi halaman sebelumnya tempat baru; isi 1 kalau hanya mau halaman pertama. Pencarian dilewati kalau sisa kuota di bawah angka yang disisakan. Pencarian yang beberapa kali berturut-turut tidak menambah tempat baru dimatikan sendiri centangnya (isi 0 untuk menonaktifkan aturan ini; dihitung paling banyak sekali per hari, dan Anda dikabari lewat email peringatan). Pilih pencarian yang mau diulang:</p>"
     +(se.length?"<div class='mlist aulist' id='au_rk'>"+se.map(function(x){
-      return"<label class='mrow'><input type='checkbox' data-k='"+esc(x.key)+"'"+(r.keys.indexOf(x.key)>-1?" checked":"")+"><span><b>"+esc(x.city)+" · "+esc(L[x.kind]||x.kind)+"</b><small>"+(x.source==="osm"?"OpenStreetMap":"Google Maps")+" · "+x.n+" tempat</small></span></label>";
+      return"<label class='mrow'><input type='checkbox' data-k='"+esc(x.key)+"'"+(r.keys.indexOf(x.key)>-1?" checked":"")+"><span><b>"+esc(x.city)+" · "+esc(L[x.kind]||x.kind)+"</b><small>"+(x.source==="osm"?"OpenStreetMap":"Google Maps")+" · "+x.n+" tempat"+((AU.st.dry||{})[x.key]?" · "+AU.st.dry[x.key].n+"x berturut-turut tanpa tempat baru":"")+"</small></span></label>";
     }).join("")+"</div>":"<p class='info'>Belum ada pencarian tersimpan. Lakukan pencarian di tab Cari tempat dulu.</p>"));
+  var ro=c.rotate||{on:false,maxSearches:2,reserve:30,pages:1,kinds:["salon"],cities:[]},rt=AU.st.rot;
+  h+=auSec("Putaran kota",onoff(ro.on),
+    "<label class='chk'><input type='checkbox' id='au_xon'"+(ro.on?" checked":"")+"> Cari kota baru dari daftar secara bergantian (bukan mengulang kota yang sama)</label>"
+    +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_xm'>Maks pencarian per hari</label><input type='number' id='au_xm' min='1' max='10' value='"+ro.maxSearches+"'></div>"
+    +"<div class='f'><label for='au_xr'>Sisakan kuota SerpApi</label><input type='number' id='au_xr' min='0' max='1000' value='"+ro.reserve+"'></div>"
+    +"<div class='f'><label for='au_xp'>Halaman per kota (1-3)</label><input type='number' id='au_xp' min='1' max='3' value='"+ro.pages+"'></div></div>"
+    +"<div class='aurow' style='margin-top:10px'>"+["salon","wig","beauty"].map(function(k){return"<label class='chk'><input type='checkbox' class='au_xk' value='"+k+"'"+(ro.kinds.indexOf(k)>-1?" checked":"")+"> "+L[k]+"</label>"}).join("")+"</div>"
+    +"<div class='f' style='margin-top:10px'><label for='au_xc'>Daftar kota (satu per baris, format: Kota, Negara)</label><textarea id='au_xc' rows='8' spellcheck='false'>"+esc((ro.cities||[]).join("\n"))+"</textarea></div>"
+    +"<p class='hint2'>"+(rt?"Progres: <b>"+(rt.total-rt.left)+" dari "+rt.total+"</b> kombinasi kota dan jenis sudah dicari"+(rt.left&&rt.next&&rt.next.length?". Berikutnya: "+esc(rt.next.join(", ")):(rt.left?"":". Semua sudah dicari, tambahkan kota baru di daftar."))+".":"Simpan pengaturan dulu untuk melihat progres.")+"</p>"
+    +"<p class='hint2'>Tiap jalan otomatis mengambil kota berikutnya yang belum pernah dicari (kombinasi kota + jenis yang sudah ada di daftar pencarian tersimpan dilewati), lalu hanya tempat barunya yang masuk. Halaman 2 dan 3 hanya diambil kalau seluruh isi halaman sebelumnya tempat baru. Memakai kuota SerpApi (1 per halaman), dihitung terpisah dari \"Cari ulang\", dan dilewati kalau sisa kuota di bawah angka yang disisakan. Kota yang hasilnya kosong tetap dianggap sudah dicari. Daftar bawaan berisi kota besar di AS, Inggris, Kanada, Nigeria, Afrika Selatan, Ghana, dan Kenya; ubah sesukamu. Tanpa centang di atas, putaran tidak jalan walau \"Jalankan sekarang\" ditekan.</p>");
   h+=auSec("Cari email",onoff(e.on),
     "<label class='chk'><input type='checkbox' id='au_eon'"+(e.on?" checked":"")+"> Cek website tempat baru untuk mencari email dan WhatsApp</label>"
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_em'>Maks website per jalan</label><input type='number' id='au_em' min='1' max='200' value='"+e.max+"'></div></div>");
@@ -2015,8 +2027,10 @@ function auCollect(){
     clean:{on:$("au_con").checked,days:+$("au_cd").value},
     enrich:{on:$("au_eon").checked,max:+$("au_em").value},
     serp:{auto:$("au_sa").checked,below:+$("au_sb").value},
-    refresh:{on:$("au_ron").checked,everyDays:+$("au_rd").value,maxSearches:+$("au_rm").value,reserve:+$("au_rr").value,pages:+$("au_rp").value,
+    refresh:{on:$("au_ron").checked,everyDays:+$("au_rd").value,maxSearches:+$("au_rm").value,reserve:+$("au_rr").value,pages:+$("au_rp").value,dryMax:+$("au_rdy").value,
       keys:[].map.call(document.querySelectorAll("#au_rk input:checked"),function(i){return i.getAttribute("data-k")})},
+    rotate:{on:$("au_xon").checked,maxSearches:+$("au_xm").value,reserve:+$("au_xr").value,pages:+$("au_xp").value,
+      kinds:[].map.call(document.querySelectorAll(".au_xk:checked"),function(i){return i.value}),cities:$("au_xc").value.split(/\r?\n/)},
     mail:{on:$("au_mon").checked,approve:$("au_mapp").checked,followOn:$("au_mfo").checked,minScore:+$("au_msc").value,perDay:+$("au_mpd").value,maxBounce:+$("au_mbn").value,warm:{on:$("au_won").checked,start:+$("au_wst").value,add:+$("au_wad").value,everyDays:+$("au_wev").value},steps:auReadSteps()}
   };
 }

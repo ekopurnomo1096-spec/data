@@ -155,6 +155,11 @@ async function serpSearch(city, kind, key, start, ll) {
   return { list, more, ll: llOut };
 }
 
+// Kunci cache sebuah pencarian (sama dengan yang dipakai searchCore). Dipakai putaran kota untuk tahu mana yang sudah pernah dicari.
+function cacheKey(city, kind, source) {
+  return (source === "osm" ? "osm" : "google") + "|" + (FILTERS[kind] ? kind : "salon") + "|" + String(city || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
 // Inti pencarian, dipakai rute di bawah dan pekerjaan otomatis (_jobs.js).
 // q: {city, kind, source:"google"|"osm", start, refresh}. opts.merge: pencarian baru digabung ke hasil tersimpan (bukan menggantikan).
 // Melempar Error (dengan properti status kalau perlu) kalau gagal.
@@ -252,3 +257,4 @@ module.exports = async (req, res) => {
   }
 };
 module.exports.searchCore = searchCore;
+module.exports.cacheKey = cacheKey;

@@ -4,7 +4,7 @@
 // POST {action:"cfg", cfg}               simpan pengaturan
 // POST {action:"approve", ids?|all?}     setujui prospek di antrean (all = semua yang menunggu)
 // POST {action:"reject", ids}            tolak (tidak akan diantrekan lagi)
-// POST {action:"run", job}               jalankan sekarang: "all" | "mail" | "refresh" | "enrich"
+// POST {action:"run", job}               jalankan sekarang: "all" | "mail" | "refresh" | "rotate" | "enrich"
 // POST {action:"digest"}                    kirim tes ringkasan harian ke email penerima laporan
 // POST {action:"suppadd", email} / {action:"suppdel", email}   kelola daftar berhenti
 const crypto = require("crypto");
@@ -44,6 +44,8 @@ async function state(req) {
   out.log = (await J.getLog()).slice(0, 10);
   try { out.clean = M.parse(await cmd(["HGET", J.AUTO, "pruned"])); } catch (e) { out.clean = null; }
   try { const nt = await M.notifyTarget(); out.notify = { to: nt.to }; } catch (e) { out.notify = { to: "" }; }
+  try { out.dry = parse(await cmd(["HGET", J.AUTO, "dry"])) || {}; } catch (e) { out.dry = {}; }
+  try { const ri = await J.rotInfo(cfg); out.rot = { total: ri.total, left: ri.left, next: ri.todo.slice(0, 3).map(x => x.city + " · " + x.kind) }; } catch (e) { out.rot = null; }
   const sp = await hgetall(M.SUPP);
   const sl = Object.keys(sp).map(e => ({ e, ...(parse(sp[e]) || {}) })).sort((a, b) => (b.t || 0) - (a.t || 0));
   out.supp = { n: sl.length, list: sl.slice(0, 100) };
@@ -93,7 +95,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, n });
     }
     if (b.action === "run") {
-      const job = ["all", "mail", "refresh", "enrich"].includes(b.job) ? b.job : "all";
+      const job = ["all", "mail", "refresh", "rotate", "enrich"].includes(b.job) ? b.job : "all";
       const r = await J.runAuto({ jobs: job, src: "manual", base: M.baseUrl(req) });
       return res.status(r.error && !r.jobs && !r.paused ? 409 : 200).json(r);
     }
