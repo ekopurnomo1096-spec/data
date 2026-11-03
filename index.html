@@ -82,6 +82,7 @@ a.lk{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line
 a.lk:hover{color:var(--acc);text-decoration-color:currentColor}
 .na{color:var(--mute);opacity:.55}
 .star{color:var(--star)}
+svg{flex:none;width:15px;height:15px;vertical-align:-2px;margin-right:6px;color:var(--acc)}
 .sc{color:var(--mute)}
 .sc.s0{opacity:.55}
 .sc.s3{color:var(--acc);font-weight:600}
@@ -94,7 +95,8 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .dr{margin:4px 0 0;color:var(--mute);font-size:.88rem}
 .x{flex:none;width:34px;height:34px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;font-size:1rem;cursor:pointer}
 .dl{margin:16px 0 0;border-top:1px solid var(--line)}
-.di{display:grid;grid-template-columns:84px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--soft);font-size:.9rem}
+.di{display:grid;grid-template-columns:104px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--soft);font-size:.9rem}
+.di dt svg{width:14px;height:14px;margin-right:5px;vertical-align:-3px}
 .di dt{color:var(--mute);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;padding-top:3px}
 .di dd{margin:0;overflow-wrap:anywhere}
 .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
@@ -420,11 +422,11 @@ function render(){
     return"<tr class='clk' tabindex='0' data-i='"+rows.indexOf(x)+"'><td class='nm'><b>"+esc(x.name)+"</b><small>"+(x.address?esc(x.address):"Alamat belum diisi")+"</small></td>"
       +"<td class='num' data-l='Rating'>"+(x.rating?"<span class='star'>★</span> "+esc(x.rating):NA)+"</td>"
       +"<td class='num' data-l='Ulasan'>"+(x.reviews?esc(x.reviews):NA)+"</td>"
-      +"<td class='clip' data-l='Telepon'>"+(ph?"<a class='lk' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":NA)+"</td>"
-      +"<td class='clip' data-l='Email'>"+(x.email?"<a class='lk' href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>":NA)+"</td>"
-      +"<td class='clip' data-l='Website'>"+(site?"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":NA)+"</td>"
+      +"<td class='clip' data-l='Telepon'>"+(ph?IC.tel+"<a class='lk' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":NA)+"</td>"
+      +"<td class='clip' data-l='Email'>"+(x.email?IC.mail+"<a class='lk' href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>":NA)+"</td>"
+      +"<td class='clip' data-l='Website'>"+(site?IC.web+"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":NA)+"</td>"
       +"<td class='num sc s"+sc+"' data-l='Kontak'>"+sc+" dari 3</td>"
-      +"<td data-l='Peta'>"+(x.osm?"<a class='lk' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Buka</a>":NA)+"</td></tr>";
+      +"<td data-l='Peta'>"+(x.osm?IC.pin+"<a class='lk' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Buka</a>":NA)+"</td></tr>";
   }).join(""):"<tr><td colspan='8'><p class='info'>Tidak ada tempat yang cocok dengan filter. Ubah atau matikan filter untuk melihat semuanya.</p></td></tr>";
   $("sortsel").value=sKey;
   $("res").hidden=false;
@@ -477,15 +479,15 @@ function openD(x){
   function item(l,v){return"<div class='di'><dt>"+l+"</dt><dd>"+v+"</dd></div>"}
   var rate=x.rating?"<span class='star'>★</span> "+esc(x.rating)+(x.reviews?" · "+esc(x.reviews)+" ulasan":""):"";
   $("dbody").innerHTML="<div class='dh'><div><h2>"+esc(x.name)+"</h2>"+(rate?"<p class='dr'>"+rate+"</p>":"")+"</div><button class='x' id='dx' type='button' aria-label='Tutup'>✕</button></div>"
-    +"<dl class='dl'>"+item("Alamat",x.address?esc(x.address):NA)
-    +item("Telepon",ph?"<a class='lk' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":"Belum ada data")
-    +item("Email",x.email?"<a class='lk' href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>":"Belum ada data")
-    +item("Website",site?"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":"Belum ada data")+"</dl>"
-    +"<div class='acts'>"+(ph?"<a class='btn' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>Telepon</a>":"")
-    +(x.email?"<a class='btn' href='mailto:"+esc(x.email)+"'>Kirim email</a>":"")
-    +(site?"<a class='btn' href='"+esc(site)+"' target='_blank' rel='noopener'>Buka website</a>":"")
-    +(x.osm?"<a class='btn' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Lihat di peta</a>":"")
-    +(site&&!x.email?"<button class='btn' id='dmail' type='button'>Cari email dari website</button>":"")+"</div>";
+    +"<dl class='dl'>"+item(IC.pin+"Alamat",x.address?esc(x.address):NA)
+    +item(IC.tel+"Telepon",ph?"<a class='lk' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":"Belum ada data")
+    +item(IC.mail+"Email",x.email?"<a class='lk' href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>":"Belum ada data")
+    +item(IC.web+"Website",site?"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":"Belum ada data")+"</dl>"
+    +"<div class='acts'>"+(ph?"<a class='btn' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+IC.tel+"Telepon</a>":"")
+    +(x.email?"<a class='btn' href='mailto:"+esc(x.email)+"'>"+IC.mail+"Kirim email</a>":"")
+    +(site?"<a class='btn' href='"+esc(site)+"' target='_blank' rel='noopener'>"+IC.web+"Buka website</a>":"")
+    +(x.osm?"<a class='btn' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>"+IC.pin+"Lihat di peta</a>":"")
+    +(site&&!x.email?"<button class='btn' id='dmail' type='button'>"+IC.mail+"Cari email dari website</button>":"")+"</div>";
   $("dx").onclick=function(){$("dlg").close()};
   if(site&&!x.email)$("dmail").onclick=function(){findMail(x)};
   if(!$("dlg").open)$("dlg").showModal();
