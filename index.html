@@ -932,10 +932,11 @@ function aiPost(body){
 }
 function aiLead(x){return{id:x.id,name:x.name,address:x.address,rating:x.rating,reviews:x.reviews,phone:!!x.phone,email:!!emailsOf(x).length,website:!!x.website,status:stLabel(stOf(x)),note:noteOf(x)}}
 var AIW='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>';
+var AIOK='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.5l3.5 3.5L17 9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function aidShow(st,title,msg,pct){
   var d=$("aid");d.className="ai-"+st;
   $("aidt").textContent=title;$("aidm").textContent=msg;$("aidbar").style.width=pct+"%";
-  $("aidi").innerHTML=st==="run"?"<div class='spin'></div>":st==="err"?AIW:"";
+  $("aidi").innerHTML=st==="run"?"<div class='spin'></div>":st==="ok"?AIOK:st==="err"?AIW:"";
   $("aidpb").hidden=st==="info";
   $("aidx").hidden=st==="run";$("aids").hidden=true;
   if(!d.open)d.showModal();
