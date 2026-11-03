@@ -51,14 +51,16 @@ input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(
 .rate{flex:none;text-align:right;font-weight:700;font-size:.95rem;line-height:1.2}
 .rate small{display:block;font-weight:400;color:var(--mute);font-size:.78rem}
 .addr{margin:0;color:var(--mute);font-size:.9rem;min-height:2.7em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.info2{font-size:.92rem;font-weight:500;border-top:1px solid var(--line);padding-top:10px;min-height:2.8em;overflow-wrap:anywhere}
-.info2 a{color:var(--acc)}
-.mute{color:var(--mute);font-weight:400}
-.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:auto}
-.btn{text-align:center;padding:9px 6px;border-radius:9px;font-size:.88rem;font-weight:600;text-decoration:none}
-a.btn{background:var(--accsoft);color:var(--ink)}
-a.btn:hover{background:var(--acc);color:#fff}
-.btn.off{border:1px dashed var(--line);color:var(--mute);font-weight:400}
+.rows{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:9px;font-size:.92rem}
+.r2{display:flex;align-items:center;gap:10px;min-width:0;height:24px}
+.r2 svg{flex:none;color:var(--acc)}
+.r2 a,.r2 span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.r2 a{color:var(--ink);text-decoration:none;font-weight:500}
+.r2 a:hover{color:var(--acc);text-decoration:underline}
+.r2.off{color:var(--mute)}
+.r2.off svg{color:var(--mute);opacity:.55}
+.mapl{margin-top:auto;padding-top:4px;display:inline-flex;align-items:center;gap:8px;color:var(--acc);font-weight:700;font-size:.9rem;text-decoration:none}
+.mapl:hover{text-decoration:underline}
 .tag{align-self:flex-start;font-size:.78rem;font-weight:700;color:var(--ok)}
 .seg{border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-top:10px}
 .seg b{display:block}
@@ -112,6 +114,12 @@ a.btn:hover{background:var(--acc);color:#fff}
 (function(){
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function ic(p){return"<svg viewBox='0 0 24 24' width='19' height='19' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'>"+p+"</svg>"}
+var IC={tel:ic("<path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z'/>"),
+mail:ic("<rect width='20' height='16' x='2' y='4' rx='2'/><path d='m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7'/>"),
+web:ic("<circle cx='12' cy='12' r='10'/><path d='M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20'/><path d='M2 12h20'/>"),
+pin:ic("<path d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/><circle cx='12' cy='10' r='3'/>")};
+function row(icon,val,link,empty){return val?"<div class='r2'>"+icon+"<a href='"+link+"'"+(link.indexOf("http")===0?" target='_blank' rel='noopener'":"")+">"+esc(val)+"</a></div>":"<div class='r2 off'>"+icon+"<span>"+empty+"</span></div>"}
 var LABEL={salon:"salon",wig:"toko wig",beauty:"toko kecantikan"};
 var rows=[],timer=null;
 var STEPS=["Mencari lokasi kota…","Mengambil data tempat…","Hampir selesai. Kota besar butuh waktu lebih lama…"];
@@ -134,12 +142,14 @@ function render(){
   $("copied").hidden=true;
   $("list").innerHTML=r.length?r.map(function(x){
     var ph=x.phone?x.phone.split(/[;,]/)[0].trim():"";
-    var tel=ph?"<a class='btn' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>Telepon</a>":"<span class='btn off'>Telepon</span>";
-    var web=x.website?"<a class='btn' href='"+esc(href(x.website))+"' target='_blank' rel='noopener'>Website</a>":"<span class='btn off'>Website</span>";
-    var map=x.osm?"<a class='btn' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Peta</a>":"<span class='btn off'>Peta</span>";
+    var site=x.website?href(x.website):"";
     var rate=x.rating?"<span class='rate'>★ "+esc(x.rating)+(x.reviews?"<small>"+esc(x.reviews)+" ulasan</small>":"")+"</span>":"";
     var addr=x.address||"";
-    return"<div class='item'><div class='top'><h3>"+esc(x.name)+"</h3>"+rate+"</div><p class='addr' title='"+esc(addr)+"'>"+(addr?esc(addr):"Alamat belum diisi")+"</p><div class='info2'><div>"+(ph?esc(ph):"<span class='mute'>Nomor telepon belum ada</span>")+"</div>"+(x.email?"<div><a href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a></div>":"")+"</div><div class='acts'>"+tel+web+map+"</div></div>"
+    return"<div class='item'><div class='top'><h3>"+esc(x.name)+"</h3>"+rate+"</div><p class='addr' title='"+esc(addr)+"'>"+(addr?esc(addr):"Alamat belum diisi")+"</p><div class='rows'>"
+      +row(IC.tel,ph,"tel:"+esc(ph.replace(/[^\d+]/g,"")),"Belum ada nomor telepon")
+      +row(IC.mail,x.email,"mailto:"+esc(x.email||""),"Belum ada email")
+      +row(IC.web,site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""),esc(site),"Belum ada website")
+      +"</div>"+(x.osm?"<a class='mapl' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>"+IC.pin+"Lihat di peta</a>":"")+"</div>"
   }).join(""):"<p class='info'>Tidak ada tempat yang punya kontak. Matikan filter untuk melihat semuanya.</p>";
   $("res").hidden=false;
 }
