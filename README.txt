@@ -26,3 +26,27 @@ KIRIM EMAIL (Resend, opsional)
 - Setelah terkirim, status otomatis jadi Sudah dihubungi dan catatan ditambah "Email, 3 Nov". Tempat yang sudah pernah dikirimi dilewati (dicatat di hairleads:mail).
 - Meter "email hari ini" di tab Email menghitung email yang terkirim lewat halaman ini (dicatat di hairleads:mailday). Batas bawaannya 100 per hari, sesuai akun gratis Resend, dan reset jam 07.00 WIB (tengah malam UTC). Pilihan penerima dan tombol kirim otomatis mengikuti sisa kuota. Kalau akun Resend berbayar, tambahkan RESEND_DAILY_LIMIT di Vercel (isi 0 untuk tanpa batas, atau angka lain untuk batas sendiri). Email yang dikirim dari luar halaman ini tidak ikut terhitung.
 - Kirim manual (tab Email): ketik satu atau beberapa alamat email (pisahkan dengan koma), lalu kirim memakai subjek dan isi email di tab itu. Dipakai juga untuk tes kirim ke emailmu sendiri. Ikut dihitung di meter harian.
+
+OTOMATIS (tab "Otomatis")
+Semua berjalan tanpa AI, hanya aturan + Redis + Vercel Cron. Data di Redis berawalan "hairleads:" (auto, queue, seq, supp).
+Pasang sekali (Vercel > Settings > Environment Variables, centang Production, lalu Redeploy):
+  CRON_SECRET            = teks acak panjang. Tanpa ini jadwal harian ditolak. Vercel otomatis mengirimnya saat menjalankan cron.
+  RESEND_WEBHOOK_SECRET  = "whsec_..." dari Resend > Webhooks. Tambahkan webhook ke  https://DOMAINMU/api/mailhook?a=resend
+                           dengan event email.bounced dan email.complained. Tanpa ini bounce dan laporan spam tidak tercatat.
+  PUBLIC_URL (opsional)  = https://DOMAINMU  supaya tautan berhenti berlangganan di email selalu memakai domain sendiri.
+Jadwal: vercel.json menjalankan /api/auto?a=cron setiap hari 01:00 UTC (08.00 WIB), setelah kuota harian Resend reset. Paket Hobby hanya mengizinkan cron sekali sehari, dan jamnya bisa bergeser dalam jam itu.
+Tombol "Jalankan sekarang" menjalankan semuanya langsung (cari ulang diabaikan jadwalnya, tetap dibatasi pengaturan).
+
+Urutan tiap jalan: (1) kirim follow-up yang sudah waktunya + email pertama yang sudah disetujui, (2) cari ulang pencarian yang dicentang,
+(3) cari email/WhatsApp dari website tempat yang belum dicek, (4) isi antrean persetujuan dengan prospek yang skornya cukup.
+- Skor (api/_score.js, 0-100, ubah bobot di situ): email +30 (+5 kalau bukan Gmail dkk), website +10, WhatsApp +5, telepon +5, rating, jumlah ulasan, kata di nama (wig/extension/weave/beauty supply, salon/hair/beauty).
+- Antrean: prospek berstatus Belum dihubungi, punya email, belum pernah dikirimi, tidak ada di Daftar berhenti, skor >= batas. Maksimal 50 menunggu persetujuan sekaligus. "Tolak" = tidak diantrekan lagi.
+- Kirim: hanya yang disetujui, maksimal "email per hari" di pengaturan dan tidak melewati sisa kuota Resend. Setelah terkirim, status jadi Sudah dihubungi dan catatan ditambah "Email, 3 Nov" (sama seperti kirim manual). Isi email memakai template di tab Otomatis (sapaan Hi! -> Hi Nama team!).
+- Follow-up: hari ke-N sejak email pertama (bawaan 4 dan 10). Berhenti sendiri kalau status jadi Dibalas / Deal / Tidak cocok, atau alamatnya masuk Daftar berhenti.
+- Cari ulang: hanya pencarian yang dicentang. 1 pencarian Google Maps = 1 kuota SerpApi (hanya halaman pertama, 20 tempat). Dilewati kalau sisa kuota di bawah angka "Sisakan kuota SerpApi". Tempat lama tidak berubah, hanya yang baru ditambahkan.
+- Cari email: maksimal 60 website per jalan (bisa diubah). Sisanya dilanjutkan di jalan berikutnya.
+
+BERHENTI BERLANGGANAN, BOUNCE, SPAM (berlaku untuk kirim otomatis DAN manual)
+- Setiap email memuat tautan "Unsubscribe" bertanda tangan + header List-Unsubscribe (tombol berhenti di Gmail/Apple Mail). Tautan hanya menampilkan tombol konfirmasi; yang benar-benar berhenti adalah klik tombolnya.
+- Bounce permanen dan laporan spam (webhook Resend) otomatis masuk Daftar berhenti. Bounce sementara (kotak penuh dll) tidak.
+- Alamat di Daftar berhenti dilewati oleh semua jalur kirim. Bisa ditambah/dihapus manual di tab Otomatis.

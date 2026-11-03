@@ -154,73 +154,87 @@ async function serpSearch(city, kind, key, start, ll) {
   return { list, more, ll: llOut };
 }
 
+// Inti pencarian, dipakai rute di bawah dan pekerjaan otomatis (_jobs.js).
+// q: {city, kind, source:"google"|"osm", start, refresh}. opts.merge: pencarian baru digabung ke hasil tersimpan (bukan menggantikan).
+// Melempar Error (dengan properti status kalau perlu) kalau gagal.
+async function searchCore(q, opts) {
+  opts = opts || {};
+  const city = String(q.city || "").trim();
+  const kind = FILTERS[q.kind] ? q.kind : "salon";
+  const fail = (m, status) => { const e = new Error(m); if (status) e.status = status; return e; };
+  if (!city) throw fail("Isi nama kota", 400);
+  const source = q.source === "osm" ? "osm" : "google";
+  const ckey = source + "|" + kind + "|" + city.toLowerCase().replace(/\s+/g, " ");
+  const refresh = !!q.refresh;
+  // start > 0: ambil halaman berikutnya (20 tempat per halaman), hanya untuk sumber Google
+  const start = source === "google" ? Math.min(Math.max(parseInt(q.start, 10) || 0, 0), 400) : 0;
+
+  // Hasil yang pernah disimpan dipakai lagi, jadi tidak memakai kuota SerpApi
+  if (!refresh && !start && dbConfigured()) {
+    try {
+      const raw = await cmd(["HGET", CACHE, ckey]);
+      const hit = raw && JSON.parse(raw);
+      if (hit && Array.isArray(hit.results) && hit.results.length) {
+        return { results: hit.results, cached: true, savedAt: hit.at, dupes: hit.dupes || 0, more: !!hit.more, next: hit.next || 0 };
+      }
+    } catch (e) { /* cache rusak atau Redis bermasalah: cari seperti biasa */ }
+  }
+
+  let results, more = false, ll = "", prev = [], prevDupes = 0, hit = null;
+  if ((start > 0 || opts.merge) && dbConfigured()) {
+    try {
+      const raw = await cmd(["HGET", CACHE, ckey]);
+      hit = raw && JSON.parse(raw);
+      if (hit && Array.isArray(hit.results)) { prev = hit.results; ll = hit.ll || ""; prevDupes = hit.dupes || 0; } else hit = null;
+    } catch (e) { hit = null; /* tanpa cache: halaman tambahan tetap diambil, hanya tidak digabung */ }
+  }
+  if (source === "osm") {
+    const pt = await geocode(city);
+    if (!pt) throw fail("Kota tidak ditemukan", 404);
+    const key = (await getKey("geo")) || process.env.GEOAPIFY_KEY;
+    results = key ? await geoSearch(pt, kind, key) : await overpassSearch(pt, kind);
+  } else {
+    const [k1, k2, act] = await Promise.all([getKey("serp"), getKey("serp2"), getActive()]);
+    const a1 = k1 || process.env.SERPAPI_KEY;
+    if (!a1 && !k2) throw fail("API key SerpApi belum diisi. Buka Pengaturan lalu masukkan key-nya");
+    // Akun yang dipakai dipilih manual lewat switch di pojok kanan atas (default akun 1)
+    const useN = act === "2" && k2 ? 2 : (a1 ? 1 : 2);
+    try {
+      const sr = await serpSearch(city, kind, useN === 2 ? k2 : a1, start, ll);
+      results = sr.list; more = sr.more; ll = sr.ll;
+    }
+    catch (e) { throw (a1 && k2) ? new Error(e.message + " (Akun " + useN + ")") : e; }
+  }
+  const before = prev.length;
+  const d = dedupe(prev.concat(results));
+  results = d.list;
+  d.dupes += prevDupes;
+  const added = (start > 0 || hit) ? results.length - before : results.length;
+  if (start > 0 && added <= 0) more = false;
+  let next = more ? (start || 0) + 20 : 0;
+  // Gabung tanpa memuat halaman lanjutan: penunjuk "Muat 20 lagi" tetap seperti semula
+  if (opts.merge && !start && hit) { more = !!hit.more; next = hit.next || 0; ll = hit.ll || ll; }
+  let saved = false;
+  if (results.length && dbConfigured()) {
+    try {
+      const at = Date.now();
+      await cmd(["HSET", CACHE, ckey, JSON.stringify({ at, dupes: d.dupes, results, more, next, ll })]);
+      await cmd(["HSET", META, ckey, JSON.stringify({ at, city, kind, source, n: results.length })]);
+      saved = true;
+    } catch (e) { /* gagal menyimpan tidak boleh menggagalkan pencarian */ }
+  }
+  return { results, cached: false, saved, dupes: d.dupes, more, next, added };
+}
+
 module.exports = async (req, res) => {
   try {
     if (!isAuthed(req)) return res.status(401).json({ error: "Belum login" });
-    const city = String((req.query && req.query.city) || "").trim();
-    const kind = FILTERS[req.query && req.query.kind] ? req.query.kind : "salon";
-    if (!city) return res.status(400).json({ error: "Isi nama kota" });
-    const source = req.query.source === "osm" ? "osm" : "google";
-    const ckey = source + "|" + kind + "|" + city.toLowerCase().replace(/\s+/g, " ");
-    const refresh = req.query.refresh === "1";
-    // start > 0: ambil halaman berikutnya (20 tempat per halaman), hanya untuk sumber Google
-    const start = source === "google" ? Math.min(Math.max(parseInt(req.query.start, 10) || 0, 0), 400) : 0;
     res.setHeader("Cache-Control", "private, no-store");
-
-    // Hasil yang pernah disimpan dipakai lagi, jadi tidak memakai kuota SerpApi
-    if (!refresh && !start && dbConfigured()) {
-      try {
-        const raw = await cmd(["HGET", CACHE, ckey]);
-        const hit = raw && JSON.parse(raw);
-        if (hit && Array.isArray(hit.results) && hit.results.length) {
-          return res.status(200).json({ results: hit.results, cached: true, savedAt: hit.at, dupes: hit.dupes || 0, more: !!hit.more, next: hit.next || 0 });
-        }
-      } catch (e) { /* cache rusak atau Redis bermasalah: cari seperti biasa */ }
-    }
-
-    let results, more = false, ll = "", prev = [], prevDupes = 0;
-    if (start > 0 && dbConfigured()) {
-      try {
-        const raw = await cmd(["HGET", CACHE, ckey]);
-        const hit = raw && JSON.parse(raw);
-        if (hit && Array.isArray(hit.results)) { prev = hit.results; ll = hit.ll || ""; prevDupes = hit.dupes || 0; }
-      } catch (e) { /* tanpa cache: halaman tambahan tetap diambil, hanya tidak digabung */ }
-    }
-    if (source === "osm") {
-      const pt = await geocode(city);
-      if (!pt) return res.status(404).json({ error: "Kota tidak ditemukan" });
-      const key = (await getKey("geo")) || process.env.GEOAPIFY_KEY;
-      results = key ? await geoSearch(pt, kind, key) : await overpassSearch(pt, kind);
-    } else {
-      const [k1, k2, act] = await Promise.all([getKey("serp"), getKey("serp2"), getActive()]);
-      const a1 = k1 || process.env.SERPAPI_KEY;
-      if (!a1 && !k2) return res.status(500).json({ error: "API key SerpApi belum diisi. Buka Pengaturan lalu masukkan key-nya" });
-      // Akun yang dipakai dipilih manual lewat switch di pojok kanan atas (default akun 1)
-      const useN = act === "2" && k2 ? 2 : (a1 ? 1 : 2);
-      try {
-        const sr = await serpSearch(city, kind, useN === 2 ? k2 : a1, start, ll);
-        results = sr.list; more = sr.more; ll = sr.ll;
-      }
-      catch (e) { throw (a1 && k2) ? new Error(e.message + " (Akun " + useN + ")") : e; }
-    }
-    const before = prev.length;
-    const d = dedupe(prev.concat(results));
-    results = d.list;
-    d.dupes += prevDupes;
-    const added = start > 0 ? results.length - before : results.length;
-    if (start > 0 && added <= 0) more = false;
-    const next = more ? (start || 0) + 20 : 0;
-    let saved = false;
-    if (results.length && dbConfigured()) {
-      try {
-        const at = Date.now();
-        await cmd(["HSET", CACHE, ckey, JSON.stringify({ at, dupes: d.dupes, results, more, next, ll })]);
-        await cmd(["HSET", META, ckey, JSON.stringify({ at, city, kind, source, n: results.length })]);
-        saved = true;
-      } catch (e) { /* gagal menyimpan tidak boleh menggagalkan pencarian */ }
-    }
-    return res.status(200).json({ results, cached: false, saved, dupes: d.dupes, more, next, added });
+    const qy = req.query || {};
+    const out = await searchCore({ city: qy.city, kind: qy.kind, source: qy.source, start: qy.start, refresh: qy.refresh === "1" });
+    return res.status(200).json(out);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(err.status || 500).json({ error: err.message });
   }
 };
+module.exports.searchCore = searchCore;

@@ -1,1 +1,1 @@
-{"functions":{"api/*.js":{"maxDuration":60}}}
+{"functions":{"api/*.js":{"maxDuration":60}},"crons":[{"path":"/api/auto?a=cron","schedule":"0 1 * * *"}]}
