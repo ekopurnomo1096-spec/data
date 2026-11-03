@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mini Explee – prospek hair extension</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap">
+<style>
+:root{--bg:#eef3f8;--card:#fff;--ink:#12263f;--mute:#5b6b80;--line:#d3deea;--acc:#1f6feb;--accsoft:#dce8f7;--ok:#17803d;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1826;--card:#16243a;--ink:#e6eef8;--mute:#93a5bb;--line:#26384f;--acc:#6aa5ff;--accsoft:#1f3556;--ok:#5fd08a}}
+:root[data-theme="dark"]{--bg:#0e1826;--card:#16243a;--ink:#e6eef8;--mute:#93a5bb;--line:#26384f;--acc:#6aa5ff;--accsoft:#1f3556;--ok:#5fd08a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+main{max-width:860px;margin:0 auto;padding:28px 18px 60px}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);line-height:1.15;margin:0 0 8px;font-weight:800;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:0 0 22px;max-width:60ch}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tab{border:1px solid var(--line);background:transparent;color:var(--ink);padding:9px 16px;border-radius:999px;font:inherit;font-weight:500;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
+.tab:focus-visible,button:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+textarea,input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical}
+.row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.go{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:11px 20px;font:inherit;font-weight:700;cursor:pointer}
+.ghost{background:transparent;color:var(--acc);border:1px solid var(--line);border-radius:10px;padding:9px 14px;font:inherit;cursor:pointer}
+.ex{font-size:.85rem;color:var(--mute);margin-top:10px}
+.ex button{background:var(--accsoft);color:var(--ink);border:0;border-radius:999px;padding:4px 11px;margin:3px 4px 0 0;font:inherit;font-size:.82rem;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 4px}
+.chip{background:var(--accsoft);border-radius:8px;padding:4px 10px;font-size:.85rem}
+.chip b{font-weight:700}
+.meta{color:var(--mute);font-size:.88rem;margin:6px 0 10px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:700;color:var(--mute);font-size:.85rem}
+td small{display:block;color:var(--mute)}
+.score{color:var(--ok);font-weight:700;white-space:nowrap}
+.seg{border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-top:9px}
+.seg b{display:block}
+.seg span{color:var(--mute);font-size:.9rem}
+.note{margin-top:26px;font-size:.85rem;color:var(--mute);border-left:3px solid var(--acc);padding-left:12px;max-width:70ch}
+.empty{color:var(--mute);padding:14px 2px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<h1>Temukan pembeli dan pemasok hair extension</h1>
+<p class="sub">Tulis target kamu dengan kalimat biasa, misalnya salon, reseller wig, importir, atau pabrik rambut. Demo ini mengubahnya jadi filter lalu mencocokkannya dengan data contoh.</p>
+
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" id="t1" aria-selected="true">Cari perusahaan</button>
+  <button class="tab" role="tab" id="t2" aria-selected="false">Saran segmen</button>
+  <button class="tab" role="tab" id="t3" aria-selected="false">Data nyata</button>
+</div>
+
+<section class="panel" id="p1">
+  <label for="q" class="meta">Siapa yang ingin kamu temui?</label>
+  <textarea id="q" rows="2">salon hair extension di Jakarta</textarea>
+  <div class="row"><button class="go" id="run">Cari</button><button class="ghost" id="copy" hidden>Salin hasil (CSV)</button><span class="meta" id="copied" hidden>Tersalin.</span></div>
+  <div class="ex">Coba:
+    <button>salon hair extension di Jakarta</button>
+    <button>importir hair extension di Amerika</button>
+    <button>distributor atau reseller wig di Jawa</button>
+    <button>produsen rambut di Purbalingga lebih dari 100 karyawan</button>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="meta" id="count"></div>
+  <div class="scroll"><table id="tbl" hidden><thead><tr><th>Perusahaan</th><th>Industri</th><th>Kota</th><th>Karyawan</th><th>Kecocokan</th></tr></thead><tbody></tbody></table></div>
+  <div class="empty" id="none" hidden>Tidak ada yang cocok. Coba longgarkan lokasi atau ukuran perusahaan.</div>
+</section>
+
+<section class="panel" id="p2" hidden>
+  <label for="prod" class="meta">Apa yang kamu jual atau tawarkan?</label>
+  <input type="text" id="prod" value="human hair extension dari Purbalingga untuk salon dan reseller">
+  <div class="row"><button class="go" id="sug">Sarankan segmen</button></div>
+  <div id="segs"></div>
+</section>
+
+<section class="panel" id="p3" hidden>
+  <p class="meta">Mengambil data tempat asli dari OpenStreetMap (gratis, tanpa kartu kredit). Bisa kota di mana saja, termasuk luar negeri (contoh: Houston USA, London, Lagos Nigeria). Hanya berjalan setelah situs ini di-deploy ke Vercel.</p>
+  <div class="row"><input type="text" id="rc" value="Houston, USA" style="max-width:220px" aria-label="Kota">
+  <select id="rk" style="padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit"><option value="salon">Salon rambut</option><option value="beauty">Toko kecantikan</option><option value="wig">Toko wig / extension / beauty supply</option></select>
+  <button class="go" id="rs">Cari di peta</button></div>
+  <div class="meta" id="rm"></div>
+  <div class="scroll"><table id="rt" hidden><thead><tr><th>Nama</th><th>Alamat</th><th>Telepon</th><th>Website / email</th></tr></thead><tbody id="rb"></tbody></table></div>
+</section>
+
+<p class="note">Data perusahaan di demo ini fiktif dan hanya contoh. Pemahaman kalimat memakai aturan kata kunci sederhana di browser, tanpa AI dan tanpa biaya. Versi lengkap bisa memakai LLM untuk memahami kalimat dan sumber data nyata seperti Google Maps.</p>
+</main>
+
+<script>
+(function(){
+var D="Salon Ayu Kartika|salon|Jakarta|12|Salon rambut dengan layanan hair extension dan smoothing|Glam Hair Studio|salon|Bandung|8|Studio extension tape-in dan clip-in untuk pelanggan wanita|Rumah Rambut Semarang|salon|Semarang|15|Salon dan barbershop yang memasang hair extension|Jogja Hair Lounge|salon|Yogyakarta|6|Salon butik dengan layanan sambung rambut|Bali Beauty Salon|salon|Denpasar|20|Salon resor dengan extension untuk turis|Salon Mawar Purwokerto|salon|Purwokerto|5|Salon lokal pemasangan sambung rambut|Surabaya Hair Atelier|salon|Surabaya|30|Jaringan salon premium, extension human hair|Toko Kecantikan Rambut Indah|distributor|Jakarta|18|Grosir aksesori rambut dan clip-in hair extension|Beauty Supply Nusantara|distributor|Surabaya|45|Distributor produk salon dan extension ke banyak toko|Rambut Cantik Online|distributor|Bandung|10|Toko online hair extension dan reseller wig|Grosir Rambut Medan|distributor|Medan|22|Grosir rambut sambungan untuk salon|Makassar Hair Supply|distributor|Makassar|14|Pemasok produk salon dan hair extension|Marketplace Wig Kita|distributor|Jakarta|35|Marketplace reseller wig dan extension|Wig Mahkota Rambut|wig|Jakarta|11|Toko wig untuk pasien kemoterapi dan topi rambut|Peruk Panggung Jogja|wig|Yogyakarta|7|Wig kostum dan teater|Hair Piece Studio|wig|Bandung|9|Wig custom human hair dan toupee|Wig Kemo Peduli|wig|Semarang|6|Wig medis dan donor rambut|Bridal Glow by Rina|mua|Jakarta|5|Rias pengantin dan sanggul dengan hair extension|Studio Rias Nusantara|mua|Solo|9|Rias pengantin adat dan hairdo extension|Dewi MUA Collective|mua|Surabaya|12|Kolektif perias untuk event dan wisuda|Purbalingga Hair Works|produsen|Purbalingga|450|Pabrik hair extension dan wig untuk ekspor|Rambut Mandiri Sejahtera|produsen|Purbalingga|120|Produsen rambut sambungan human hair|CV Rambut Jaya Abadi|produsen|Purbalingga|60|Pemasok rambut mentah dan bundle|Kaliori Hair Supply|produsen|Purwokerto|35|Pemasok rambut manusia grade A dan clip-in|Banyumas Wig Craft|produsen|Purwokerto|85|Pembuat wig lace dan toupee|Karanganyar Hair Industry|produsen|Purbalingga|230|Pabrik rambut dengan sertifikasi ekspor|Lagos Beauty Imports|importir|Lagos|40|Importir hair extension dan wig dari Asia|Houston Hair Wholesale|importir|Houston|55|Grosir hair bundles untuk salon dan reseller|London Lace Wigs|importir|London|18|Retail wig lace dan human hair|Johannesburg Hair Traders|importir|Johannesburg|32|Distributor extension ke salon Afrika Selatan|Atlanta Beauty Supply|importir|Atlanta|70|Jaringan toko kecantikan, bundle dan wig".split("|");
+var C=[];for(var i=0;i<D.length;i+=5)C.push({n:D[i],i:D[i+1],c:D[i+2],e:+D[i+3],d:D[i+4]});
+
+var IND={salon:["salon","barbershop","hair studio","sambung rambut","pasang"],distributor:["distributor","grosir","reseller","toko kecantikan","marketplace","beauty supply"],produsen:["produsen","pabrik","pemasok","supplier","pembuat"],wig:["wig","peruk","toupee"],mua:["mua","makeup artist","perias","rias","pengantin","bridal"],importir:["importir","impor","ekspor","luar negeri","pembeli luar negeri"]};
+var LOC={"jawa tengah":["Semarang","Purwokerto","Solo","Purbalingga"],"jawa":["Semarang","Purwokerto","Solo","Purbalingga","Jakarta","Bandung","Surabaya","Yogyakarta"],"purbalingga":["Purbalingga"],"purwokerto":["Purwokerto"],"banyumas":["Purwokerto"],"semarang":["Semarang"],"solo":["Solo"],"jakarta":["Jakarta"],"bandung":["Bandung"],"surabaya":["Surabaya"],"yogyakarta":["Yogyakarta"],"jogja":["Yogyakarta"],"medan":["Medan"],"makassar":["Makassar"],"bali":["Denpasar"],"nigeria":["Lagos"],"afrika":["Lagos","Johannesburg"],"amerika":["Houston","Atlanta"],"inggris":["London"],"eropa":["London"]};
+
+function parse(t){
+  t=t.toLowerCase();var f={ind:[],loc:null,locName:"",min:0,max:1e9,sizeName:"",words:[]};
+  Object.keys(IND).forEach(function(k){IND[k].forEach(function(w){if(new RegExp("(^|[^a-z])"+w.replace(/[&]/g,"\\&")+"([^a-z]|$)").test(t)&&f.ind.indexOf(k)<0)f.ind.push(k)})});
+  Object.keys(LOC).sort(function(a,b){return b.length-a.length}).forEach(function(k){if(!f.loc&&t.indexOf(k)>=0){f.loc=LOC[k];f.locName=k}});
+  var m;
+  if(m=t.match(/(\d+)\s*(?:-|sampai|hingga|–)\s*(\d+)/)){f.min=+m[1];f.max=+m[2];f.sizeName=m[1]+"–"+m[2]+" karyawan"}
+  else if(m=t.match(/(?:lebih dari|di atas|>)\s*(\d+)/)){f.min=+m[1]+1;f.sizeName="> "+m[1]+" karyawan"}
+  else if(m=t.match(/(?:kurang dari|di bawah|<)\s*(\d+)/)){f.max=+m[1]-1;f.sizeName="< "+m[1]+" karyawan"}
+  else if(/umkm|kecil|startup/.test(t)){f.max=50;f.sizeName="kecil (≤ 50 karyawan)"}
+  else if(/besar|korporasi/.test(t)){f.min=200;f.sizeName="besar (≥ 200 karyawan)"}
+  f.words=t.replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(function(w){return w.length>3&&["dengan","karyawan","perusahaan","usaha","yang","untuk","lebih","dari","atau","kecil","besar"].indexOf(w)<0});
+  return f;
+}
+function search(f){
+  var out=[];
+  C.forEach(function(c){
+    if(f.ind.length&&f.ind.indexOf(c.i)<0)return;
+    if(f.loc&&f.loc.indexOf(c.c)<0)return;
+    if(c.e<f.min||c.e>f.max)return;
+    var s=50+(f.ind.length?20:0)+(f.loc?15:0)+(f.sizeName?10:0);
+    f.words.forEach(function(w){if(c.d.toLowerCase().indexOf(w)>=0)s+=3});
+    out.push({c:c,s:Math.min(99,s)});
+  });
+  return out.sort(function(a,b){return b.s-a.s});
+}
+var $=function(i){return document.getElementById(i)},last=[];
+function esc(s){return s.replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function run(){
+  var f=parse($("q").value),r=search(f);last=r;
+  var ch=[];
+  f.ind.forEach(function(x){ch.push("<span class='chip'>Industri: <b>"+x+"</b></span>")});
+  if(f.locName)ch.push("<span class='chip'>Lokasi: <b>"+esc(f.locName)+"</b></span>");
+  if(f.sizeName)ch.push("<span class='chip'>Ukuran: <b>"+f.sizeName+"</b></span>");
+  $("chips").innerHTML=ch.length?ch.join(""):"<span class='meta'>Belum ada filter yang terdeteksi. Sebutkan industri, lokasi, atau jumlah karyawan.</span>";
+  $("tbl").hidden=!r.length;$("none").hidden=!!r.length||!ch.length;$("copy").hidden=!r.length;$("copied").hidden=true;
+  $("count").textContent=r.length?r.length+" perusahaan cocok dari "+C.length+" data contoh":"";
+  $("tbl").querySelector("tbody").innerHTML=r.map(function(x){var c=x.c;return"<tr><td>"+esc(c.n)+"<small>"+esc(c.d)+"</small></td><td>"+c.i+"</td><td>"+c.c+"</td><td>"+c.e+"</td><td class='score'>"+x.s+"%</td></tr>"}).join("");
+}
+$("run").onclick=run;
+$("q").addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();run()}});
+document.querySelectorAll(".ex button").forEach(function(b){b.onclick=function(){$("q").value=b.textContent;run()}});
+$("copy").onclick=function(){
+  var csv="perusahaan,industri,kota,karyawan\n"+last.map(function(x){return[x.c.n,x.c.i,x.c.c,x.c.e].map(function(v){return'"'+v+'"'}).join(",")}).join("\n");
+  try{navigator.clipboard.writeText(csv).then(function(){$("copied").hidden=false},function(){$("copied").textContent="Gagal menyalin. Salin tabel secara manual.";$("copied").hidden=false})}catch(e){$("copied").textContent="Gagal menyalin. Salin tabel secara manual.";$("copied").hidden=false}
+};
+
+var SEG=[
+ {k:["jual","produsen","pabrik","grosir","ekspor","bundle","extension","rambut"],s:[["Salon yang memasang hair extension","Pakai extension setiap hari, butuh pasokan stabil."],["Distributor dan reseller wig","Beli dalam jumlah besar dan rutin."],["Importir hair bundles di luar negeri","Pasar ekspor dengan margin lebih tinggi."],["Perias pengantin dan MUA","Butuh extension untuk hairdo dan sanggul."],["Toko wig medis dan kostum","Segmen khusus dengan permintaan tetap."],["Toko online kecantikan","Cari produk baru untuk dijual lagi."]]}
+];
+var DEF=[["Salon rambut di kota besar","Pembeli paling mudah dijangkau."],["Distributor produk salon","Satu pembeli, banyak toko."],["Importir di luar negeri","Pasar ekspor dengan volume besar."]];
+function sug(){
+  var t=$("prod").value.toLowerCase(),list=null;
+  SEG.forEach(function(g){if(!list&&g.k.some(function(w){return t.indexOf(w)>=0}))list=g.s});
+  list=list||DEF;
+  $("segs").innerHTML=list.map(function(s){return"<div class='seg'><b>"+s[0]+"</b><span>"+s[1]+"</span> <button class='ghost' data-q='"+s[0].toLowerCase()+"' style='margin-top:6px'>Cari segmen ini</button></div>"}).join("");
+  document.querySelectorAll("#segs button").forEach(function(b){b.onclick=function(){$("q").value=b.getAttribute("data-q");tab(1);run()}});
+}
+$("sug").onclick=sug;
+function tab(n){[1,2,3].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}
+$("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};$("t3").onclick=function(){tab(3)};
+$("rs").onclick=async function(){
+  $("rm").textContent="Mencari...";$("rt").hidden=true;
+  try{
+    var r=await fetch("/api/places?city="+encodeURIComponent($("rc").value.trim())+"&kind="+$("rk").value);
+    var j=await r.json();if(!r.ok)throw new Error(j.error||"Gagal");
+    $("rm").textContent=j.results.length+" tempat ditemukan. Kolom kosong berarti data belum diisi di OpenStreetMap.";
+    $("rb").innerHTML=j.results.map(function(x){var w=x.website?"<a href='"+esc(x.website)+"' target='_blank' rel='noopener'>"+esc(x.website)+"</a>":"";return"<tr><td>"+esc(x.name)+"<small><a href='"+x.osm+"' target='_blank' rel='noopener'>lihat di peta</a></small></td><td>"+esc(x.address)+"</td><td>"+esc(x.phone)+"</td><td>"+w+(x.email?"<small>"+esc(x.email)+"</small>":"")+"</td></tr>"}).join("");
+    $("rt").hidden=!j.results.length;
+  }catch(e){$("rm").textContent="Gagal: "+e.message+". Fitur ini hanya jalan setelah di-deploy ke Vercel."}
+};
+
+run();sug();
+})();
+</script>
+</body>
+</html>
