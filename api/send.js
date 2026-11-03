@@ -50,12 +50,23 @@ module.exports = async (req, res) => {
         const all = await hgetall(MAIL);
         out.sent = {};
         for (const k of Object.keys(all)) {
-          try { const v = JSON.parse(all[k]); if (v && v.t) out.sent[k] = { t: v.t, to: String(v.to || "") }; } catch (e) { /* abaikan baris rusak */ }
+          try { const v = JSON.parse(all[k]); if (v && v.t) out.sent[k] = { t: v.t, to: String(v.to || ""), h: v.h ? 1 : 0 }; } catch (e) { /* abaikan baris rusak */ }
         }
       }
       return res.status(200).json(out);
     }
     if (req.method !== "POST") return res.status(405).json({ error: "metode tidak didukung" });
+
+    // Hapus riwayat kirim: hanya disembunyikan dari tampilan (h:1). Status, catatan, dan catatan "sudah dikirimi" tetap, jadi tidak terkirim dobel
+    if (req.body && (req.body.action === "clearhist" || (typeof req.body === "string" && /clearhist/.test(req.body)))) {
+      if (!dbConfigured()) return res.status(200).json({ ok: true, hidden: [] });
+      const all = await hgetall(MAIL), hidden = [], args = [];
+      for (const k of Object.keys(all)) {
+        try { const v = JSON.parse(all[k]); if (v && v.t && !v.h) { args.push(k, JSON.stringify({ t: v.t, to: String(v.to || ""), h: 1 })); hidden.push(k); } } catch (e) { /* abaikan baris rusak */ }
+      }
+      for (let i = 0; i < args.length; i += 200) await cmd(["HSET", MAIL, ...args.slice(i, i + 200)]);
+      return res.status(200).json({ ok: true, hidden });
+    }
 
     if (!key) return res.status(500).json({ error: "API key Resend belum diisi. Buka Pengaturan lalu masukkan key-nya" });
     if (!/@/.test(from)) return res.status(500).json({ error: "Alamat pengirim belum diisi. Buka Pengaturan lalu isi email pengirim (harus dari domain yang sudah diverifikasi di Resend)" });

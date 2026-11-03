@@ -1431,15 +1431,27 @@ function emCount(){
 }
 function shortDate(ms){return new Date(ms).toLocaleDateString("id-ID",{day:"numeric",month:"short"})}
 function renderHist(){
-  var ids=Object.keys(EM.sent).sort(function(a,b){return EM.sent[b].t-EM.sent[a].t}),box=$("ehist");
+  var ids=Object.keys(EM.sent).filter(function(k){return!EM.sent[k].h}).sort(function(a,b){return EM.sent[b].t-EM.sent[a].t}),box=$("ehist");
   if(!EM.loaded){box.innerHTML="<div class='sk'></div>";return}
   if(!ids.length){box.innerHTML="<p class='info'>Belum ada email terkirim lewat aplikasi ini.</p>";return}
   var h="<div class='mlist rd' style='margin-top:0'>"+ids.slice(0,15).map(function(id){
     var r=EM.sent[id],nm=nameOf(id);
     return"<div class='mrow'><span><b>"+esc(nm||r.to)+"</b>"+(nm?"<small>"+esc(r.to)+"</small>":"")+"</span><em class='mtag'>"+esc(fmtDate(r.t))+"</em></div>";
   }).join("")+"</div>";
-  h+="<p class='hint2'>"+ids.length+" email terkirim"+(ids.length>15?", 15 terbaru ditampilkan":"")+".</p>";
+  h+="<div class='eacts'><span class='hint2' style='margin:0'>"+ids.length+" email terkirim"+(ids.length>15?", 15 terbaru ditampilkan":"")+".</span><span class='sp'></span><button class='ghost' id='ehclr' type='button'>Hapus riwayat</button></div>";
   box.innerHTML=h;
+  $("ehclr").onclick=clearHist;
+}
+function clearHist(){
+  if(!confirm("Hapus riwayat kirim dari daftar? Status Sudah dihubungi dan catatan tetap, dan tempat yang sudah dikirimi tetap tercatat, jadi tidak akan terkirim dobel tanpa peringatan. Skor AI dan email tempat tidak berubah."))return;
+  var b=$("ehclr");b.disabled=true;
+  fetch("/api/send",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"clearhist"})})
+    .then(function(r){if(r.status===401){showLogin("Sesi habis, silakan masuk lagi.");throw 0}return r.json().then(function(j){return{ok:r.ok,j:j}})})
+    .then(function(o){
+      if(!o.ok){b.disabled=false;emErr(o.j.error||"Gagal menghapus riwayat");return}
+      (o.j.hidden||[]).forEach(function(id){if(EM.sent[id])EM.sent[id].h=1});
+      renderHist();flash("Riwayat dihapus dari daftar.");
+    }).catch(function(e){b.disabled=false;if(e!==0)emErr("Tidak bisa menghubungi server.")});
 }
 function renderMail(){
   var info=$("eminfo"),list=$("elist");
