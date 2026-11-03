@@ -150,6 +150,11 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .di dt{color:var(--mute);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;padding-top:3px}
 .di dd{margin:0;overflow-wrap:anywhere}
 .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.tbtns{display:flex;gap:8px;margin-left:auto}
+.acts.dacts{display:grid;grid-template-columns:repeat(3,1fr)}
+.dacts .btn{justify-content:center;text-align:center;white-space:nowrap}
+.dacts .btn:last-child:nth-child(3n+1){grid-column:1/-1}
+@media (max-width:560px){.acts.dacts{grid-template-columns:repeat(2,1fr)}.dacts .btn:last-child:nth-child(3n+1){grid-column:auto}.dacts .btn:last-child:nth-child(odd){grid-column:1/-1}}
 .btn{display:inline-flex;align-items:center;height:38px;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:var(--surf);color:var(--ink);font:inherit;font-size:.86rem;font-weight:500;text-decoration:none;cursor:pointer}
 .btn:hover{border-color:var(--acc);color:var(--acc)}
 .btn[disabled]{opacity:.7;cursor:not-allowed}
@@ -318,7 +323,9 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
  .tools:has(.svl)>.chk:has(#fnt){grid-column:1/-1}
  .tools #aiscore{grid-column:1/-1;background:var(--acc);border-color:var(--acc);color:var(--onacc)}
  .tools .dls{grid-column:1/-1}
- .tools:has(#emq)>.chk,.tools #emst{grid-column:1/-1}
+ .tools:has(#emq)>.chk,.tools #emst,.tools .tbtns{grid-column:1/-1}
+ .tbtns .ghost{flex:1}
+ .tools #findall{grid-column:1/-1}
  .eacts .btn{flex:1 1 auto;justify-content:center}
  .tools .dls #dl{width:100%;justify-content:center}
  .dlmenu{left:0;right:0;min-width:0}
@@ -507,9 +514,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       <select id="emst" class="sortsel" aria-label="Filter status prospek"><option value="baru" selected>Belum dihubungi</option><option value="all">Semua status</option><option value="chat">Sudah dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak cocok</option></select>
       <label class="chk"><input type="checkbox" id="emhide" checked> Sembunyikan yang sudah dikirimi</label>
       <label class="chk"><input type="checkbox" id="emfree" checked> Hanya email Gmail, Yahoo, dll</label>
-      <span class="sp"></span>
-      <button class="ghost" id="emall" type="button">Pilih 20 pertama</button>
-      <button class="ghost" id="emnone" type="button">Kosongkan pilihan</button>
+      <div class="tbtns"><button class="ghost" id="emall" type="button">Pilih 20 pertama</button><button class="ghost" id="emnone" type="button">Kosongkan pilihan</button></div>
     </div>
     <p class="info" id="eminfo"></p>
     <div class="mlist" id="elist" hidden></div>
@@ -1047,7 +1052,7 @@ function openD(x){curX=x;
     +item(IC.wa+"WhatsApp",wa?"<a class='lk' data-act='wa' href='https://wa.me/"+wa.n+"' target='_blank' rel='noopener'>+"+wa.n+"</a>"+(wa.src==="phone"?"<span class='hint'>dari nomor telepon, belum tentu aktif</span>":"<span class='hint'>dari website</span>"):"Belum ada data")
     +item(IC.mail+"Email",em.length?em.map(function(e){return"<a class='lk' href='mailto:"+esc(e)+"'>"+esc(e)+"</a>"}).join("<br>"):"Belum ada data")
     +item(IC.web+"Website",site?"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":"Belum ada data")+"</dl>"
-    +"<div class='acts'>"+(wa?"<a class='btn' data-act='wa' href='https://wa.me/"+wa.n+"' target='_blank' rel='noopener'>"+IC.wa+"Chat WhatsApp</a>":"")
+    +"<div class='acts dacts'>"+(wa?"<a class='btn' data-act='wa' href='https://wa.me/"+wa.n+"' target='_blank' rel='noopener'>"+IC.wa+"Chat WhatsApp</a>":"")
     +(ph?"<a class='btn' data-act='tel' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+IC.tel+"Telepon</a>":"")
     +(em.length?"<button class='btn' id='dsend' type='button'>"+IC.mail+"Kirim email</button>":"")
     +(site?"<a class='btn' href='"+esc(site)+"' target='_blank' rel='noopener'>"+IC.web+"Buka website</a>":"")
