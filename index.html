@@ -60,8 +60,7 @@ input::placeholder{color:var(--mute);opacity:.8}
 .chk{display:flex;gap:7px;align-items:center;font-size:.86rem;cursor:pointer}
 .chk input{width:16px;height:16px;accent-color:var(--acc)}
 .sp{flex:1}
-.sortsel{display:none;width:auto;height:38px}
-@media (max-width:760px){.sortsel{display:block}}
+.sortsel{width:auto;height:38px}
 .ghost{background:var(--surf);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 13px;height:38px;font:inherit;font-size:.86rem;font-weight:500;cursor:pointer}
 .ghost:hover{border-color:var(--acc);color:var(--acc)}
 .meta{color:var(--mute);font-size:.82rem;margin:0 0 8px}
@@ -83,9 +82,25 @@ a.lk{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line
 a.lk:hover{color:var(--acc);text-decoration-color:currentColor}
 .na{color:var(--mute);opacity:.55}
 .star{color:var(--star)}
-.pips{display:inline-flex;gap:3px;padding-top:4px}
-.pips i{width:8px;height:8px;border-radius:50%;background:var(--line)}
-.pips i.on{background:var(--acc)}
+.sc{color:var(--mute)}
+.sc.s0{opacity:.55}
+.sc.s3{color:var(--acc);font-weight:600}
+tbody tr.clk{cursor:pointer}
+dialog{width:min(520px,calc(100vw - 24px));max-height:calc(100vh - 40px);background:var(--surf);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:0;box-shadow:0 24px 60px rgba(0,0,0,.28)}
+dialog::backdrop{background:rgba(20,25,22,.5)}
+#dbody{padding:20px}
+.dh{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.dh h2{font:400 1.7rem/1.15 "Instrument Serif",Georgia,serif;margin:0}
+.dr{margin:4px 0 0;color:var(--mute);font-size:.88rem}
+.x{flex:none;width:34px;height:34px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;font-size:1rem;cursor:pointer}
+.dl{margin:16px 0 0;border-top:1px solid var(--line)}
+.di{display:grid;grid-template-columns:84px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--soft);font-size:.9rem}
+.di dt{color:var(--mute);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;padding-top:3px}
+.di dd{margin:0;overflow-wrap:anywhere}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.btn{display:inline-flex;align-items:center;height:38px;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:var(--surf);color:var(--ink);font:inherit;font-size:.86rem;font-weight:500;text-decoration:none;cursor:pointer}
+.btn:hover{border-color:var(--acc);color:var(--acc)}
+.btn[disabled]{opacity:.7;cursor:progress}
 @media (max-width:760px){
  thead{display:none}
  table,tbody,tr,td{display:block}
@@ -141,7 +156,7 @@ a.lk:hover{color:var(--acc);text-decoration-color:currentColor}
       <input type="search" class="q" id="q" placeholder="Filter nama atau alamat" aria-label="Filter nama atau alamat">
       <label class="chk"><input type="checkbox" id="onlyc"> Punya kontak</label>
       <label class="chk"><input type="checkbox" id="onlye"> Punya email</label>
-      <select id="sortsel" class="sortsel" aria-label="Urutkan"><option value="">Urutan asli</option><option value="name">Nama A–Z</option><option value="rating">Rating tertinggi</option><option value="reviews">Ulasan terbanyak</option><option value="score">Paling lengkap</option></select>
+      <select id="sortsel" class="sortsel" aria-label="Urutkan"><option value="">Urutan asli</option><option value="name">Nama A–Z</option><option value="rating">Rating tertinggi</option><option value="reviews">Ulasan terbanyak</option><option value="score">Kontak terbanyak</option></select>
       <span class="sp"></span>
       <span id="copied" class="info" hidden></span>
       <button class="ghost" id="copy" type="button">Salin CSV</button>
@@ -154,7 +169,7 @@ a.lk:hover{color:var(--acc);text-decoration-color:currentColor}
         <th class="num" data-k="rating" aria-sort="none"><button type="button">Rating</button></th>
         <th class="num" data-k="reviews" aria-sort="none"><button type="button">Ulasan</button></th>
         <th>Telepon</th><th>Email</th><th>Website</th>
-        <th data-k="score" aria-sort="none"><button type="button">Lengkap</button></th>
+        <th class="num" data-k="score" aria-sort="none" title="Jumlah kontak yang tersedia dari 3: telepon, email, website"><button type="button">Kontak</button></th>
         <th>Peta</th>
       </tr></thead>
       <tbody id="tb"></tbody>
@@ -166,6 +181,7 @@ a.lk:hover{color:var(--acc);text-decoration-color:currentColor}
   <div class="segs" id="segs"></div>
 </section>
 </main>
+<dialog id="dlg" aria-label="Detail tempat"><div id="dbody"></div></dialog>
 <script>
 (function(){
 var $=function(i){return document.getElementById(i)};
@@ -394,20 +410,20 @@ function render(){
     var p=n?Math.round(s[1]/n*100):0;
     return"<div class='stat'><small>"+s[0]+"</small><b>"+s[1]+"</b>"+(i?"<span>"+p+"% dari total</span><div class='meter'><i style='width:"+p+"%'></i></div>":"<span>"+esc(lastQ)+"</span>")+"</div>";
   }).join("");
-  $("shown").textContent="Menampilkan "+r.length+" dari "+n+" tempat";
+  $("shown").textContent="Menampilkan "+r.length+" dari "+n+" tempat. Klik baris untuk lihat detail.";
   $("copied").hidden=true;
   document.querySelectorAll("th[data-k]").forEach(function(th){
     th.setAttribute("aria-sort",th.getAttribute("data-k")===sKey?(sDir>0?"ascending":"descending"):"none");
   });
   $("tb").innerHTML=r.length?r.map(function(x){
     var ph=x.phone?x.phone.split(/[;,]/)[0].trim():"",site=x.website?href(x.website):"",sc=score(x);
-    return"<tr><td class='nm'><b>"+esc(x.name)+"</b><small>"+(x.address?esc(x.address):"Alamat belum diisi")+"</small></td>"
+    return"<tr class='clk' tabindex='0' data-i='"+rows.indexOf(x)+"'><td class='nm'><b>"+esc(x.name)+"</b><small>"+(x.address?esc(x.address):"Alamat belum diisi")+"</small></td>"
       +"<td class='num' data-l='Rating'>"+(x.rating?"<span class='star'>★</span> "+esc(x.rating):NA)+"</td>"
       +"<td class='num' data-l='Ulasan'>"+(x.reviews?esc(x.reviews):NA)+"</td>"
       +"<td class='clip' data-l='Telepon'>"+(ph?"<a class='lk' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":NA)+"</td>"
       +"<td class='clip' data-l='Email'>"+(x.email?"<a class='lk' href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>":NA)+"</td>"
       +"<td class='clip' data-l='Website'>"+(site?"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":NA)+"</td>"
-      +"<td data-l='Lengkap'><span class='pips' title='"+sc+" dari 3 kontak tersedia'>"+[0,1,2].map(function(i){return"<i class='"+(i<sc?"on":"")+"'></i>"}).join("")+"</span></td>"
+      +"<td class='num sc s"+sc+"' data-l='Kontak'>"+sc+" dari 3</td>"
       +"<td data-l='Peta'>"+(x.osm?"<a class='lk' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Buka</a>":NA)+"</td></tr>";
   }).join(""):"<tr><td colspan='8'><p class='info'>Tidak ada tempat yang cocok dengan filter. Ubah atau matikan filter untuk melihat semuanya.</p></td></tr>";
   $("sortsel").value=sKey;
@@ -449,6 +465,34 @@ $("dl").onclick=function(){
   a.href=URL.createObjectURL(new Blob(["\ufeff"+csv()],{type:"text/csv;charset=utf-8"}));
   a.download="prospek.csv";document.body.appendChild(a);a.click();a.remove();
 };
+function findMail(x){
+  var b=$("dmail");b.disabled=true;b.textContent="Mencari…";
+  fetch("/api/email?url="+encodeURIComponent(x.website)).then(function(r){return r.json()}).then(function(j){
+    var e=(j.emails||[])[0];
+    if(e){x.email=e;render();openD(x)}else b.textContent="Email tidak ditemukan";
+  }).catch(function(){b.disabled=false;b.textContent="Gagal, coba lagi"});
+}
+function openD(x){
+  var ph=x.phone?x.phone.split(/[;,]/)[0].trim():"",site=x.website?href(x.website):"";
+  function item(l,v){return"<div class='di'><dt>"+l+"</dt><dd>"+v+"</dd></div>"}
+  var rate=x.rating?"<span class='star'>★</span> "+esc(x.rating)+(x.reviews?" · "+esc(x.reviews)+" ulasan":""):"";
+  $("dbody").innerHTML="<div class='dh'><div><h2>"+esc(x.name)+"</h2>"+(rate?"<p class='dr'>"+rate+"</p>":"")+"</div><button class='x' id='dx' type='button' aria-label='Tutup'>✕</button></div>"
+    +"<dl class='dl'>"+item("Alamat",x.address?esc(x.address):NA)
+    +item("Telepon",ph?"<a class='lk' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":"Belum ada data")
+    +item("Email",x.email?"<a class='lk' href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>":"Belum ada data")
+    +item("Website",site?"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":"Belum ada data")+"</dl>"
+    +"<div class='acts'>"+(ph?"<a class='btn' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>Telepon</a>":"")
+    +(x.email?"<a class='btn' href='mailto:"+esc(x.email)+"'>Kirim email</a>":"")
+    +(site?"<a class='btn' href='"+esc(site)+"' target='_blank' rel='noopener'>Buka website</a>":"")
+    +(x.osm?"<a class='btn' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Lihat di peta</a>":"")
+    +(site&&!x.email?"<button class='btn' id='dmail' type='button'>Cari email dari website</button>":"")+"</div>";
+  $("dx").onclick=function(){$("dlg").close()};
+  if(site&&!x.email)$("dmail").onclick=function(){findMail(x)};
+  if(!$("dlg").open)$("dlg").showModal();
+}
+$("tb").onclick=function(e){if(e.target.closest("a"))return;var tr=e.target.closest("tr[data-i]");if(tr)openD(rows[+tr.getAttribute("data-i")])};
+$("tb").onkeydown=function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr[data-i]")){e.preventDefault();openD(rows[+e.target.getAttribute("data-i")])}};
+$("dlg").onclick=function(e){if(e.target===this)this.close()};
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"],["Importir dan distributor di luar negeri","Volume besar. Cari lewat direktori B2B seperti Alibaba atau Global Sources.",""],["Perias pengantin","Cari lewat Instagram dengan kata kunci “bridal hair” plus nama kota.",""],["Pabrik wig dan rambut","Calon mitra atau pesaing. Cari lewat direktori ekspor.",""]];
 function tab(n){[1,2].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}
 $("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};
