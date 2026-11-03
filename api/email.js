@@ -1,5 +1,6 @@
 // Cari email kontak dari website sebuah bisnis (gratis, tanpa API key)
 const BAD = /\.(png|jpe?g|gif|svg|webp|css|js|woff2?)$|sentry|wixpress|example\.|domain\.com|your(name|email)|@2x|noreply|no-reply/i;
+const WA = /(?:wa\.me\/|(?:api|web)\.whatsapp\.com\/send\/?\?(?:[^"'\s>]*?&(?:amp;)?)?phone=)\+?(\d{8,15})/gi;
 const PATHS = ["", "/contact", "/contact-us", "/kontak", "/about"];
 
 function blocked(host) {
@@ -28,17 +29,19 @@ module.exports = async (req, res) => {
 
     const root = base.hostname.replace(/^www\./, "");
     const found = new Set();
+    const wa = new Set();
     for (const p of PATHS) {
       const html = await grab(p ? new URL(p, base).href : base.href);
       const text = html.replace(/&#0*64;|&commat;|\[at\]/gi, "@");
       (text.match(/mailto:([^"'?>\s]+)/gi) || []).forEach(m => found.add(m.slice(7).toLowerCase()));
       (text.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g) || []).forEach(m => found.add(m.toLowerCase()));
-      if ([...found].some(e => !BAD.test(e))) break;
+      for (const m of text.matchAll(WA)) wa.add(m[1]);
+      if ([...found].some(e => !BAD.test(e)) && wa.size) break;
     }
     const score = e => (e.endsWith("@" + root) || e.endsWith("." + root) ? 0 : 2) + (/^(info|contact|hello|sales|enquiries|admin|cs)@/.test(e) ? 0 : 1);
     const emails = [...found].filter(e => !BAD.test(e)).sort((a, b) => score(a) - score(b)).slice(0, 3);
     res.setHeader("Cache-Control", "s-maxage=86400");
-    return res.status(200).json({ emails });
+    return res.status(200).json({ emails, whatsapp: [...wa].slice(0, 2) });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
