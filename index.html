@@ -10,7 +10,7 @@
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1826;--card:#16243a;--ink:#e6eef8;--mute:#9bacc0;--line:#27394f;--acc:#6aa5ff;--accsoft:#1f3556;--ok:#5fd08a;--err:#ff9a8f;--errbg:#3a1f22}}
 :root[data-theme="dark"]{--bg:#0e1826;--card:#16243a;--ink:#e6eef8;--mute:#9bacc0;--line:#27394f;--acc:#6aa5ff;--accsoft:#1f3556;--ok:#5fd08a;--err:#ff9a8f;--errbg:#3a1f22}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);overflow-y:scroll;scrollbar-gutter:stable}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:900px;margin:0 auto;padding:30px 18px 70px}
@@ -104,7 +104,7 @@ input[type=text],select{width:100%;font:inherit;font-size:.92rem;color:var(--ink
       <select id="kind"><option value="salon">Salon rambut</option><option value="wig">Toko wig / beauty supply</option><option value="beauty">Toko kecantikan</option></select></div>
     <div class="f"><label for="source">Sumber data</label>
       <select id="source"><option value="google">Google Maps (lengkap)</option><option value="osm">OpenStreetMap (gratis, tipis)</option></select></div>
-    <div class="f"><label for="city">Kota</label><input type="text" id="city" value="London" placeholder="Contoh: London, Houston USA, Purwokerto"></div>
+    <div class="f"><label for="city">Kota</label><input type="text" id="city" placeholder="Contoh: London, Houston USA, Purwokerto"></div>
     <button class="go" id="run"><span id="runtxt">Cari</span></button>
   </div>
   <div class="status" id="status" aria-live="polite"></div>
