@@ -136,6 +136,7 @@ async function serpSearch(city, kind, key) {
     phone: r.phone || "",
     website: r.website || "",
     email: "",
+    thumbnail: r.thumbnail || "",
     rating: r.rating || null,
     reviews: r.reviews || null,
     osm: r.place_id ? "https://www.google.com/maps/place/?q=place_id:" + r.place_id : ""
