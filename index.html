@@ -22,6 +22,10 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sa
 .usage b{color:var(--ink);font-weight:600}
 .ubar{height:8px;border-radius:99px;background:var(--soft);border:1px solid var(--line);overflow:hidden}
 .ubar i{display:block;height:100%;width:0;background:var(--acc);border-radius:99px;transition:width .4s}
+.usk{display:flex;flex-direction:column;gap:9px;width:150px}
+.usk i{display:block;border-radius:99px;background:linear-gradient(90deg,var(--soft) 25%,var(--surf) 50%,var(--soft) 75%);background-size:200% 100%;animation:sh 1.3s ease-in-out infinite}
+.usk i:first-child{height:11px;width:75%}
+.usk i:last-child{height:8px}
 .urow{display:flex;flex-direction:column;gap:4px}
 .utrig{background:none;border:0;padding:2px 4px;margin:-2px -4px;border-radius:6px;font:inherit;color:inherit;text-align:left;cursor:pointer;width:calc(100% + 8px)}
 .utrig:hover,.utrig[aria-expanded="true"]{background:var(--soft)}
@@ -152,7 +156,7 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .seg b{display:block;margin-bottom:2px}
 .seg span{color:var(--mute);font-size:.9rem}
 .seg .ghost{margin-top:10px}
-@media (prefers-reduced-motion:reduce){.spin,.sk{animation:none}}
+@media (prefers-reduced-motion:reduce){.spin,.sk,.usk i{animation:none}}
 #login{min-height:100vh;display:grid;place-items:center;padding:20px}
 .lbox{width:min(400px,100%);display:grid;gap:14px;padding:24px}
 .lbox h1{font-size:1.35rem}
@@ -193,7 +197,7 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 <header class="top"><div class="wrap head">
   <div><h1>Pencari prospek hair extension</h1>
   <p class="sub">Salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya.</p></div>
-  <div class="hbtns"><div class="usage" id="usage" hidden title="Sisa kuota pencarian SerpApi bulan ini"></div><button class="ghost" id="setb" type="button">Pengaturan</button><button class="ghost" id="outb" type="button">Keluar</button></div>
+  <div class="hbtns"><div class="usage" id="usage" title="Sisa kuota pencarian SerpApi bulan ini"><div class="usk"><i></i><i></i></div></div><button class="ghost" id="setb" type="button">Pengaturan</button><button class="ghost" id="outb" type="button">Keluar</button></div>
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" id="t1" aria-selected="true">Cari tempat</button>
     <button class="tab" role="tab" id="t2" aria-selected="false">Siapa yang membeli?</button>
@@ -600,7 +604,7 @@ $("tb").onkeydown=function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matche
 $("dlg").onclick=function(e){if(e.target===this)this.close()};
 function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
 function showLogin(msg){$("boot").hidden=true;$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
-function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;loadUsage()}
+function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage()}
 var CK="<svg class='ck' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M5 12.5l4.5 4.5L19 7.5'/></svg>",CH="<svg class='ch' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M6 9l6 6 6-6'/></svg>";
 function umClose(){var m=document.querySelector(".umenu"),t=document.querySelector(".utrig");if(m)m.hidden=true;if(t)t.setAttribute("aria-expanded","false")}
 document.addEventListener("click",function(e){if(!e.target.closest("#usage"))umClose()});
@@ -619,7 +623,7 @@ function renderUsage(j){var u=$("usage"),a=j.accounts||[];if(!a.length){u.hidden
     var sel=a.filter(function(x){return x.n===+n})[0],q=ucls(sel);t.innerHTML="<div class='urow"+q.c+"'><span><b>"+sel.used+" / "+sel.limit+"</b> pencarian · "+sel.label+CH+"</span><div class='ubar'><i style='width:"+q.pct+"%'></i></div></div>"}})
 }
 var lastU=null;
-function loadUsage(f){fetch("/api/usage").then(function(r){return r.json()}).then(function(j){if(f)f(j);lastU=j;renderUsage(j)}).catch(function(){})}
+function loadUsage(f){fetch("/api/usage").then(function(r){return r.json()}).then(function(j){if(f)f(j);lastU=j;try{localStorage.setItem("hl_usage",JSON.stringify(j))}catch(e){}renderUsage(j)}).catch(function(){})}
 // Setelah pencarian Google Maps: tampilkan +1 langsung, lalu samakan dengan angka resmi SerpApi (yang bisa telat update)
 function usageAfterSearch(){
   var j=lastU,n=j&&j.active,a=j&&(j.accounts||[]).filter(function(x){return x.n===n})[0];
