@@ -1,15 +1,13 @@
 CARA PASANG (sekali saja)
-Di Vercel: Project > Settings > Environment Variables, tambahkan SATU variabel saja:
+1. Di Vercel, project ini: tab Storage > Connect database Upstash Redis yang sudah ada (variabel koneksi terisi otomatis).
+2. Project > Settings > Environment Variables, tambahkan SATU variabel:
+     APP_PASSWORD = kata sandi untuk masuk ke halaman ini (pilih yang panjang dan unik)
+   Centang Production, Preview, Development. Lalu Deployments > titik tiga di deploy terbaru > Redeploy.
+3. Buka halaman, masuk, klik "Pengaturan", isi API key SerpApi (dan Geoapify, opsional). Cukup sekali.
+   Key disimpan terenkripsi di Redis (data berawalan "hairleads:"), berlaku di semua browser dan perangkat.
+   Kalau APP_PASSWORD diganti, key harus diisi ulang.
 
-  APP_PASSWORD = kata sandi untuk masuk ke halaman ini (pilih yang panjang dan unik)
+Progress bar kuota SerpApi tampil di pojok kanan atas, diambil dari Account API SerpApi (tidak mengurangi kuota).
 
-Centang Production, Preview, Development. Lalu Deployments > titik tiga di deploy terbaru > Redeploy.
-
-API key TIDAK perlu ditaruh di Vercel. Setelah masuk, klik "Pengaturan" di halaman dan isi:
-  - SerpApi (serpapi.com)    untuk sumber "Google Maps"
-  - Geoapify (geoapify.com)  opsional, untuk sumber "OpenStreetMap"
-Key disimpan di browser tiap perangkat, jadi isi sekali di setiap perangkat yang dipakai.
-
-(Opsional) Kalau SERPAPI_KEY / GEOAPIFY_KEY sudah ada di Vercel, itu dipakai sebagai cadangan
-bila Pengaturan di browser kosong. Hapus keduanya dari Vercel kalau mau semuanya hanya di browser.
+(Opsional) SERPAPI_KEY / GEOAPIFY_KEY di Vercel tetap dipakai sebagai cadangan kalau belum ada key tersimpan.
 JANGAN menaruh API key atau kata sandi di index.html atau di GitHub.

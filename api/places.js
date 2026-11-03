@@ -1,5 +1,6 @@
-// Vercel serverless function: cari tempat. API key dikirim dari halaman (header), tidak disimpan di server
+// Vercel serverless function: cari tempat. API key diambil dari database (diisi lewat Pengaturan), cadangan: env Vercel
 const { isAuthed } = require("./_auth");
+const { getKey } = require("./_store");
 const FILTERS = {
   salon: 'nwr["shop"="hairdresser"]',
   beauty: 'nwr["shop"~"beauty|cosmetics"]',
@@ -154,10 +155,10 @@ module.exports = async (req, res) => {
     if (req.query.source === "osm") {
       const pt = await geocode(city);
       if (!pt) return res.status(404).json({ error: "Kota tidak ditemukan" });
-      const key = req.headers["x-geoapify-key"] || process.env.GEOAPIFY_KEY;
+      const key = (await getKey("geo")) || process.env.GEOAPIFY_KEY;
       results = key ? await geoSearch(pt, kind, key) : await overpassSearch(pt, kind);
     } else {
-      const key = req.headers["x-serpapi-key"] || process.env.SERPAPI_KEY;
+      const key = (await getKey("serp")) || process.env.SERPAPI_KEY;
       if (!key) return res.status(500).json({ error: "API key SerpApi belum diisi. Buka Pengaturan lalu masukkan key-nya" });
       results = await serpSearch(city, kind, key);
     }
