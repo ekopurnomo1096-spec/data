@@ -490,6 +490,14 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
     <p class="aiwarn" id="emerr" hidden></p>
   </div>
   <div class="panel">
+    <div class="svh">Kirim manual</div>
+    <div class="f"><label for="emmt">Alamat email tujuan</label><input type="text" id="emmt" autocomplete="off" placeholder="nama@contoh.com (koma untuk beberapa)"></div>
+    <div class="sf f"><label for="emmn">Nama tempat (opsional)</label><input type="text" id="emmn" autocomplete="off" maxlength="80" placeholder="Untuk sapaan, misalnya Salon Ayu"></div>
+    <p class="hint2">Memakai subjek dan isi email di atas. Nama dipakai kalau hanya ada satu alamat. Cocok juga untuk tes kirim ke emailmu sendiri.</p>
+    <p class="aiwarn" id="emmerr" hidden></p>
+    <div class="eacts"><span class="sp"></span><button class="btn primary" id="emmsend" type="button">Kirim email</button></div>
+  </div>
+  <div class="panel">
     <div class="svh">Penerima</div>
     <div class="tools">
       <input type="search" class="q" id="emq" placeholder="Cari nama, alamat, atau email" aria-label="Cari penerima">
@@ -1472,6 +1480,50 @@ function emSend(force){
   }).catch(function(){EM.busy=false;emErr("Tidak bisa menghubungi server.");emCount()});
 }
 $("emsend").onclick=function(){emSend(false)};
+
+// Kirim manual ke alamat yang diketik
+var EMRE=/^[^\s@<>"]+@[^\s@<>"]+\.[A-Za-z]{2,}$/;
+function emmErr(t){var e=$("emmerr");e.textContent=t||"";e.hidden=!t}
+function emManual(force){
+  if(EM.busy)return;
+  var seen={},list=[];
+  $("emmt").value.split(/[\s,;]+/).forEach(function(t){t=t.trim().toLowerCase();if(t&&!seen[t]){seen[t]=1;list.push(t)}});
+  if(!list.length){emmErr("Isi alamat email tujuan dulu.");return}
+  var bad=list.filter(function(e){return!EMRE.test(e)});
+  if(bad.length){emmErr("Alamat ini tidak valid. "+bad.join(", "));return}
+  var cap=emCap();
+  if(list.length>cap){emmErr(cap?"Maksimal "+cap+" alamat sekali kirim.":"Kuota email hari ini habis. Reset jam 07.00 WIB.");return}
+  var tx=$("emtx").value,sj=$("emsj").value.trim();
+  if(!tx.trim()){emmErr("Isi email di atas masih kosong.");return}
+  var byMail={};mailPool().forEach(function(x){emailsOf(x).forEach(function(m){byMail[String(m).toLowerCase()]=x})});
+  var nm=list.length===1?$("emmn").value.trim():"",lead={};
+  var items=list.map(function(e){
+    var x=byMail[e],id=x?x.id:"manual:"+e.replace(/[^\w.-]/g,"_"),name=nm||(list.length===1&&x?x.name:"");
+    if(x)lead[id]=x;
+    return{id:id,to:e,name:name,subject:sj,text:greet(tx,name)};
+  });
+  emmErr("");EM.busy=true;$("emmsend").disabled=true;$("emmsend").textContent="Mengirim…";emCount();
+  function done(){EM.busy=false;$("emmsend").disabled=false;$("emmsend").textContent="Kirim email";emCount()}
+  postSend(items,force).then(function(o){
+    if(o.st===401){done();showLogin("Sesi habis, silakan masuk lagi.");return}
+    setDaily(o.j.daily);
+    if(!o.ok){done();emmErr(o.j.error||"Gagal mengirim");renderMail();return}
+    var sent=o.j.sent||[],sk=o.j.skipped||[];
+    if(!sent.length&&sk.length){
+      done();
+      if(confirm((sk.length>1?sk.length+" alamat":"Alamat ini")+" sudah pernah dikirimi email lewat aplikasi ini. Kirim lagi?"))emManual(true);
+      return;
+    }
+    if(!sent.length){done();emmErr("Tidak ada email yang terkirim. Periksa alamat tujuannya.");return}
+    var t=Date.now();
+    items.forEach(function(i){if(sent.indexOf(i.id)>-1){EM.sent[i.id]={t:t,to:i.to};if(lead[i.id]){delete EM.sel[i.id];markEmailed(lead[i.id])}}});
+    $("emmt").value="";$("emmn").value="";
+    done();render();renderMail();
+    flash("Terkirim "+sent.length+" email"+(sk.length?". "+sk.length+" dilewati karena sudah pernah dikirimi.":"."));
+  }).catch(function(){done();emmErr("Tidak bisa menghubungi server.")});
+}
+$("emmsend").onclick=function(){emManual(false)};
+$("emmt").onkeydown=$("emmn").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();emManual(false)}};
 $("emq").oninput=$("emst").onchange=$("emhide").onchange=renderMail;
 $("emall").onclick=function(){EM.sel={};mailView().slice(0,emCap()).forEach(function(x){EM.sel[x.id]=true});renderMail()};
 $("emnone").onclick=function(){EM.sel={};renderMail()};
