@@ -1377,7 +1377,8 @@ $("findall").onclick=async function(){
         if(m.length){x.emails=m;x.email=m[0]}
         if(w)x.wa=w;
         x.found=!!(m.length||w);
-        if(x.found){got++;saveLead(x,{},true)}
+        if(x.found)got++;
+        if(x.found||!j.failed)saveLead(x,{},true); // yang sudah dicek tapi kosong juga disimpan, supaya tidak dicek ulang setelah reload. Website yang gagal dijangkau tidak disimpan
       }catch(e){}
       done++;if(!stop)upd();
     }
