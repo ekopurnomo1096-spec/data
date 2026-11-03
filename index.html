@@ -322,6 +322,20 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
  .tools #dl::before{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3'/%3E%3C/svg%3E")}
  .tools #copied{grid-column:1/-1;order:10;margin:0}
 }
+/* Modal progres Nilai dengan AI */
+#aid{width:min(380px,calc(100vw - 24px))}
+#aidbody{padding:20px}
+.aidh{display:flex;align-items:center;gap:10px}
+.aidh h2{font:600 1.1rem/1.35 "Instrument Sans",system-ui,sans-serif;margin:0}
+.aidi{flex:none;display:inline-grid;place-items:center;width:24px;height:24px}
+.aidi svg{width:22px;height:22px;margin:0;color:inherit}
+.aidi:empty{display:none}
+.aipb{height:8px;border-radius:99px;background:var(--soft);border:1px solid var(--line);overflow:hidden;margin-top:14px}
+.aipb i{display:block;height:100%;width:0;background:var(--acc);border-radius:99px;transition:width .35s}
+#aid.ai-ok .aidi{color:var(--acc)}
+#aid.ai-err .aidi{color:var(--err)}
+#aid.ai-err .aipb i{background:var(--err)}
+#aid .acts{margin-top:16px}
 </style>
 </head>
 <body>
@@ -413,6 +427,12 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <dialog id="pdlg" aria-label="Foto tempat"><figure><img id="pimg" alt=""><figcaption id="pcap"></figcaption></figure></dialog>
 <dialog id="dlg" aria-label="Detail tempat"><div id="dbody"></div></dialog>
+<dialog id="aid" aria-label="Nilai dengan AI"><div id="aidbody">
+  <div class="aidh"><span id="aidi" class="aidi"></span><h2 id="aidt">Menilai dengan AI</h2></div>
+  <p class="dr" id="aidm" aria-live="polite"></p>
+  <div class="aipb" id="aidpb"><i id="aidbar"></i></div>
+  <div class="acts" id="aida"><button class="btn primary" id="aidx" type="button">Tutup</button><button class="btn" id="aids" type="button" hidden>Buka Pengaturan</button></div>
+</div></dialog>
 <dialog id="setd" aria-label="Pengaturan"><div id="sbody">
   <div class="dh"><div><h2>Pengaturan</h2><p class="dr">API key disimpan terenkripsi di server, jadi cukup diisi sekali dan berlaku di semua browser.</p></div><button class="x" id="sx" type="button" aria-label="Tutup">✕</button></div>
   <div id="kload" class="kload"><div class="spin"></div><span>Memuat…</span></div>
@@ -907,22 +927,38 @@ function aiPost(body){
   });
 }
 function aiLead(x){return{id:x.id,name:x.name,address:x.address,rating:x.rating,reviews:x.reviews,phone:!!x.phone,email:!!emailsOf(x).length,website:!!x.website,status:stLabel(stOf(x)),note:noteOf(x)}}
+var AIW='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>';
+function aidShow(st,title,msg,pct){
+  var d=$("aid");d.className="ai-"+st;
+  $("aidt").textContent=title;$("aidm").textContent=msg;$("aidbar").style.width=pct+"%";
+  $("aidi").innerHTML=st==="run"?"<div class='spin'></div>":st==="ok"?IC.ok:st==="err"?AIW:"";
+  $("aidpb").hidden=st==="info";
+  $("aidx").hidden=st==="run";$("aids").hidden=true;
+  if(!d.open)d.showModal();
+}
+$("aid").addEventListener("cancel",function(e){if(this.classList.contains("ai-run"))e.preventDefault()});
+$("aidx").onclick=function(){$("aid").close()};
+$("aids").onclick=function(){$("aid").close();openSet()};
 $("aiscore").onclick=async function(){
   var b=this,all=view(),list=all.filter(function(x){return x.id&&!AI[x.id]});
-  if(!list.length){done(all.length?"Semua tempat di tampilan ini sudah dinilai.":"Tidak ada tempat untuk dinilai.");return}
-  b.disabled=true;var n=0;
+  if(!list.length){aidShow("info","Nilai dengan AI",all.length?"Semua tempat di tampilan ini sudah dinilai.":"Tidak ada tempat untuk dinilai.",0);return}
+  b.disabled=true;var n=0,tot=list.length;
+  aidShow("run","Menilai dengan AI","Menilai 0 dari "+tot+" tempat…",0);
   try{
-    for(var i=0;i<list.length;i+=20){
-      b.textContent="Menilai "+Math.min(i+20,list.length)+"/"+list.length+"…";
+    for(var i=0;i<tot;i+=20){
+      aidShow("run","Menilai dengan AI","Menilai "+Math.min(i+20,tot)+" dari "+tot+" tempat…",i/tot*100);
       var j=await aiPost({action:"score",leads:list.slice(i,i+20).map(aiLead)});
       Object.keys(j.items||{}).forEach(function(k){AI[k]=j.items[k];n++});
+      $("aidbar").style.width=Math.min(i+20,tot)/tot*100+"%";
     }
-    sKey="ai";sDir=-1;render();done("Selesai menilai "+n+" tempat. Diurutkan dari skor tertinggi.");
+    sKey="ai";sDir=-1;render();
+    aidShow("ok","Selesai","Berhasil menilai "+n+" tempat. Daftar diurutkan dari skor tertinggi.",100);
   }catch(e){
     var m=String(e.message||e);
-    if(m!=="401"){render();done(m);if(/Pengaturan/.test(m))openSet()}
+    if(m==="401"){$("aid").close()}
+    else{render();aidShow("err","Penilaian gagal",m+(n?" ("+n+" tempat sebelumnya sudah dinilai.)":""),tot?n/tot*100:0);$("aids").hidden=!/Pengaturan/.test(m)}
   }
-  b.disabled=false;b.textContent="Nilai dengan AI";
+  b.disabled=false;
 };
 function tickBtn(b){
   clearTimeout(b._t);b.innerHTML=IC.ok;b.classList.add("done");
