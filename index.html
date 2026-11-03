@@ -765,19 +765,19 @@ function noteLine(x){var n=noteOf(x);return n?"<small class='nt'>Catatan: "+esc(
 function flash(t){var el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true},2400);var d=$("dsv");if(d)d.textContent=t}
 function fmtDate(ms){return new Date(ms).toLocaleString("id-ID",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}
 function leadSnap(x){return{id:x.id,name:x.name,address:x.address,phone:x.phone,website:x.website,email:x.email,emails:x.emails,wa:x.wa,looked:x.looked,found:x.found,thumbnail:x.thumbnail,rating:x.rating,reviews:x.reviews,osm:x.osm,ctx:x.ctx}}
-function saveLead(x,patch){
+function saveLead(x,patch,quiet){
   if(!x.id)return;
   if(!x.ctx)x.ctx=lastCountry+"|"+lastQ;
   var old=LS[x.id]||{},rec={s:old.s||"",n:old.n||"",t:Date.now(),lead:leadSnap(x)};
   if(patch.s!==undefined)rec.s=patch.s;
   if(patch.n!==undefined)rec.n=patch.n;
-  LS[x.id]=rec;flash("Menyimpan…");
+  LS[x.id]=rec;if(!quiet)flash("Menyimpan…");
   fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"save",id:x.id,s:rec.s,n:rec.n,lead:rec.lead})})
     .then(function(r){return r.json().then(function(j){return{ok:r.ok,st:r.status,j:j}})})
     .then(function(o){
       if(o.st===401){showLogin("Sesi habis, silakan masuk lagi.");return}
       if(!o.ok){flash("Gagal menyimpan: "+(o.j.error||"coba lagi"));return}
-      flash("Tersimpan");renderSaved();
+      if(!quiet)flash("Tersimpan");renderSaved();
     }).catch(function(){flash("Tidak bisa menghubungi server")});
 }
 function flushNote(){
@@ -1037,17 +1037,6 @@ function waOf(x){
   if(p.charAt(0)==="0"&&/indonesia/i.test(x.ctx||(lastCountry+"|"+lastQ)))return{n:"62"+p.slice(1),src:"phone"};
   return null;
 }
-function findMail(x){
-  var b=$("dmail");b.disabled=true;b.textContent="Mencari…";
-  fetch("/api/email?url="+encodeURIComponent(x.website)).then(function(r){if(r.status===401){$("dlg").close();showLogin("Sesi habis, silakan masuk lagi.");throw new Error("401")}return r.json()}).then(function(j){
-    var m=j.emails||[],w=(j.whatsapp||[])[0];
-    x.looked=true;
-    if(m.length){x.emails=m;x.email=m[0]}
-    if(w)x.wa=w;
-    x.found=!!(m.length||w);
-    saveLead(x,{});render();openD(x);
-  }).catch(function(){b.disabled=false;b.textContent="Gagal, coba lagi"});
-}
 function openD(x){curX=x;
   var ph=firstPhone(x),site=x.website?href(x.website):"",wa=waOf(x),em=emailsOf(x);
   function item(l,v){return"<div class='di'><dt>"+l+"</dt><dd>"+v+"</dd></div>"}
@@ -1063,13 +1052,12 @@ function openD(x){curX=x;
     +(em.length?"<button class='btn' id='dsend' type='button'>"+IC.mail+"Kirim email</button>":"")
     +(site?"<a class='btn' href='"+esc(site)+"' target='_blank' rel='noopener'>"+IC.web+"Buka website</a>":"")
     +(x.osm?"<a class='btn' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>"+IC.pin+"Lihat di peta</a>":"")
-    +(site&&!x.looked?"<button class='btn' id='dmail' type='button'>"+IC.mail+"Cari email & WhatsApp dari website</button>":"")+"</div>"
+    +"</div>"
     +(x.looked&&!x.found?"<p class='dr' style='margin-top:12px'>Sudah dicek di website, tapi tidak ada email atau WhatsApp yang ditemukan.</p>":"");
   $("dx").onclick=function(){$("dlg").close()};
   $("dst").onchange=function(){this.className="stsel st-"+(this.value||"baru");saveLead(x,{s:this.value});render()};
   $("dnt").oninput=function(){pend=x;clearTimeout(ntm);ntm=setTimeout(flushNote,900)};
   $("dnt").onblur=flushNote;
-  if(site&&!x.looked)$("dmail").onclick=function(){findMail(x)};
   if(em.length)$("dsend").onclick=function(){openMail([x])};
   renderAiBox(x);
   if(!$("dlg").open)$("dlg").showModal();
@@ -1140,7 +1128,7 @@ $("findall").onclick=async function(){
         if(m.length){x.emails=m;x.email=m[0]}
         if(w)x.wa=w;
         x.found=!!(m.length||w);
-        if(x.found){got++;saveLead(x,{})}
+        if(x.found){got++;saveLead(x,{},true)}
       }catch(e){}
       done++;if(!stop)upd();
     }
@@ -1451,7 +1439,7 @@ function renderMail(){
   Object.keys(EM.sel).forEach(function(k){if(!vis[k])delete EM.sel[k]});
   selIds().slice(emCap()).forEach(function(k){delete EM.sel[k]});
   if(!v.length){
-    info.textContent=mailPool().length?"Tidak ada tempat yang cocok dengan filter ini.":"Belum ada tempat yang punya email. Cari tempat dulu, buka detail tempatnya, lalu tekan Cari email dan WhatsApp dari website.";
+    info.textContent=mailPool().length?"Tidak ada tempat yang cocok dengan filter ini.":"Belum ada tempat yang punya email. Cari tempat dulu, lalu tekan Cari email semua di atas tabel.";
     info.hidden=false;list.hidden=true;
   }else{
     info.textContent=v.length+" tempat dengan email.";info.hidden=false;
