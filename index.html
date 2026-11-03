@@ -145,19 +145,22 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .btn{display:inline-flex;align-items:center;height:38px;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:var(--surf);color:var(--ink);font:inherit;font-size:.86rem;font-weight:500;text-decoration:none;cursor:pointer}
 .btn:hover{border-color:var(--acc);color:var(--acc)}
 .btn[disabled]{opacity:.7;cursor:progress}
+.btn.ic{padding:0 12px}
+.btn.ic svg{margin:0}
+.btn.done{border-color:var(--acc);color:var(--acc)}
 @media (max-width:760px){
  thead{display:none}
  table,tbody,tr,td{display:block}
  tr{border-bottom:1px solid var(--line);padding:10px 0}
  tbody tr:last-child{border-bottom:0}
  td{border:0;padding:3px 12px;display:flex;gap:10px;overflow-wrap:anywhere}
- td[data-l]::before{content:attr(data-l);flex:none;width:64px;color:var(--mute);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;padding-top:2px}
+ td[data-l]::before{content:attr(data-l);flex:none;width:64px;color:var(--mute);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
  td.nm{display:block}
  td.nm::before{display:none}
  .num{text-align:left}
  .clip{max-width:none;white-space:normal}
- td[data-l]{position:relative;padding-left:36px;align-items:baseline}
- td[data-l]>svg{position:absolute;left:12px;top:4px;margin:0}
+ td[data-l]{position:relative;padding-left:36px;align-items:center}
+ td[data-l]>svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);margin:0}
  td.clip a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
 .segs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -242,6 +245,9 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
  .stsel{min-width:124px}
  td.clip{max-width:135px}
  td{vertical-align:middle}
+ th:nth-child(3),td:nth-child(3){width:66px}
+ th.num,td.num{text-align:left}
+ td[data-l='Status']>svg,td[data-l='Ulasan']>svg{display:none}
 }
 .di textarea{width:100%;font:inherit;font-size:.9rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;resize:vertical;min-height:72px}
 textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
@@ -365,6 +371,8 @@ mail:ic("<rect width='20' height='16' x='2' y='4' rx='2'/><path d='m22 7-8.97 5.
 web:ic("<circle cx='12' cy='12' r='10'/><path d='M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20'/><path d='M2 12h20'/>"),
 pin:ic("<path d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/><circle cx='12' cy='10' r='3'/>")};
 IC.st=ic("<path d='M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z'/><path d='M4 22v-7'/>");
+IC.copy=ic("<rect width='14' height='14' x='8' y='8' rx='2'/><path d='M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2'/>");
+IC.ok=ic("<path d='M5 12.5l4.5 4.5L19 7.5' stroke-width='2.6'/>");
 IC.rev=ic("<path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/>");
 IC.star="<svg viewBox='0 0 24 24' width='19' height='19' fill='currentColor' stroke='currentColor' stroke-width='2' stroke-linejoin='round' style='color:var(--star)' aria-hidden='true'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>";
 function stars(rating){
@@ -850,6 +858,10 @@ $("aiscore").onclick=async function(){
   }
   b.disabled=false;b.textContent="Nilai dengan AI";
 };
+function tickBtn(b){
+  clearTimeout(b._t);b.innerHTML=IC.ok;b.classList.add("done");
+  b._t=setTimeout(function(){b.innerHTML=IC.copy;b.classList.remove("done")},1600);
+}
 function copyTxt(t,ok){
   function fb(){var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");flash(ok)}catch(e){flash("Gagal menyalin")}a.remove()}
   try{navigator.clipboard.writeText(t).then(function(){flash(ok)},fb)}catch(e){fb()}
@@ -866,7 +878,7 @@ function renderAiBox(x,err){
       (a.status!==stOf(x)?" <button class='btn' type='button' data-ai='apply' style='margin-left:6px'>Terapkan status</button>":" <span class='hint'>sudah sesuai</span>")+"</div>";
     var fd=new Date(Date.now()+a.followup_days*864e5).toLocaleDateString("id-ID",{day:"numeric",month:"short"});
     h+="<div class='air'><span class='ail'>Langkah berikutnya</span>"+esc(a.next_step)+"<br><span class='hint'>Follow-up sekitar "+a.followup_days+" hari lagi ("+esc(fd)+")</span></div>";
-    h+="<div class='air'><span class='ail'>Draf pesan WhatsApp</span><textarea id='aiwa' rows='5'>"+esc(a.wa_message)+"</textarea><div class='acts'><button class='btn' type='button' data-ai='cwa'>Salin</button>"+(wa?"<button class='btn' type='button' data-ai='owa'>"+IC.wa+"Buka di WhatsApp</button>":"")+"</div></div>";
+    h+="<div class='air'><span class='ail'>Draf pesan WhatsApp</span><textarea id='aiwa' rows='5'>"+esc(a.wa_message)+"</textarea><div class='acts'><button class='btn ic' type='button' data-ai='cwa' title='Salin' aria-label='Salin pesan'>"+IC.copy+"</button>"+(wa?"<button class='btn' type='button' data-ai='owa'>"+IC.wa+"Buka di WhatsApp</button>":"")+"</div></div>";
   }
   h+="<div class='acts'><button class='btn' id='dai' type='button'>"+(a?"Buat ulang saran":"Minta saran AI")+"</button></div>";
   if(err)h+="<p class='aiwarn'>"+esc(err)+"</p>";
@@ -888,7 +900,7 @@ $("dbody").addEventListener("click",function(e){
   var t=e.target.closest("[data-ai]");if(!t||!curX)return;
   var x=curX,a=AIA[x.id],k=t.getAttribute("data-ai");
   if(k==="apply"&&a){saveLead(x,{s:a.status});var sel=$("dst");if(sel){sel.value=a.status;sel.className="stsel st-"+(a.status||"baru")}render();renderAiBox(x)}
-  else if(k==="cwa")copyTxt($("aiwa").value,"Pesan WhatsApp tersalin");
+  else if(k==="cwa"){copyTxt($("aiwa").value,"Pesan WhatsApp tersalin");tickBtn(t)}
   else if(k==="owa"){var w=waOf(x);if(w){window.open("https://wa.me/"+w.n+"?text="+encodeURIComponent($("aiwa").value),"_blank","noopener");markContacted(x,"WA")}}
 });
 function bigSrc(u){return u.replace(/=w\d+-h\d+/,"=w900-h900").replace(/=s\d+(?=$|-)/,"=s900")}
