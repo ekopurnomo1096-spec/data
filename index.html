@@ -147,6 +147,11 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 #sbody{padding:20px}
 .sf{margin-top:16px}
 .hint2{color:var(--mute);font-size:.8rem;margin:5px 0 0}
+.btn .spin{width:14px;height:14px;margin-right:8px;border-width:2px;border-color:rgba(255,255,255,.35);border-top-color:var(--onacc)}
+.ksaved{display:none;align-items:center;gap:10px;justify-content:space-between;height:42px;padding:0 6px 0 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:.92rem}
+.ksaved b{color:var(--acc);font-weight:600}
+.sf.saved .ksaved{display:flex}
+.sf.saved input,.sf.saved .hint2{display:none}
 .btn.primary{background:var(--acc);color:var(--onacc);border-color:var(--acc)}
 .btn.primary:hover{color:var(--onacc);opacity:.9}
 [hidden]{display:none!important}
@@ -221,10 +226,10 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 <dialog id="dlg" aria-label="Detail tempat"><div id="dbody"></div></dialog>
 <dialog id="setd" aria-label="Pengaturan"><div id="sbody">
   <div class="dh"><div><h2>Pengaturan</h2><p class="dr">API key disimpan terenkripsi di server, jadi cukup diisi sekali dan berlaku di semua browser.</p></div><button class="x" id="sx" type="button" aria-label="Tutup">✕</button></div>
-  <div class="sf f"><label for="k1">API key SerpApi (Google Maps)</label><input type="password" id="k1" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><p class="hint2">Buat di <a class="lk" href="https://serpapi.com" target="_blank" rel="noopener">serpapi.com</a>. Dipakai untuk sumber Google Maps.</p></div>
-  <div class="sf f"><label for="k2">API key Geoapify (opsional)</label><input type="password" id="k2" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><p class="hint2">Buat di <a class="lk" href="https://geoapify.com" target="_blank" rel="noopener">geoapify.com</a>. Dipakai untuk sumber OpenStreetMap.</p></div>
-  <label class="chk sf"><input type="checkbox" id="ks"> Tampilkan key</label>
-  <div class="acts"><button class="btn primary" id="ksave" type="button">Simpan</button><button class="btn" id="kclear" type="button">Hapus key tersimpan</button></div>
+  <div class="sf f" id="kf1"><label for="k1">API key SerpApi (Google Maps)</label><div class="ksaved"><span>✓ <b>Tersimpan</b> <span id="kh1"></span></span><button class="btn" id="kc1" type="button">Ganti</button></div><input type="password" id="k1" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><p class="hint2">Buat di <a class="lk" href="https://serpapi.com" target="_blank" rel="noopener">serpapi.com</a>. Dipakai untuk sumber Google Maps.</p></div>
+  <div class="sf f" id="kf2"><label for="k2">API key Geoapify (opsional)</label><div class="ksaved"><span>✓ <b>Tersimpan</b> <span id="kh2"></span></span><button class="btn" id="kc2" type="button">Ganti</button></div><input type="password" id="k2" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><p class="hint2">Buat di <a class="lk" href="https://geoapify.com" target="_blank" rel="noopener">geoapify.com</a>. Dipakai untuk sumber OpenStreetMap.</p></div>
+  <label class="chk sf" id="kshow"><input type="checkbox" id="ks"> Tampilkan key</label>
+  <div class="acts" id="kacts"><button class="btn primary" id="ksave" type="button">Simpan</button><button class="btn" id="kclear" type="button">Hapus key tersimpan</button></div>
   <p class="info" id="kmsg" hidden></p>
   <p class="hint2" style="margin-top:14px">Key yang sudah tersimpan tidak ditampilkan lagi. Kosongkan kolom untuk membiarkannya, atau isi untuk menggantinya.</p>
 </div></dialog>
@@ -569,13 +574,22 @@ function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
 function showLogin(msg){$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
 function showApp(){$("login").hidden=true;$("app").hidden=false;loadUsage()}
 function loadUsage(){fetch("/api/usage").then(function(r){return r.json()}).then(function(j){var u=$("usage");if(!j.available){u.hidden=true;return}var pct=j.limit?Math.min(100,Math.round(j.used/j.limit*100)):0;$("utxt").innerHTML="<b>"+j.used+" / "+j.limit+"</b> pencarian";$("ufill").style.width=pct+"%";u.className="usage"+(j.left<=0?" out":pct>=80?" low":"");u.title="Sisa "+j.left+" pencarian SerpApi bulan ini";u.hidden=false}).catch(function(){})}
+function keyState(j){
+  [["1","serp"],["2","geo"]].forEach(function(p){var on=j[p[1]].set;$("kf"+p[0]).classList.toggle("saved",on);$("kh"+p[0]).textContent=on?"("+j[p[1]].hint+")":"";$("k"+p[0]).value=""});
+  keyUi();
+}
+function keyUi(){
+  var edit=!$("kf1").classList.contains("saved")||!$("kf2").classList.contains("saved");
+  $("ksave").hidden=!edit;$("kshow").hidden=!edit;
+  $("kclear").hidden=!$("kf1").classList.contains("saved")&&!$("kf2").classList.contains("saved");
+}
+function busy(on){var b=$("ksave");b.disabled=on;$("kclear").disabled=on;b.innerHTML=on?"<span class='spin'></span>Menyimpan…":"Simpan"}
 function openSet(){
-  $("k1").value="";$("k2").value="";$("kmsg").hidden=true;
-  [["k1","serp"],["k2","geo"]].forEach(function(p){$(p[0]).placeholder="Memuat…"});
-  $("setd").showModal();
+  $("k1").value="";$("k2").value="";$("kmsg").hidden=true;$("kf1").classList.remove("saved");$("kf2").classList.remove("saved");keyUi();
+    $("setd").showModal();
   fetch("/api/keys").then(function(r){if(r.status===401){$("setd").close();showLogin("Sesi habis, silakan masuk lagi.");throw 0}return r.json().then(function(j){return{ok:r.ok,j:j}})}).then(function(o){
     if(!o.ok){kmsg(o.j.error||"Gagal memuat");return}
-    [["k1","serp"],["k2","geo"]].forEach(function(p){$(p[0]).placeholder=o.j[p[1]].set?"Tersimpan ("+o.j[p[1]].hint+"). Isi untuk mengganti":"Tempel key di sini"});
+    keyState(o.j);
   }).catch(function(e){if(e!==0)kmsg("Tidak bisa menghubungi server.")});
 }
 function kmsg(t){$("kmsg").textContent=t;$("kmsg").hidden=false}
@@ -591,15 +605,17 @@ $("sx").onclick=function(){$("setd").close()};
 $("setd").onclick=function(e){if(e.target===this)this.close()};
 $("ks").onchange=function(){var t=this.checked?"text":"password";$("k1").type=t;$("k2").type=t};
 function saveKeys(body,okMsg){
+  busy(true);
   fetch("/api/keys",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
     .then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})})
     .then(function(o){if(!o.ok){kmsg(o.j.error||"Gagal menyimpan");return}
-      $("k1").value="";$("k2").value="";
-      [["k1","serp"],["k2","geo"]].forEach(function(p){$(p[0]).placeholder=o.j[p[1]].set?"Tersimpan ("+o.j[p[1]].hint+"). Isi untuk mengganti":"Tempel key di sini"});
-      kmsg(okMsg);loadUsage()})
-    .catch(function(){kmsg("Tidak bisa menghubungi server.")});
+      keyState(o.j);kmsg(okMsg);loadUsage()})
+    .catch(function(){kmsg("Tidak bisa menghubungi server.")})
+    .then(function(){busy(false)});
 }
 $("ksave").onclick=function(){var b={},a=$("k1").value.trim(),g=$("k2").value.trim();if(a)b.serp=a;if(g)b.geo=g;if(!a&&!g){kmsg("Tidak ada yang diubah.");return}saveKeys(b,"Tersimpan di server.")};
+$("kc1").onclick=function(){$("kf1").classList.remove("saved");keyUi();$("k1").focus()};
+$("kc2").onclick=function(){$("kf2").classList.remove("saved");keyUi();$("k2").focus()};
 $("kclear").onclick=function(){if(confirm("Hapus semua key yang tersimpan di server?"))saveKeys({serp:"",geo:""},"Key dihapus.")};
 $("outb").onclick=function(){fetch("/api/session",{method:"DELETE"}).then(function(){location.reload()},function(){location.reload()})};
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"],["Importir dan distributor di luar negeri","Volume besar. Cari lewat direktori B2B seperti Alibaba atau Global Sources.",""],["Perias pengantin","Cari lewat Instagram dengan kata kunci “bridal hair” plus nama kota.",""],["Pabrik wig dan rambut","Calon mitra atau pesaing. Cari lewat direktori ekspor.",""]];
