@@ -118,15 +118,46 @@ async function overpassSearch(pt, kind) {
   }).filter(r => r.name);
 }
 
+// ---- Google Maps lewat SerpApi (data paling lengkap; butuh SERPAPI_KEY) ----
+const SERP_TERM = { salon: "hair extension salon", wig: "wig shop", beauty: "beauty supply store" };
+
+async function serpSearch(city, kind, key) {
+  const url = "https://serpapi.com/search.json?engine=google_maps&type=search&q=" +
+    encodeURIComponent(SERP_TERM[kind] + " in " + city) + "&api_key=" + encodeURIComponent(key);
+  const j = await getJSON(url, { headers: UA }, 25000);
+  if (j.error) {
+    if (/hasn't returned any results/i.test(j.error)) return [];
+    throw new Error("SerpApi: " + j.error);
+  }
+  const list = j.local_results || (j.place_results ? [j.place_results] : []);
+  return list.map(r => ({
+    name: r.title || "",
+    address: r.address || "",
+    phone: r.phone || "",
+    website: r.website || "",
+    email: "",
+    rating: r.rating || null,
+    reviews: r.reviews || null,
+    osm: r.place_id ? "https://www.google.com/maps/place/?q=place_id:" + r.place_id : ""
+  })).filter(r => r.name);
+}
+
 module.exports = async (req, res) => {
   try {
     const city = String((req.query && req.query.city) || "").trim();
     const kind = FILTERS[req.query && req.query.kind] ? req.query.kind : "salon";
     if (!city) return res.status(400).json({ error: "Isi nama kota" });
-    const pt = await geocode(city);
-    if (!pt) return res.status(404).json({ error: "Kota tidak ditemukan" });
-    const key = process.env.GEOAPIFY_KEY;
-    const results = key ? await geoSearch(pt, kind, key) : await overpassSearch(pt, kind);
+    let results;
+    if (req.query.source === "osm") {
+      const pt = await geocode(city);
+      if (!pt) return res.status(404).json({ error: "Kota tidak ditemukan" });
+      const key = process.env.GEOAPIFY_KEY;
+      results = key ? await geoSearch(pt, kind, key) : await overpassSearch(pt, kind);
+    } else {
+      const key = process.env.SERPAPI_KEY;
+      if (!key) return res.status(500).json({ error: "SERPAPI_KEY belum diisi di Vercel (Settings > Environment Variables), lalu Redeploy" });
+      results = await serpSearch(city, kind, key);
+    }
     res.setHeader("Cache-Control", "s-maxage=3600");
     return res.status(200).json({ results });
   } catch (err) {

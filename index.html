@@ -24,7 +24,7 @@ h1{font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.15;margin:0 0 10px;font-weig
 .tab[aria-selected="true"]{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
 :is(button,input,select,a):focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
-.form{display:grid;grid-template-columns:1fr 1.2fr auto;gap:12px;align-items:end}
+.form{display:grid;grid-template-columns:1fr 1.2fr 1.2fr auto;gap:12px;align-items:end}
 @media (max-width:640px){.form{grid-template-columns:1fr}}
 .f label{display:block;font-weight:700;font-size:.9rem;margin-bottom:6px}
 input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;height:48px}
@@ -78,6 +78,8 @@ input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(
   <div class="form">
     <div class="f"><label for="kind">Jenis tempat</label>
       <select id="kind"><option value="salon">Salon rambut</option><option value="wig">Toko wig / beauty supply</option><option value="beauty">Toko kecantikan</option></select></div>
+    <div class="f"><label for="source">Sumber data</label>
+      <select id="source"><option value="google">Google Maps (lengkap)</option><option value="osm">OpenStreetMap (gratis, tipis)</option></select></div>
     <div class="f"><label for="city">Kota</label><input type="text" id="city" value="London" placeholder="Contoh: London, Houston USA, Purwokerto"></div>
     <button class="go" id="run"><span id="runtxt">Cari</span></button>
   </div>
@@ -101,7 +103,7 @@ input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(
   <div id="segs"></div>
 </section>
 
-<p class="note">Data berasal dari OpenStreetMap, ditampilkan lewat Geoapify (powered by Geoapify). Kartu tanpa telepon atau website berarti datanya belum diisi di sana, dan kelengkapannya berbeda tiap negara. Hasil dibatasi sekitar 8 km dari pusat kota. Importir, distributor, dan pabrik tidak punya kategori jelas di OpenStreetMap, jadi cari lewat direktori B2B.</p>
+<p class="note">Data berasal dari OpenStreetMap, ditampilkan lewat Geoapify (powered by Geoapify). Kartu tanpa telepon atau website berarti datanya belum diisi di sana, dan kelengkapannya berbeda tiap negara. Google Maps (SerpApi) memberi sekitar 20 tempat per pencarian dan memakai kuota 250 pencarian gratis per bulan; pencarian yang sama dalam satu jam tidak menambah pemakaian. OpenStreetMap dibatasi sekitar 8 km dari pusat kota. Importir, distributor, dan pabrik tidak punya kategori jelas di OpenStreetMap, jadi cari lewat direktori B2B.</p>
 </main>
 
 <script>
@@ -110,7 +112,7 @@ var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 var LABEL={salon:"salon",wig:"toko wig",beauty:"toko kecantikan"};
 var rows=[],timer=null;
-var STEPS=["Mencari lokasi kota…","Mengambil data dari OpenStreetMap…","Hampir selesai. Kota besar butuh waktu lebih lama…"];
+var STEPS=["Mencari lokasi kota…","Mengambil data tempat…","Hampir selesai. Kota besar butuh waktu lebih lama…"];
 function loading(on){
   $("run").disabled=on;
   $("runtxt").textContent=on?"Mencari…":"Cari";
@@ -134,8 +136,8 @@ function render(){
     if(x.website)a.push("<a href='"+esc(href(x.website))+"' target='_blank' rel='noopener'>Website</a>");
     if(x.email)a.push("<a href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>");
     if(!a.length)a.push("<span>Belum ada kontak</span>");
-    a.push("<a href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Peta</a>");
-    return"<div class='item'><h3>"+esc(x.name)+"</h3><p>"+(x.address?esc(x.address):"Alamat belum diisi")+"</p><div class='acts'>"+a.join("")+"</div></div>"}).join(""):"<p class='info'>Tidak ada tempat yang punya kontak. Matikan filter untuk melihat semuanya.</p>";
+    if(x.osm)a.push("<a href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Peta</a>");
+    return"<div class='item'><h3>"+esc(x.name)+"</h3><p>"+(x.address?esc(x.address):"Alamat belum diisi")+"</p>"+(x.rating?"<p>★ "+x.rating+(x.reviews?" · "+x.reviews+" ulasan":"")+"</p>":"")+"<div class='acts'>"+a.join("")+"</div></div>"}).join(""):"<p class='info'>Tidak ada tempat yang punya kontak. Matikan filter untuk melihat semuanya.</p>";
   $("res").hidden=false;
 }
 async function run(){
@@ -143,7 +145,7 @@ async function run(){
   if(!city){say("err","Tulis nama kota dulu, misalnya London atau Purwokerto.");$("city").focus();return}
   loading(true);
   try{
-    var r=await fetch("/api/places?city="+encodeURIComponent(city)+"&kind="+kind),tx=await r.text(),j;
+    var r=await fetch("/api/places?city="+encodeURIComponent(city)+"&kind="+kind+"&source="+$("source").value),tx=await r.text(),j;
     try{j=JSON.parse(tx)}catch(x){throw new Error("server membalas error ("+r.status+"). Cek Logs di dashboard Vercel.")}
     if(!r.ok)throw new Error(j.error||"Gagal");
     rows=j.results;loading(false);
