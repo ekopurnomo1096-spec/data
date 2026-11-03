@@ -1,12 +1,11 @@
 // Kirim email lewat Resend (maksimal 20 per permintaan).
-// GET  ?name=...            = {ready, from, subject, text}: status pengaturan + contoh isi email dari template
+// GET  ?name=...            = {ready, from, subject, text}: status pengaturan (subject dan text kosong)
 // GET  ?sent=1              = sama seperti di atas, ditambah {sent:{id:{t,to}}} (riwayat kirim) dan {daily:{used,limit}} (hitungan hari ini)
-// POST {items:[{id,to,name,subject?,text?}], force?} = kirim. Tanpa subject/text dipakai template.
+// POST {items:[{id,to,name,subject?,text?}], force?} = kirim. Subject dan text wajib diisi.
 // Tempat yang sudah pernah dikirimi (hairleads:mail) dilewati kecuali force=true.
 // Key Resend (nama "rs"), alamat pengirim ("rsf"), dan Reply-To opsional ("rrt") disimpan di Redis lewat Pengaturan; RESEND_API_KEY / RESEND_FROM di Vercel jadi cadangan.
 const { isAuthed } = require("./_auth");
 const { dbConfigured, getKey, cmd, hgetall } = require("./_store");
-const { TEMPLATE } = require("./_template");
 
 const MAIL = "hairleads:mail";
 const DAYK = "hairleads:mailday"; // hitungan email terkirim per hari (UTC), field = "YYYY-MM-DD"
@@ -19,16 +18,13 @@ async function usedToday() {
   if (!dbConfigured()) return 0;
   try { return parseInt(await cmd(["HGET", DAYK, today()]), 10) || 0; } catch (e) { return 0; }
 }
-const SUBJECT = "Human hair extension supplier from Indonesia (wholesale)";
-const FOOTER = "\n\n--\nIf you'd rather not hear from us, just reply \"unsubscribe\" and we won't email you again.";
 const EMAIL = /^[^\s@<>"]+@[^\s@<>"]+\.[A-Za-z]{2,}$/;
 const ID = /^[\w:./|-]{1,120}$/;
 
 const clean = (v, n) => String(v == null ? "" : v).replace(/[\r\n\t]+/g, " ").replace(/[<>]/g, "").trim().slice(0, n);
-function compose(name) {
-  const n = clean(name, 80);
-  const text = TEMPLATE.replace(/^Hi!/, n ? "Hi " + n + " team!" : "Hi!") + FOOTER;
-  return { subject: SUBJECT, text };
+// Template email dikosongkan: subjek dan isi harus ditulis sendiri sebelum kirim
+function compose() {
+  return { subject: "", text: "" };
 }
 async function config() {
   const key = (await getKey("rs")) || process.env.RESEND_API_KEY || "";
@@ -44,7 +40,7 @@ module.exports = async (req, res) => {
     const { key, from, replyTo } = await config();
 
     if (req.method === "GET") {
-      const out = { ready: !!(key && from), hasKey: !!key, from, replyTo, max: MAX, ...compose(req.query && req.query.name) };
+      const out = { ready: !!(key && from), hasKey: !!key, from, replyTo, max: MAX, ...compose() };
       if (req.query && req.query.sent && dbConfigured()) {
         out.daily = { used: await usedToday(), limit: DAILY };
         const all = await hgetall(MAIL);
@@ -84,9 +80,10 @@ module.exports = async (req, res) => {
       const id = String((o && o.id) || ""), to = clean(o && o.to, 200).toLowerCase();
       if (!ID.test(id) || !EMAIL.test(to) || seenTo.has(to)) { bad.push(id); continue; }
       seenTo.add(to);
-      const d = compose(o.name);
-      const subject = clean(o.subject, 200) || d.subject;
-      const text = typeof o.text === "string" && o.text.trim() ? o.text.slice(0, 5000) : d.text;
+      const subject = clean(o.subject, 200);
+      const text = typeof o.text === "string" ? o.text.trim().slice(0, 5000) : "";
+      if (!subject) return res.status(400).json({ error: "Subjek email masih kosong" });
+      if (!text) return res.status(400).json({ error: "Isi email masih kosong" });
       items.push({ id, to, subject, text });
     }
 

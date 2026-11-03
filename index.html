@@ -1525,6 +1525,7 @@ function emSend(force){
   var picks=selIds().map(function(id){return by[id]}).filter(Boolean);
   var sj=$("emsj").value.trim(),tx=$("emtx").value;
   if(!picks.length)return;
+  if(!sj){emErr("Subjek email masih kosong.");return}
   if(!tx.trim()){emErr("Isi email masih kosong.");return}
   emErr("");EM.busy=true;EM.who="list";emCount();
   postSend(picks.map(function(x){return{id:x.id,to:pickMail(x),name:x.name,subject:sj,text:greet(tx,x.name)}}),force).then(function(o){
@@ -1558,6 +1559,7 @@ function emManual(force){
   var cap=emCap();
   if(list.length>cap){emmErr(cap?"Maksimal "+cap+" alamat sekali kirim.":"Kuota email hari ini habis. Reset jam 07.00 WIB.");return}
   var tx=$("emtx").value,sj=$("emsj").value.trim();
+  if(!sj){emmErr("Subjek email di atas masih kosong.");return}
   if(!tx.trim()){emmErr("Isi email di atas masih kosong.");return}
   var byMail={};mailPool().forEach(function(x){emailsOf(x).forEach(function(m){byMail[String(m).toLowerCase()]=x})});
   var nm=list.length===1?$("emmn").value.trim():"",lead={};
