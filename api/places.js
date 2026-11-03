@@ -125,16 +125,22 @@ async function overpassSearch(pt, kind) {
 // ---- Google Maps lewat SerpApi (data paling lengkap; butuh SERPAPI_KEY) ----
 const SERP_TERM = { salon: "hair extension salon", wig: "wig shop", beauty: "beauty supply store" };
 
-async function serpSearch(city, kind, key) {
-  const url = "https://serpapi.com/search.json?engine=google_maps&type=search&q=" +
+async function serpSearch(city, kind, key, start, ll) {
+  let url = "https://serpapi.com/search.json?engine=google_maps&type=search&q=" +
     encodeURIComponent(SERP_TERM[kind] + " in " + city) + "&api_key=" + encodeURIComponent(key);
+  if (start > 0) url += "&start=" + start + (ll ? "&ll=" + encodeURIComponent(ll) : "");
   const j = await getJSON(url, { headers: UA }, 25000);
   if (j.error) {
-    if (/hasn't returned any results/i.test(j.error)) return [];
+    if (/hasn't returned any results/i.test(j.error)) return { list: [], more: false, ll: ll || "" };
     throw new Error("SerpApi: " + j.error);
   }
-  const list = j.local_results || (j.place_results ? [j.place_results] : []);
-  return list.map(r => ({
+  const raw = j.local_results || (j.place_results ? [j.place_results] : []);
+  // Koordinat pencarian (ll) dari tautan halaman berikutnya, supaya halaman 2 dst konsisten
+  const nx = (j.serpapi_pagination && j.serpapi_pagination.next) || "";
+  const m = /[?&]ll=([^&]+)/.exec(nx);
+  const llOut = m ? decodeURIComponent(m[1]) : (ll || "");
+  const more = !!nx || raw.length >= 20;
+  const list = raw.map(r => ({
     name: r.title || "",
     address: r.address || "",
     phone: r.phone || "",
@@ -145,6 +151,7 @@ async function serpSearch(city, kind, key) {
     reviews: r.reviews || null,
     osm: r.place_id ? "https://www.google.com/maps/place/?q=place_id:" + r.place_id : ""
   })).filter(r => r.name);
+  return { list, more, ll: llOut };
 }
 
 module.exports = async (req, res) => {
@@ -156,20 +163,29 @@ module.exports = async (req, res) => {
     const source = req.query.source === "osm" ? "osm" : "google";
     const ckey = source + "|" + kind + "|" + city.toLowerCase().replace(/\s+/g, " ");
     const refresh = req.query.refresh === "1";
+    // start > 0: ambil halaman berikutnya (20 tempat per halaman), hanya untuk sumber Google
+    const start = source === "google" ? Math.min(Math.max(parseInt(req.query.start, 10) || 0, 0), 400) : 0;
     res.setHeader("Cache-Control", "private, no-store");
 
     // Hasil yang pernah disimpan dipakai lagi, jadi tidak memakai kuota SerpApi
-    if (!refresh && dbConfigured()) {
+    if (!refresh && !start && dbConfigured()) {
       try {
         const raw = await cmd(["HGET", CACHE, ckey]);
         const hit = raw && JSON.parse(raw);
         if (hit && Array.isArray(hit.results) && hit.results.length) {
-          return res.status(200).json({ results: hit.results, cached: true, savedAt: hit.at, dupes: hit.dupes || 0 });
+          return res.status(200).json({ results: hit.results, cached: true, savedAt: hit.at, dupes: hit.dupes || 0, more: !!hit.more, next: hit.next || 0 });
         }
       } catch (e) { /* cache rusak atau Redis bermasalah: cari seperti biasa */ }
     }
 
-    let results;
+    let results, more = false, ll = "", prev = [], prevDupes = 0;
+    if (start > 0 && dbConfigured()) {
+      try {
+        const raw = await cmd(["HGET", CACHE, ckey]);
+        const hit = raw && JSON.parse(raw);
+        if (hit && Array.isArray(hit.results)) { prev = hit.results; ll = hit.ll || ""; prevDupes = hit.dupes || 0; }
+      } catch (e) { /* tanpa cache: halaman tambahan tetap diambil, hanya tidak digabung */ }
+    }
     if (source === "osm") {
       const pt = await geocode(city);
       if (!pt) return res.status(404).json({ error: "Kota tidak ditemukan" });
@@ -181,21 +197,29 @@ module.exports = async (req, res) => {
       if (!a1 && !k2) return res.status(500).json({ error: "API key SerpApi belum diisi. Buka Pengaturan lalu masukkan key-nya" });
       // Akun yang dipakai dipilih manual lewat switch di pojok kanan atas (default akun 1)
       const useN = act === "2" && k2 ? 2 : (a1 ? 1 : 2);
-      try { results = await serpSearch(city, kind, useN === 2 ? k2 : a1); }
+      try {
+        const sr = await serpSearch(city, kind, useN === 2 ? k2 : a1, start, ll);
+        results = sr.list; more = sr.more; ll = sr.ll;
+      }
       catch (e) { throw (a1 && k2) ? new Error(e.message + " (Akun " + useN + ")") : e; }
     }
-    const d = dedupe(results);
+    const before = prev.length;
+    const d = dedupe(prev.concat(results));
     results = d.list;
+    d.dupes += prevDupes;
+    const added = start > 0 ? results.length - before : results.length;
+    if (start > 0 && added <= 0) more = false;
+    const next = more ? (start || 0) + 20 : 0;
     let saved = false;
     if (results.length && dbConfigured()) {
       try {
         const at = Date.now();
-        await cmd(["HSET", CACHE, ckey, JSON.stringify({ at, dupes: d.dupes, results })]);
+        await cmd(["HSET", CACHE, ckey, JSON.stringify({ at, dupes: d.dupes, results, more, next, ll })]);
         await cmd(["HSET", META, ckey, JSON.stringify({ at, city, kind, source, n: results.length })]);
         saved = true;
       } catch (e) { /* gagal menyimpan tidak boleh menggagalkan pencarian */ }
     }
-    return res.status(200).json({ results, cached: false, saved, dupes: d.dupes });
+    return res.status(200).json({ results, cached: false, saved, dupes: d.dupes, more, next, added });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

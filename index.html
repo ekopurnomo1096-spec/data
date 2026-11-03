@@ -207,6 +207,7 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 /* Rapikan tabel: kolom tetap proporsional, alamat & catatan dipotong agar baris tidak menjulang */
 .nm small{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;max-width:none}
 .nm small.nt{-webkit-line-clamp:1;line-clamp:1}
+.morebox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
 @media (min-width:761px){
  table{min-width:0}
  th,td{padding-left:8px;padding-right:8px}
@@ -216,7 +217,6 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
  .stsel{min-width:124px}
  td.clip{max-width:135px}
  td{vertical-align:middle}
-}
 }
 .di textarea{width:100%;font:inherit;font-size:.9rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;resize:vertical;min-height:72px}
 textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
@@ -297,6 +297,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       </tr></thead>
       <tbody id="tb"></tbody>
     </table></div>
+    <div class="morebox" id="morebox" hidden><button class="ghost" id="more" type="button">Muat 20 lagi</button><span class="hint2" id="morehint">Memakai 1 kuota SerpApi.</span></div>
   </div>
 </section>
 <section id="p2" hidden>
@@ -515,7 +516,7 @@ function comboAsync(inputId,listId,opts){
     if(!e.target.closest(".combo")){$("countryList").hidden=true;$("cityselList").hidden=true}
   });
 })();
-var rows=[],timer=null,sKey="",sDir=1,lastQ="",lastCountry="",lastDupes=0;
+var rows=[],timer=null,sKey="",sDir=1,lastQ="",lastCountry="",lastDupes=0,MORE=false,NEXT=0,mCity="",mKind="";
 var LS={},SAVED=[],pend=null,ntm=null,toastT=null,curX=null;
 var STAT=[["","Belum dihubungi"],["chat","Sudah dihubungi"],["balas","Dibalas"],["deal","Deal"],["tidak","Tidak cocok"]];
 var STORD={"":0,chat:1,balas:2,deal:3,tidak:4};
@@ -575,7 +576,7 @@ function showMine(){
   var t=trackedList();
   if(!t.length){$("res").hidden=true;say("info","Belum ada prospek yang diberi status atau catatan.");return}
   rows=t.map(function(r){return r.lead});
-  lastQ="Prospek saya";lastDupes=0;sKey="changed";sDir=-1;
+  lastQ="Prospek saya";lastDupes=0;MORE=false;sKey="changed";sDir=-1;
   $("status").innerHTML="";$("cinfo").hidden=true;
   render();
 }
@@ -660,6 +661,7 @@ function render(){
       +"<td class='pt' data-l='Peta'>"+(x.osm?IC.pin+"<a class='lk' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Buka</a>":NA)+"</td></tr>";
   }).join(""):"<tr><td colspan='8'><p class='info'>Tidak ada tempat yang cocok dengan filter. Ubah atau matikan filter untuk melihat semuanya.</p></td></tr>";
   syncSort();
+  $("morebox").hidden=!(MORE&&lastQ!=="Prospek saya");
   $("res").hidden=false;
 }
 async function run(force){
@@ -674,11 +676,29 @@ async function run(force){
     rows=j.results;hydrate(rows);lastDupes=j.dupes||0;loading(false);if($("source").value!=="osm"&&!j.cached)usageAfterSearch();
     if(!rows.length)return say("info","Tidak ada data "+LABEL[kind]+" di "+esc(city)+" dari sumber ini. Coba kota lain, jenis tempat lain, atau ganti sumber data.");
     lastQ=LABEL[kind]+" di "+city;lastCountry=$("country").value;sKey="";sDir=1;
+    MORE=!!j.more&&$("source").value!=="osm";NEXT=j.next||20;mCity=city;mKind=kind;
     setCinfo(j);render();if(!j.cached)loadSearches();
   }catch(e){loading(false);var m=e.message.replace(/\.$/,"");
     if(/Pengaturan/.test(m)){say("err",esc(m)+". <button class='ghost' id='goset' type='button'>Buka Pengaturan</button>");$("goset").onclick=openSet}
     else say("err","Pencarian gagal: "+esc(m)+". Server peta gratis kadang sibuk, jadi coba lagi beberapa saat.")}
 }
+$("more").onclick=async function(){
+  var b=this,h=$("morehint");
+  if(!MORE||!mCity)return;
+  b.disabled=true;b.textContent="Memuat…";
+  try{
+    var r=await fetch("/api/places?city="+encodeURIComponent(mCity)+"&kind="+mKind+"&source=google&start="+NEXT),tx=await r.text(),j;
+    if(r.status===401)return showLogin("Sesi habis, silakan masuk lagi.");
+    try{j=JSON.parse(tx)}catch(x){throw new Error("server membalas error ("+r.status+")")}
+    if(!r.ok)throw new Error(j.error||"Gagal");
+    rows=j.results;hydrate(rows);lastDupes=j.dupes||0;usageAfterSearch();
+    MORE=!!j.more;NEXT=j.next||NEXT+20;
+    render();
+    flash(j.added>0?"Ditambah "+j.added+" tempat baru.":"Tidak ada tempat tambahan lagi.");
+    if(!j.added)MORE=false,$("morebox").hidden=true;
+  }catch(e){h.textContent="Gagal: "+e.message.replace(/\.$/,"")+". Coba lagi."}
+  b.disabled=false;b.textContent="Muat 20 lagi";
+};
 $("sortsel").onchange=function(){var v=this.value;if(v==="namez"){sKey="name";sDir=-1}else{sKey=v;sDir=(v==="name"||v==="status")?1:-1}render()};
 $("run").onclick=function(){run(false)};
 ["fst","frt","frv","fph","fwa","fem","fwb","fnt"].forEach(function(id){$(id).addEventListener("change",render)});
