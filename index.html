@@ -532,6 +532,18 @@ main.wrap{max-width:1180px;margin:0 auto}
 }
 @media (prefers-reduced-motion:reduce){.side{transition:none}}
 .lbox .bmark{width:44px;height:44px}
+
+.ng>summary{display:flex;align-items:center;gap:8px;padding:8px 10px;margin-top:2px;border-radius:8px;font-size:.8rem;font-weight:600;color:var(--mute);cursor:pointer;list-style:none}
+.ng>summary::-webkit-details-marker{display:none}
+.ng>summary:hover{background:var(--soft);color:var(--ink)}
+.ng>summary:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
+.ng>summary::after{content:"";margin-left:auto;width:6px;height:6px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-3px}
+.ng[open]>summary::after{transform:rotate(225deg);margin-top:3px}
+.ng[open]>summary{color:var(--ink)}
+.ngi{display:flex;flex-direction:column;gap:1px;margin:2px 0 6px 18px;padding-left:8px;border-left:1px solid var(--line)}
+.tab.sub{height:32px;font-size:.84rem}
+.tab.sub[aria-selected="true"]::before{left:-9px;top:7px;bottom:7px;width:3px}
+#aucfg>.aus{border-top:0;padding:2px 0}
 </style>
 </head>
 <body>
@@ -557,10 +569,10 @@ main.wrap{max-width:1180px;margin:0 auto}
     <button class="tab" type="button" id="t4" data-v="4" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><rect x='2' y='4' width='20' height='16' rx='2'/><path d='M22 7l-10 6L2 7'/></svg><span>Email</span></button>
     <button class="tab" type="button" id="tbalas" data-v="balas" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg><span>Balasan</span><em class="tn" id="rpnav"></em></button>
     <div class="ngl">Otomatis</div>
-    <button class="tab" type="button" id="t5" data-v="ringkas" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M3 3v18h18'/><path d='M7 14l4-4 3 3 5-6'/></svg><span>Ringkasan</span><em class="tn" id="t5n"></em></button>
-    <button class="tab" type="button" data-v="kirim" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M22 2L11 13'/><path d='M22 2l-7 20-4-9-9-4 20-7z'/></svg><span>Kirim & teks</span></button>
-    <button class="tab" type="button" data-v="cari" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><circle cx='11' cy='11' r='7'/><path d='M21 21l-4.3-4.3'/><path d='M11 8v6M8 11h6'/></svg><span>Cari prospek</span></button>
-    <button class="tab" type="button" data-v="sistem" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z'/><path d='M5 19h14'/></svg><span>Skor & sistem</span></button>
+    <details class="ng" open><summary>Pantau</summary><div class="ngi"><button class="tab sub" type="button" data-v="ringkas" aria-selected="false"><span>Status & statistik</span></button><button class="tab sub" type="button" data-v="antrean" aria-selected="false"><span>Antrean persetujuan</span><em class="tn" id="t5n"></em></button></div></details>
+    <details class="ng"><summary>Kirim email</summary><div class="ngi"><button class="tab sub" type="button" data-v="kirim" aria-selected="false"><span>Kirim otomatis</span></button><button class="tab sub" type="button" data-v="warm" aria-selected="false"><span>Pemanasan domain</span></button><button class="tab sub" type="button" data-v="teks" aria-selected="false"><span>Teks email</span></button></div></details>
+    <details class="ng"><summary>Cari prospek</summary><div class="ngi"><button class="tab sub" type="button" data-v="ulang" aria-selected="false"><span>Cari ulang</span></button><button class="tab sub" type="button" data-v="putar" aria-selected="false"><span>Putaran kota</span></button><button class="tab sub" type="button" data-v="cariem" aria-selected="false"><span>Cari email</span></button></div></details>
+    <details class="ng"><summary>Sistem</summary><div class="ngi"><button class="tab sub" type="button" data-v="skor" aria-selected="false"><span>Skor prospek</span></button><button class="tab sub" type="button" data-v="lapor" aria-selected="false"><span>Laporan & peringatan</span></button><button class="tab sub" type="button" data-v="bersih" aria-selected="false"><span>Pembersihan data</span></button><button class="tab sub" type="button" data-v="serp" aria-selected="false"><span>Akun SerpApi</span></button><button class="tab sub" type="button" data-v="berhenti" aria-selected="false"><span>Daftar berhenti</span></button></div></details>
   </nav>
   <div class="sidefoot">
     <div class="sidequota"><div class="sidelabel">Kuota SerpApi bulan ini</div><div class="usage" id="usage" title="Sisa kuota pencarian SerpApi bulan ini"><div class="usk"><i></i><i></i></div></div></div>
@@ -703,7 +715,7 @@ main.wrap{max-width:1180px;margin:0 auto}
     <p class="hint2">Berjalan otomatis setiap hari pukul 08.00 WIB. “Jalankan sekarang” menjalankan semua tugas sekaligus (kirim, cari ulang, putaran kota, cari email, isi antrean) dan bisa sampai 1 menit.</p>
     <details class="aud2"><summary>Riwayat jalan</summary><ul class="aulog" id="aulog"></ul></details>
   </div>
-  <details class="panel aup aud" data-g="ringkas" open>
+  <details class="panel aup aud" data-g="antrean" open>
     <summary>Antrean persetujuan <em class="tn" id="auqn"></em></summary>
     <div id="auq"></div>
   </details>
@@ -723,13 +735,13 @@ main.wrap{max-width:1180px;margin:0 auto}
     <div id="austats"></div>
     <p class="hint2">Tanggal memakai UTC (ganti hari pukul 07.00 WIB), sama seperti kuota Resend. Bounce dan spam tercatat saat webhook Resend masuk.</p>
   </details>
-  <div class="panel aup" id="aucfgwrap" data-g="kirim cari sistem">
-    <div class="svh" id="aucfgh">Pengaturan</div>
+  <div class="panel aup" id="aucfgwrap" data-g="kirim warm teks ulang putar cariem skor lapor bersih serp">
+    <div class="svh" id="aucfgh" hidden>Pengaturan</div>
     <div id="aucfg"></div>
     <p class="aiwarn" id="auerr" hidden></p>
-    <div class="eacts"><span class="hint2" style="margin:0">Simpan berlaku untuk semua kelompok, termasuk yang tidak sedang dibuka.</span><span class="sp"></span><button class="btn primary" id="ausave" type="button">Simpan pengaturan</button></div>
+    <div class="eacts"><span class="hint2" style="margin:0">Simpan berlaku untuk semua pengaturan Otomatis, termasuk yang ada di menu lain.</span><span class="sp"></span><button class="btn primary" id="ausave" type="button">Simpan pengaturan</button></div>
   </div>
-  <details class="panel aup aud" data-g="sistem" open>
+  <details class="panel aup aud" data-g="berhenti" open>
     <summary>Daftar berhenti <em class="tn" id="ausn"></em></summary>
     <p class="hint2" style="margin:0 0 10px">Alamat di daftar ini tidak akan dikirimi lagi, baik otomatis maupun manual. Terisi sendiri saat penerima klik berhenti berlangganan, atau saat email bounce atau dilaporkan spam (lewat webhook Resend).</p>
     <div class="aurow"><div class="f" style="flex:3 1 220px;margin-top:0"><input type="text" id="ausa" placeholder="nama@contoh.com" autocomplete="off" aria-label="Tambah alamat ke daftar berhenti"></div><div style="flex:0 0 auto"><button class="ghost" id="ausab" type="button">Tambah</button></div></div>
@@ -1894,11 +1906,11 @@ $("elist").addEventListener("change",function(e){
 });
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"]];
 var CUR="1";
-var PG={"1":["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],"2":["Siapa yang membeli?","Kelompok pembeli yang paling mungkin tertarik pada hair extension."],"3":["Tersimpan","Prospek yang sudah kamu tandai dan pencarian yang pernah disimpan."],"4":["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],"ringkas":["Ringkasan","Status kirim, antrean persetujuan, dan statistik 7 hari."],"balas":["Balasan","Balasan calon pembeli dibaca AI, lalu status prospek diperbarui."],"kirim":["Kirim & teks","Aturan kirim otomatis, pemanasan domain, dan teks follow-up."],"cari":["Cari prospek","Cari ulang kota yang sudah ada, putaran kota baru, dan cari email dari website."],"sistem":["Skor & sistem","Bobot skor, laporan, pembersihan data, akun SerpApi, dan daftar berhenti."]};
-var ASEC={kirim:["Kirim otomatis","Pemanasan domain","Teks email"],cari:["Cari ulang","Putaran kota","Cari email"],sistem:["Skor prospek","Laporan dan peringatan","Pembersihan data","Akun SerpApi"]};
-var ATITLE={kirim:"Kirim & teks",cari:"Cari prospek",sistem:"Skor & sistem"};
+var PG={"1":["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],"2":["Siapa yang membeli?","Kelompok pembeli yang paling mungkin tertarik pada hair extension."],"3":["Tersimpan","Prospek yang sudah kamu tandai dan pencarian yang pernah disimpan."],"4":["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],"ringkas":["Status & statistik","Status jalan otomatis, tombol jalankan sekarang, dan statistik 7 hari."],"antrean":["Antrean persetujuan","Email yang menunggu persetujuanmu sebelum dikirim."],"balas":["Balasan","Balasan calon pembeli dibaca AI, lalu status prospek diperbarui."],"kirim":["Kirim otomatis","Aturan kirim otomatis, batas harian, dan follow-up."],"warm":["Pemanasan domain","Naikkan batas kirim bertahap untuk domain pengirim baru."],"teks":["Teks email","Isi email pertama dan follow-up yang dikirim otomatis."],"ulang":["Cari ulang","Ulangi pencarian tersimpan secara berkala, hanya tempat baru yang ditambahkan."],"putar":["Putaran kota","Cari kota baru dari daftar secara bergantian."],"cariem":["Cari email","Cek website tempat baru untuk mencari email dan WhatsApp."],"skor":["Skor prospek","Atur bobot skor yang menentukan siapa masuk antrean."],"lapor":["Laporan & peringatan","Ringkasan harian dan peringatan masalah lewat email."],"bersih":["Pembersihan data","Buang data lama otomatis supaya database tetap ringan."],"serp":["Akun SerpApi","Pindah akun otomatis saat kuota akun aktif menipis."],"berhenti":["Daftar berhenti","Alamat yang tidak akan dikirimi email lagi."]};
+var AUV=["ringkas","antrean","balas","kirim","warm","teks","ulang","putar","cariem","skor","lapor","bersih","serp","berhenti"];
+var ASEC={kirim:["Kirim otomatis"],warm:["Pemanasan domain"],teks:["Teks email"],ulang:["Cari ulang"],putar:["Putaran kota"],cariem:["Cari email"],skor:["Skor prospek"],lapor:["Laporan dan peringatan"],bersih:["Pembersihan data"],serp:["Akun SerpApi"]};
 function applyAuto(){
-  if(["ringkas","balas","kirim","cari","sistem"].indexOf(CUR)<0)return;
+  if(AUV.indexOf(CUR)<0)return;
   [].forEach.call(document.querySelectorAll("#p5 > [data-g]"),function(el){
     el.hidden=el.getAttribute("data-g").split(/\s+/).indexOf(CUR)<0;
   });
@@ -1909,7 +1921,6 @@ function applyAuto(){
     el.hidden=!on;
     if(on)el.open=true;
   });
-  if($("aucfgh")&&ATITLE[CUR])$("aucfgh").textContent=ATITLE[CUR];
 }
 function navOpen(v){document.body.classList.toggle("navopen",!!v);$("mmenu").setAttribute("aria-expanded",!!v)}
 $("mmenu").onclick=function(){navOpen(!document.body.classList.contains("navopen"))};
@@ -1918,12 +1929,13 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape")navOpen(fals
 function tab(n){
   n=String(n===5||n==="5"?"ringkas":n);
   CUR=n;
-  var page=({ringkas:"5",balas:"5",kirim:"5",cari:"5",sistem:"5"})[n]||n;
+  var page=AUV.indexOf(n)>-1?"5":n;
   [1,2,3,4,5].forEach(function(i){$("p"+i).hidden=String(i)!==page});
   [].forEach.call(document.querySelectorAll(".tab[data-v]"),function(b){
     var on=b.getAttribute("data-v")===n;
     b.setAttribute("aria-selected",on?"true":"false");
     b.setAttribute("aria-current",on?"page":"false");
+    if(on){var g=b.closest("details.ng");if(g)g.open=true}
   });
   var meta=PG[n]||PG["1"];
   $("ptitle").textContent=meta[0];$("pdesc").textContent=meta[1];$("mtitle").textContent=meta[0];
@@ -1936,7 +1948,7 @@ $("sidenav").addEventListener("click",function(e){
   if(v==="3"&&b.getAttribute("aria-selected")==="true"){$("svres").hidden=true;$("svbox").hidden=false}
   tab(v);
   if(v==="4"){renderMail();loadMailTab()}
-  if(v==="ringkas"||v==="balas"||v==="kirim"||v==="cari"||v==="sistem"){if(!AU.st)auLoad(true)}
+  if(AUV.indexOf(v)>-1){if(!AU.st)auLoad(true)}
 });
 $("segs").innerHTML=SEG.map(function(s,i){return"<div class='seg'><div class='n'>"+(i+1)+"</div><div><b>"+s[0]+"</b><span>"+s[1]+"</span>"+(s[2]?"<div><button class='ghost' data-i='"+i+"'>Cari tempat ini</button></div>":"")+"</div></div>"}).join("");
 document.querySelectorAll("#segs button").forEach(function(b){b.onclick=function(){$("kind").value=SEG[+b.getAttribute("data-i")][2];tab(1);$("city").focus()}});
