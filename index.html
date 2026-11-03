@@ -16,9 +16,6 @@ body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 "Plus Jakarta 
 main{max-width:900px;margin:0 auto;padding:30px 18px 70px}
 h1{font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.15;margin:0 0 10px;font-weight:800;letter-spacing:-.02em}
 .sub{color:var(--mute);margin:0 0 20px;max-width:60ch}
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:0 0 26px;padding:0;list-style:none;counter-reset:s}
-.steps li{counter-increment:s;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:.95rem;display:flex;gap:10px;align-items:center}
-.steps li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;background:var(--acc);color:#fff;font-weight:800;display:grid;place-items:center;font-size:.9rem}
 .tabs{display:flex;gap:6px;margin-bottom:14px}
 .tab{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 18px;border-radius:999px;font:inherit;font-weight:500;cursor:pointer}
 .tab[aria-selected="true"]{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
@@ -74,7 +71,6 @@ input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(
 <main>
 <h1>Temukan pembeli hair extension di kota mana pun</h1>
 <p class="sub">Cari salon dan toko wig asli lengkap dengan alamat dan kontaknya, di Indonesia maupun luar negeri.</p>
-<ol class="steps"><li>Pilih jenis tempat</li><li>Tulis nama kota</li><li>Lihat hasil dan hubungi</li></ol>
 
 <div class="tabs" role="tablist">
   <button class="tab" role="tab" id="t1" aria-selected="true">Cari tempat</button>
@@ -95,6 +91,7 @@ input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(
     <div class="bar"><b id="count"></b>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
         <label class="chk"><input type="checkbox" id="onlyc"> Hanya yang punya kontak</label>
+        <label class="chk"><input type="checkbox" id="onlye"> Hanya yang punya email</label>
         <button class="ghost" id="copy">Salin sebagai CSV</button><span id="copied" class="info" hidden></span>
       </div>
     </div>
@@ -136,9 +133,11 @@ function loading(on){
 function say(cls,t){$("status").innerHTML="<div class='"+cls+"'>"+t+"</div>"}
 function href(u){return/^https?:\/\//i.test(u)?u:"https://"+u}
 function render(){
-  var only=$("onlyc").checked,r=rows.filter(function(x){return!only||x.phone||x.website||x.email});
+  var only=$("onlyc").checked,onlye=$("onlye").checked;
+  var r=rows.filter(function(x){return(!only||x.phone||x.website||x.email)&&(!onlye||x.email)});
   var withc=rows.filter(function(x){return x.phone||x.website||x.email}).length;
-  $("count").textContent=rows.length+" tempat ditemukan, "+withc+" punya kontak";
+  var withe=rows.filter(function(x){return x.email}).length;
+  $("count").textContent=rows.length+" tempat ditemukan, "+withc+" punya kontak, "+withe+" punya email";
   $("copied").hidden=true;
   $("list").innerHTML=r.length?r.map(function(x){
     var ph=x.phone?x.phone.split(/[;,]/)[0].trim():"";
@@ -166,10 +165,11 @@ async function run(){
     render();
   }catch(e){loading(false);say("err","Pencarian gagal: "+esc(e.message.replace(/\.$/,""))+". Server peta gratis kadang sibuk, jadi coba lagi beberapa saat.")}
 }
-$("run").onclick=run;$("onlyc").onchange=render;
+$("run").onclick=run;$("onlyc").onchange=render;$("onlye").onchange=render;
 $("city").addEventListener("keydown",function(e){if(e.key==="Enter")run()});
 $("copy").onclick=function(){
-  var only=$("onlyc").checked,r=rows.filter(function(x){return!only||x.phone||x.website||x.email});
+  var only=$("onlyc").checked,onlye=$("onlye").checked;
+  var r=rows.filter(function(x){return(!only||x.phone||x.website||x.email)&&(!onlye||x.email)});
   var csv="nama,alamat,telepon,website,email\n"+r.map(function(x){return[x.name,x.address,x.phone,x.website,x.email].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(",")}).join("\n");
   function done(t){$("copied").textContent=t;$("copied").hidden=false}
   try{navigator.clipboard.writeText(csv).then(function(){done("Tersalin.")},function(){done("Gagal menyalin.")})}catch(e){done("Gagal menyalin.")}
