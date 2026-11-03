@@ -26,6 +26,11 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sa
 .usk i{display:block;border-radius:99px;background:linear-gradient(90deg,var(--soft) 25%,var(--surf) 50%,var(--soft) 75%);background-size:200% 100%;animation:sh 1.3s ease-in-out infinite}
 .usk i:first-child{height:11px;width:75%}
 .usk i:last-child{height:8px}
+.tsk{display:inline-block;width:16px;height:11px;border-radius:99px;vertical-align:middle;background:linear-gradient(90deg,var(--soft) 25%,var(--surf) 50%,var(--soft) 75%);background-size:200% 100%;animation:sh 1.3s ease-in-out infinite}
+#emcn.tsk{width:64px}
+.sk.tall{height:68px}
+.skel{background:linear-gradient(90deg,var(--soft) 25%,var(--surf) 50%,var(--soft) 75%)!important;background-size:200% 100%!important;animation:sh 1.3s ease-in-out infinite;color:transparent!important;border-color:var(--line)!important;pointer-events:none}
+.emuse .usk{margin-bottom:4px}
 .urow{display:flex;flex-direction:column;gap:4px}
 .utrig{background:none;border:0;padding:2px 4px;margin:-2px -4px;border-radius:6px;font:inherit;color:inherit;text-align:left;cursor:pointer;width:calc(100% + 8px)}
 .utrig:hover,.utrig[aria-expanded="true"]{background:var(--soft)}
@@ -184,7 +189,7 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .seg b{display:block;margin-bottom:2px}
 .seg span{color:var(--mute);font-size:.9rem}
 .seg .ghost{margin-top:10px}
-@media (prefers-reduced-motion:reduce){.spin,.sk,.usk i{animation:none}}
+@media (prefers-reduced-motion:reduce){.spin,.sk,.usk i,.tsk,.skel{animation:none}}
 #login{min-height:100vh;display:grid;place-items:center;padding:20px}
 .lbox{width:min(400px,100%);display:grid;gap:14px;padding:24px}
 .lbox h1{font-size:1.35rem}
@@ -411,7 +416,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" id="t1" aria-selected="true">Cari tempat</button>
     <button class="tab" role="tab" id="t2" aria-selected="false">Siapa yang membeli?</button>
-    <button class="tab" role="tab" id="t3" aria-selected="false">Tersimpan <em class="tn" id="t3n"></em></button>
+    <button class="tab" role="tab" id="t3" aria-selected="false">Tersimpan <em class="tn tsk" id="t3n"></em></button>
     <button class="tab" role="tab" id="t4" aria-selected="false">Email</button>
   </div>
 </div></header>
@@ -477,13 +482,13 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <div class="segs" id="segs"></div>
 </section>
 <section id="p3" hidden>
-  <div id="svbox"></div>
+  <div id="svbox"><div class="svh">Prospek saya</div><div class="sk tall"></div><div class="svh">Pencarian tersimpan</div><div class="sk tall"></div><div class="sk tall"></div></div>
   <div id="svres" hidden><p style="margin:0 0 12px"><button class="ghost" id="svback" type="button">← Kembali ke Tersimpan</button></p><div id="svslot"></div></div>
 </section>
 <section id="p4" hidden>
-  <div class="emuse" id="emuse" hidden></div>
+  <div class="emuse" id="emuse"><div class="usk"><i></i><i></i></div></div>
   <div class="panel" id="emcfgp">
-    <details id="emcfg"><summary>Pengaturan email <em class="tn" id="emcn"></em></summary>
+    <details id="emcfg"><summary>Pengaturan email <em class="tn tsk" id="emcn"></em></summary>
   <div class="sf f" id="kf5"><label for="k5">API key Resend</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh5"></span></span><button class="btn" id="kc5" type="button">Ganti</button></div><div class="krow"><input type="password" id="k5" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx5" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://resend.com" target="_blank" rel="noopener">resend.com</a>. Dipakai untuk semua pengiriman email.</p></div>
   <div class="sf f" id="kf6"><label for="k6">Email pengirim (untuk Resend)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh6"></span></span><button class="btn" id="kc6" type="button">Ganti</button></div><div class="krow"><input type="text" id="k6" autocomplete="off" placeholder="EMA Hairshop Wholesale &lt;sales@wholesale.emahairshop.com&gt;" data-ph="1"><button class="btn" id="kx6" type="button" hidden>Batal</button></div><p class="hint2">Harus memakai domain yang sudah diverifikasi di Resend. Tidak bisa Gmail atau Yahoo.</p></div>
   <div class="sf f" id="kf7"><label for="k7">Reply-To (balasan masuk ke sini, opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh7"></span></span><button class="btn" id="kc7" type="button">Ganti</button></div><div class="krow"><input type="text" id="k7" autocomplete="off" placeholder="sales@emahairshop.com" data-ph="1"><button class="btn" id="kx7" type="button" hidden>Batal</button></div><p class="hint2">Email yang kamu baca. Kalau calon pembeli klik Balas, jawabannya masuk ke sini, bukan ke alamat pengirim.</p></div>
@@ -493,8 +498,8 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
     </details>
   </div>
   <div class="panel">
-    <div class="f"><label for="emsj">Subjek</label><input type="text" id="emsj" maxlength="200"></div>
-    <div class="sf f"><label for="emtx">Isi email</label><textarea id="emtx" rows="12"></textarea>
+    <div class="f"><label for="emsj">Subjek</label><input type="text" id="emsj" maxlength="200" class="skel" readonly></div>
+    <div class="sf f"><label for="emtx">Isi email</label><textarea id="emtx" rows="12" class="skel" readonly></textarea>
       <p class="hint2">Sapaan di baris pertama otomatis memakai nama tempat (Hi Nama team!) selama baris itu tetap diawali Hi!</p></div>
     <p class="hint2" id="emfrom"></p>
     <p class="aiwarn" id="emerr" hidden></p>
@@ -801,7 +806,7 @@ function hydrate(a){a.forEach(function(x){var r=LS[x.id],l=r&&r.lead;if(!l)retur
 function trackedList(){return Object.keys(LS).map(function(k){return LS[k]}).filter(function(r){return r&&r.lead&&(r.s||r.n)})}
 function renderSaved(){
   var box=$("svbox"),t=trackedList(),h="";
-  $("t3n").textContent=SAVED.length||"";
+  $("t3n").textContent=SAVED.length||"";$("t3n").classList.remove("tsk");
   h+="<div class='svh'>Prospek saya</div>";
   if(t.length){
     var cn={};t.forEach(function(r){var k=r.s||"";cn[k]=(cn[k]||0)+1});
@@ -816,7 +821,7 @@ function renderSaved(){
   box.innerHTML=h;
 }
 function loadLeads(){
-  fetch("/api/leads").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){LS=j.items||{};SAVED=j.searches||[];renderSaved()}).catch(function(){});
+  fetch("/api/leads").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){LS=j.items||{};SAVED=j.searches||[];renderSaved()}).catch(function(e){if(e===0)return;$("t3n").classList.remove("tsk");$("svbox").innerHTML="<p class='info'>Gagal memuat data tersimpan. Muat ulang halaman.</p>"});
 }
 function loadSearches(){
   fetch("/api/leads?part=searches").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){SAVED=j.searches||[];renderSaved()}).catch(function(){});
@@ -1427,7 +1432,7 @@ function emCount(){
 function shortDate(ms){return new Date(ms).toLocaleDateString("id-ID",{day:"numeric",month:"short"})}
 function renderHist(){
   var ids=Object.keys(EM.sent).sort(function(a,b){return EM.sent[b].t-EM.sent[a].t}),box=$("ehist");
-  if(!EM.loaded){box.innerHTML="";return}
+  if(!EM.loaded){box.innerHTML="<div class='sk'></div>";return}
   if(!ids.length){box.innerHTML="<p class='info'>Belum ada email terkirim lewat aplikasi ini.</p>";return}
   var h="<div class='mlist rd' style='margin-top:0'>"+ids.slice(0,15).map(function(id){
     var r=EM.sent[id],nm=nameOf(id);
@@ -1438,7 +1443,7 @@ function renderHist(){
 }
 function renderMail(){
   var info=$("eminfo"),list=$("elist");
-  if(!EM.loaded){info.textContent="Memuat…";info.hidden=false;list.hidden=true;emCount();renderHist();return}
+  if(!EM.loaded){info.hidden=true;list.innerHTML="<div class='sk'></div><div class='sk'></div><div class='sk'></div>";list.hidden=false;emCount();renderHist();return}
   var v=mailView(),vis={};
   v.forEach(function(x){vis[x.id]=1});
   Object.keys(EM.sel).forEach(function(k){if(!vis[k])delete EM.sel[k]});
@@ -1456,16 +1461,21 @@ function renderMail(){
   }
   emCount();renderHist();
 }
+function mailUnskel(){
+  ["emsj","emtx"].forEach(function(id){var e=$(id);e.classList.remove("skel");e.removeAttribute("readonly")});
+  $("emcn").classList.remove("tsk");
+  if(!EM.daily)$("emuse").hidden=true;
+}
 function loadMailTab(){
   fetch("/api/send?sent=1").then(function(r){if(r.status===401){showLogin("Sesi habis, silakan masuk lagi.");throw 0}return r.json()}).then(function(j){
-    if(j.error){emErr(j.error);return}
-    EM.cfg=j;EM.sent=j.sent||{};EM.loaded=true;EM.daily=j.daily||null;renderEmUse(EM.daily);
+    if(j.error){emErr(j.error);mailUnskel();return}
+    EM.cfg=j;EM.sent=j.sent||{};EM.loaded=true;EM.daily=j.daily||null;renderEmUse(EM.daily);mailUnskel();
     if(!EM.filled){$("emsj").value=j.subject||"";$("emtx").value=j.text||"";EM.filled=true}
     $("emfrom").textContent=mailFrom(j);emErr(mailWarn(j,true));
     $("emcn").textContent=j.ready?"siap kirim":"belum lengkap";
     if(!j.ready)$("emcfg").open=true;
     renderMail();
-  }).catch(function(e){if(e!==0)emErr("Tidak bisa menghubungi server.")});
+  }).catch(function(e){if(e!==0){emErr("Tidak bisa menghubungi server.");mailUnskel()}});
   if(!EM.keysLoaded)loadMailKeys();
 }
 function mkmsg(t,bad){var e=$("emkmsg");e.textContent=t||"";e.className=bad?"aiwarn":"hint2";e.hidden=!t}
