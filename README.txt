@@ -16,3 +16,11 @@ FITUR SIMPAN, STATUS, DAN CATATAN (otomatis, tidak perlu pengaturan tambahan sel
 - Hasil pencarian disimpan di Redis (hairleads:cache). Mencari kota + jenis + sumber yang sama lagi membuka hasil tersimpan tanpa memakai kuota SerpApi. Tombol "Cari ulang" memaksa pencarian baru.
 - Duplikat dibuang otomatis: place_id sama, nama + alamat sama, atau nomor telepon sama dengan nama mirip. Cabang dengan alamat berbeda tidak dibuang.
 - Status prospek dan catatan disimpan per tempat (hairleads:leads), jadi tempat yang sama di pencarian lain memakai status yang sama.
+
+KIRIM EMAIL (Resend, opsional)
+- Di Resend: buat API key, dan verifikasi domain pengirim (Domains > Add domain, lalu isi DNS-nya). Gmail/Yahoo tidak bisa dipakai sebagai pengirim.
+- Di halaman ini: Pengaturan > isi "API key Resend" dan "Email pengirim" (mis. EMA Hairshop <halo@domainmu.com>). Cadangan: RESEND_API_KEY dan RESEND_FROM di Vercel.
+- Satu tempat: buka detail tempat > Kirim email. Isi bisa diedit dulu.
+- Massal: tombol "Kirim email" di atas tabel. Hanya tempat berstatus Belum dihubungi yang punya email, maksimal 20 sekali kirim. Daftar bisa dicentang.
+- Isi email memakai template di api/_template.js (sama dengan draf WA) dan sapaan diganti nama tempat. Ada baris berhenti berlangganan di bagian bawah.
+- Setelah terkirim, status otomatis jadi Sudah dihubungi dan catatan ditambah "Email, 3 Nov". Tempat yang sudah pernah dikirimi dilewati (dicatat di hairleads:mail).

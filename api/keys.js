@@ -1,15 +1,15 @@
-// GET = status key tersimpan (dimasking), POST = simpan ({serp, serp2, geo, gem}; "" = hapus, tidak dikirim = tidak diubah)
+// GET = status key tersimpan (dimasking), POST = simpan ({serp, serp2, geo, gem, rs (Resend), rsf (alamat pengirim)}; "" = hapus, tidak dikirim = tidak diubah)
 const { isAuthed } = require("./_auth");
 const { dbConfigured, getKey, setKey, setActive } = require("./_store");
 
-const NAMES = ["serp", "serp2", "geo", "gem"];
+const NAMES = ["serp", "serp2", "geo", "gem", "rs", "rsf"];
 async function status() {
   const v = await Promise.all(NAMES.map(getKey));
   const o = {};
-  NAMES.forEach((n, i) => { o[n] = hint(v[i]); });
+  NAMES.forEach((n, i) => { o[n] = hint(v[i], n === "rsf"); });
   return o;
 }
-const hint = v => (v ? { set: true, hint: "…" + v.slice(-4) } : { set: false, hint: "" });
+const hint = (v, full) => (v ? { set: true, hint: full ? v : "…" + v.slice(-4) } : { set: false, hint: "" });
 
 module.exports = async (req, res) => {
   try {

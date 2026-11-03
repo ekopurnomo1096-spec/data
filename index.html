@@ -183,7 +183,18 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .lbox h1{font-size:1.35rem}
 .lbox .sub{margin:0}
 .lbox .go,.lbox .err{margin:0}
-#sbody{padding:20px}
+#sbody,#mbody{padding:20px}
+#mbody .sf{margin-top:14px}
+#mtx{width:100%;font:inherit;font-size:.88rem;line-height:1.45;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;resize:vertical}
+#mtx[readonly]{color:var(--mute)}
+.mlist{max-height:190px;overflow:auto;margin-top:14px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.mrow{display:flex;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--soft);font-size:.88rem;cursor:pointer}
+.mrow:last-child{border-bottom:0}
+.mrow input{flex:none;width:16px;height:16px;accent-color:var(--acc)}
+.mrow span{min-width:0;flex:1}
+.mrow b,.mrow small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow small{color:var(--mute);font-size:.8rem}
+#maild .acts{margin-top:16px}
 .sf{margin-top:16px}
 .hint2{color:var(--mute);font-size:.8rem;margin:5px 0 0}
 .btn .spin{width:14px;height:14px;margin-right:8px;border-width:2px;border-color:rgba(255,255,255,.35);border-top-color:var(--onacc)}
@@ -288,7 +299,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
  .tools:has(.svl)>.chk{grid-column:span 3}
  .tools:has(.svl)>.chk:has(#fnt){grid-column:1/-1}
  .tools #aiscore{grid-column:1/-1;background:var(--acc);border-color:var(--acc);color:var(--onacc)}
- .tools .dls{grid-column:1/-1}
+ .tools .dls,.tools #mailb{grid-column:1/-1}
  .tools .dls #dl{width:100%;justify-content:center}
  .dlmenu{left:0;right:0;min-width:0}
  .tools .chk:has(input:checked){border-color:var(--acc);background:var(--accsoft);color:var(--acc);font-weight:600}
@@ -312,7 +323,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
  tbody tr>td[data-l='Telepon']>svg{top:calc(50% + 2px)}
  tbody tr>td.pt{padding-bottom:6px}
  dialog{width:calc(100vw - 16px);max-height:calc(100vh - 24px)}
- #dbody,#sbody{padding:16px}
+ #dbody,#sbody,#mbody{padding:16px}
  .di{grid-template-columns:92px 1fr;gap:8px}
  .svc{padding:12px}
  .segs{gap:10px}
@@ -414,6 +425,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       <span class="sp"></span>
       <span id="copied" class="info" hidden></span>
       <button class="ghost" id="aiscore" type="button" title="AI memberi skor 0-100 dan alasan untuk tiap tempat di tampilan ini">Nilai dengan AI</button>
+      <button class="ghost" id="mailb" type="button" title="Kirim email ke tempat yang belum dihubungi (maksimal 20 sekali kirim)">Kirim email</button>
       <div class="dls"><button class="ghost" id="dl" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="dlmenu">Unduh CSV <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="dlmenu" id="dlmenu" role="menu" hidden><button type="button" role="menuitem" id="dlall"></button><button type="button" role="menuitem" id="dlem"></button><button type="button" role="menuitem" id="dlwa"></button></div></div>
     </div>
     <p class="meta" id="shown"></p>
@@ -450,6 +462,15 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <div class="aipb" id="aidpb"><i id="aidbar"></i></div>
   <div class="acts" id="aida"><button class="btn" id="aids" type="button" hidden>Buka Pengaturan</button></div>
 </div><button id="aidx" class="aidx" type="button" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></dialog>
+<dialog id="maild" aria-label="Kirim email"><div id="mbody">
+  <div class="dh"><div><h2 id="mt">Kirim email</h2><p class="dr" id="msub"></p></div><button class="x" id="mx" type="button" aria-label="Tutup">✕</button></div>
+  <div class="mlist" id="mlist" hidden></div>
+  <div class="sf f"><label for="msj">Subjek</label><input type="text" id="msj" maxlength="200"></div>
+  <div class="sf f"><label for="mtx" id="mtxl">Isi email</label><textarea id="mtx" rows="11"></textarea></div>
+  <p class="hint2" id="mfrom"></p>
+  <p class="aiwarn" id="merr" hidden></p>
+  <div class="acts"><button class="btn primary" id="msend" type="button">Kirim</button><button class="btn" id="mset" type="button" hidden>Buka Pengaturan</button><button class="btn" id="mcancel" type="button">Batal</button></div>
+</div></dialog>
 <dialog id="setd" aria-label="Pengaturan"><div id="sbody">
   <div class="dh"><div><h2>Pengaturan</h2><p class="dr">API key disimpan terenkripsi di server, jadi cukup diisi sekali dan berlaku di semua browser.</p></div><button class="x" id="sx" type="button" aria-label="Tutup">✕</button></div>
   <div id="kload" class="kload"><div class="spin"></div><span>Memuat…</span></div>
@@ -458,6 +479,8 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <div class="sf f" id="kf2"><label for="k2">API key SerpApi akun 2 (opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh2"></span></span><button class="btn" id="kc2" type="button">Ganti</button></div><div class="krow"><input type="password" id="k2" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx2" type="button" hidden>Batal</button></div><p class="hint2">Pilih akun yang dipakai lewat switch di pojok kanan atas.</p></div>
   <div class="sf f" id="kf3"><label for="k3">API key Geoapify (opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh3"></span></span><button class="btn" id="kc3" type="button">Ganti</button></div><div class="krow"><input type="password" id="k3" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx3" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://geoapify.com" target="_blank" rel="noopener">geoapify.com</a>. Dipakai untuk sumber OpenStreetMap.</p></div>
   <div class="sf f" id="kf4"><label for="k4">API key Gemini (fitur AI)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh4"></span></span><button class="btn" id="kc4" type="button">Ganti</button></div><div class="krow"><input type="password" id="k4" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx4" type="button" hidden>Batal</button></div><p class="hint2">Buat gratis di <a class="lk" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com</a>. Dipakai untuk skor prospek, saran langkah, dan draf pesan (model Gemini 3.5 Flash-Lite).</p></div>
+  <div class="sf f" id="kf5"><label for="k5">API key Resend (kirim email, opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh5"></span></span><button class="btn" id="kc5" type="button">Ganti</button></div><div class="krow"><input type="password" id="k5" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx5" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://resend.com" target="_blank" rel="noopener">resend.com</a>. Dipakai untuk tombol Kirim email.</p></div>
+  <div class="sf f" id="kf6"><label for="k6">Email pengirim (untuk Resend)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh6"></span></span><button class="btn" id="kc6" type="button">Ganti</button></div><div class="krow"><input type="text" id="k6" autocomplete="off" placeholder="EMA Hairshop &lt;halo@domainmu.com&gt;" data-ph="1"><button class="btn" id="kx6" type="button" hidden>Batal</button></div><p class="hint2">Harus memakai domain yang sudah diverifikasi di Resend. Tidak bisa Gmail atau Yahoo.</p></div>
   <label class="chk sf" id="kshow"><input type="checkbox" id="ks"> Tampilkan key</label>
   <div class="acts" id="kacts"><button class="btn primary" id="ksave" type="button">Simpan</button><button class="btn" id="kclear" type="button">Hapus key tersimpan</button></div>
   <p class="info" id="kmsg" hidden></p>
@@ -972,7 +995,7 @@ function openD(x){curX=x;
     +item(IC.web+"Website",site?"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":"Belum ada data")+"</dl>"
     +"<div class='acts'>"+(wa?"<a class='btn' data-act='wa' href='https://wa.me/"+wa.n+"' target='_blank' rel='noopener'>"+IC.wa+"Chat WhatsApp</a>":"")
     +(ph?"<a class='btn' data-act='tel' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+IC.tel+"Telepon</a>":"")
-    +(em.length?"<a class='btn' href='mailto:"+esc(em[0])+"'>"+IC.mail+"Kirim email</a>":"")
+    +(em.length?"<button class='btn' id='dsend' type='button'>"+IC.mail+"Kirim email</button>":"")
     +(site?"<a class='btn' href='"+esc(site)+"' target='_blank' rel='noopener'>"+IC.web+"Buka website</a>":"")
     +(x.osm?"<a class='btn' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>"+IC.pin+"Lihat di peta</a>":"")
     +(site&&!x.looked?"<button class='btn' id='dmail' type='button'>"+IC.mail+"Cari email & WhatsApp dari website</button>":"")+"</div>"
@@ -982,6 +1005,7 @@ function openD(x){curX=x;
   $("dnt").oninput=function(){pend=x;clearTimeout(ntm);ntm=setTimeout(flushNote,900)};
   $("dnt").onblur=flushNote;
   if(site&&!x.looked)$("dmail").onclick=function(){findMail(x)};
+  if(em.length)$("dsend").onclick=function(){openMail([x])};
   renderAiBox(x);
   if(!$("dlg").open)$("dlg").showModal();
 }
@@ -1147,7 +1171,7 @@ function usageAfterSearch(){
   var sync=function(final){loadUsage(function(r){var x=(r.accounts||[]).filter(function(y){return y.n===n})[0];if(!final&&x&&x.used<=base){x.used=base+1;x.left=Math.max(x.left-1,0)}})};
   setTimeout(function(){sync(false)},4000);setTimeout(function(){sync(true)},15000);
 }
-var KEYS=[["1","serp"],["2","serp2"],["3","geo"],["4","gem"]],was={};
+var KEYS=[["1","serp"],["2","serp2"],["3","geo"],["4","gem"],["5","rs"],["6","rsf"]],was={};
 function isSaved(n){return $("kf"+n).classList.contains("saved")}
 function keyState(j){
   KEYS.forEach(function(p){var on=j[p[1]].set;$("kf"+p[0]).classList.toggle("saved",on);was[p[0]]=on;$("kh"+p[0]).textContent=on?"("+j[p[1]].hint+")":"";$("k"+p[0]).value=""});
@@ -1181,7 +1205,7 @@ $("lform").onsubmit=function(e){
 $("setb").onclick=openSet;
 $("sx").onclick=function(){$("setd").close()};
 $("setd").onclick=function(e){if(e.target===this)this.close()};
-$("ks").onchange=function(){var t=this.checked?"text":"password";KEYS.forEach(function(p){$("k"+p[0]).type=t})};
+$("ks").onchange=function(){var t=this.checked?"text":"password";KEYS.forEach(function(p){if(p[0]!=="6")$("k"+p[0]).type=t})};
 function saveKeys(body,okMsg){
   busy(true);
   fetch("/api/keys",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
@@ -1194,8 +1218,80 @@ function saveKeys(body,okMsg){
 $("ksave").onclick=function(){var b={},n=0;KEYS.forEach(function(p){var v=$("k"+p[0]).value.trim();if(v){b[p[1]]=v;n++}});if(!n){kmsg("Tidak ada yang diubah.");return}saveKeys(b,"Tersimpan di server.")};
 KEYS.forEach(function(p){$("kx"+p[0]).onclick=function(){$("k"+p[0]).value="";$("kf"+p[0]).classList.add("saved");keyUi()}});
 KEYS.forEach(function(p){$("kc"+p[0]).onclick=function(){$("kf"+p[0]).classList.remove("saved");keyUi();$("k"+p[0]).focus()}});
-$("kclear").onclick=function(){if(confirm("Hapus semua key yang tersimpan di server?"))saveKeys({serp:"",serp2:"",geo:"",gem:""},"Key dihapus.")};
+$("kclear").onclick=function(){if(confirm("Hapus semua key yang tersimpan di server?"))saveKeys({serp:"",serp2:"",geo:"",gem:"",rs:"",rsf:""},"Key dihapus.")};
 $("outb").onclick=function(){fetch("/api/session",{method:"DELETE"}).then(function(){location.reload()},function(){location.reload()})};
+
+// ---- Kirim email lewat Resend ----
+var MM={items:[],bulk:false,cfg:null};
+function mErr(t){var e=$("merr");e.textContent=t||"";e.hidden=!t;$("mset").hidden=!/Pengaturan/.test(t||"")}
+function mCount(){
+  var n=MM.bulk?document.querySelectorAll("#mlist input:checked").length:MM.items.length;
+  var b=$("msend");b.disabled=!n||!(MM.cfg&&MM.cfg.ready);b.textContent="Kirim "+(n>1?n+" email":"email");
+}
+function openMail(items,bulk,total){
+  MM.items=items;MM.bulk=!!bulk;MM.cfg=null;
+  $("mt").textContent=bulk?"Kirim email massal":"Kirim email";
+  $("msub").textContent="";$("mfrom").textContent="";mErr("");
+  $("mlist").hidden=!bulk;$("msj").value="";$("mtx").value="";$("mtx").readOnly=!!bulk;
+  $("mtxl").textContent=bulk?"Isi email (contoh untuk tempat pertama)":"Isi email";
+  $("msend").disabled=true;$("msend").textContent="Kirim";
+  if(bulk){
+    $("mlist").innerHTML=items.map(function(x,i){return"<label class='mrow'><input type='checkbox' checked data-i='"+i+"'><span><b>"+esc(x.name)+"</b><small>"+esc(emailsOf(x)[0])+"</small></span></label>"}).join("");
+    $("msub").textContent=items.length+" tempat yang belum dihubungi"+(total>items.length?" (dari "+total+", maksimal 20 sekali kirim)":"")+". Sapaan memakai nama tiap tempat.";
+  }else{
+    $("msub").textContent=x0(items).name+" · "+emailsOf(items[0])[0];
+  }
+  if(!$("maild").open)$("maild").showModal();
+  fetch("/api/send?name="+encodeURIComponent(items[0].name||"")).then(function(r){if(r.status===401){$("maild").close();showLogin("Sesi habis, silakan masuk lagi.");throw 0}return r.json()}).then(function(j){
+    MM.cfg=j;$("msj").value=j.subject||"";$("mtx").value=j.text||"";
+    $("mfrom").textContent=j.ready?"Dikirim dari "+j.from+".":"";
+    if(!j.hasKey)mErr("API key Resend belum diisi. Buka Pengaturan lalu masukkan key-nya.");
+    else if(!j.from)mErr("Email pengirim belum diisi. Buka Pengaturan, isi dengan alamat dari domain yang sudah diverifikasi di Resend.");
+    mCount();
+  }).catch(function(e){if(e!==0)mErr("Tidak bisa menghubungi server.")});
+}
+function x0(a){return a[0]}
+function markEmailed(x){
+  var line="Email, "+new Date().toLocaleDateString("id-ID",{day:"numeric",month:"short"});
+  var cur=noteOf(x),n=cur.indexOf(line)>-1?cur:(cur?cur+"\n"+line:line),patch={n:n};
+  if(!stOf(x))patch.s="chat";
+  if(curX===x&&$("dlg").open){var el=$("dnt");if(el)el.value=n;var sel=$("dst");if(sel&&patch.s){sel.value=patch.s;sel.className="stsel st-"+patch.s}}
+  saveLead(x,patch);
+}
+function doSend(force){
+  var picks=MM.bulk?Array.prototype.map.call(document.querySelectorAll("#mlist input:checked"),function(c){return MM.items[+c.getAttribute("data-i")]}):MM.items;
+  if(!picks.length)return;
+  var body={force:!!force,items:picks.map(function(x){
+    var o={id:x.id,to:emailsOf(x)[0],name:x.name,subject:$("msj").value.trim()};
+    if(!MM.bulk)o.text=$("mtx").value;
+    return o})};
+  var b=$("msend");b.disabled=true;b.textContent="Mengirim…";mErr("");
+  fetch("/api/send",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+    .then(function(r){return r.json().then(function(j){return{ok:r.ok,st:r.status,j:j}})})
+    .then(function(o){
+      if(o.st===401){$("maild").close();showLogin("Sesi habis, silakan masuk lagi.");return}
+      if(!o.ok){mErr(o.j.error||"Gagal mengirim");mCount();return}
+      var sent=o.j.sent||[],sk=o.j.skipped||[];
+      if(!sent.length&&sk.length&&!MM.bulk){
+        mCount();
+        if(confirm("Tempat ini sudah pernah dikirimi email lewat aplikasi ini. Kirim lagi?"))doSend(true);
+        return;
+      }
+      picks.forEach(function(x){if(sent.indexOf(x.id)>-1)markEmailed(x)});
+      render();$("maild").close();
+      flash("Terkirim: "+sent.length+" email"+(sk.length?". "+sk.length+" dilewati karena sudah pernah dikirimi.":"."));
+    }).catch(function(){mErr("Tidak bisa menghubungi server.");mCount()});
+}
+$("msend").onclick=function(){doSend(false)};
+$("mlist").addEventListener("change",mCount);
+$("mx").onclick=$("mcancel").onclick=function(){$("maild").close()};
+$("mset").onclick=function(){$("maild").close();openSet()};
+$("maild").onclick=function(e){if(e.target===this)this.close()};
+$("mailb").onclick=function(){
+  var c=view().filter(function(x){return x.id&&emailsOf(x).length&&!stOf(x)});
+  if(!c.length){flash("Tidak ada tempat berstatus Belum dihubungi yang punya email di tampilan ini.");return}
+  openMail(c.slice(0,20),true,c.length);
+};
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"]];
 function tab(n){[1,2,3].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}
 $("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};$("t3").onclick=function(){if($("t3").getAttribute("aria-selected")==="true"){$("svres").hidden=true;$("svbox").hidden=false}tab(3)};

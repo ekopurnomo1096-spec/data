@@ -8,26 +8,8 @@ const { dbConfigured, getKey, cmd, hgetall } = require("./_store");
 const AI = "hairleads:ai";
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 const STATUS_CODES = ["", "chat", "balas", "deal", "tidak"];
-// Template pesan pertama EMAHAIRSHOP. Ubah teks di bawah ini kalau ingin mengganti isi pesan (nomor, website, daftar produk).
-const TEMPLATE = `Hi! We’re a human hair supplier from Indonesia, specializing in hair extensions:
-
-• Hair Weft
-• Hair Bulk
-• I/U/K/V Tip
-• Nano Ring
-• Tape Hair
-• Genius Weft & more
-
-We offer high-quality products, competitive wholesale prices, and reliable service.
-
-If you’re looking for a reliable hair supplier, feel free to DM us or contact us via WhatsApp:
-
-+62 895-3799-94528
-
-Website :
-https://emahairshop.com/
-
-Looking forward to working with you!`;
+// Template pesan pertama ada di _template.js (nomor, website, daftar produk).
+const { TEMPLATE } = require("./_template");
 const parse = v => { try { return JSON.parse(v); } catch (e) { return null; } };
 const str = (v, n) => (typeof v === "string" ? v.slice(0, n) : "");
 const clamp = (v, a, b) => Math.max(a, Math.min(b, Math.round(Number(v)) || 0));
