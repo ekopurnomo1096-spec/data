@@ -18,12 +18,13 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sa
 .head{display:flex;flex-wrap:wrap;gap:0 12px;align-items:flex-start;padding-top:22px}
 .head>div:first-child{flex:1 1 auto}
 .hbtns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.usage{display:flex;flex-direction:column;gap:4px;min-width:150px;margin-right:6px;font-size:.8rem;color:var(--mute)}
+.usage{display:flex;flex-direction:column;gap:7px;min-width:150px;margin-right:6px;font-size:.8rem;color:var(--mute)}
 .usage b{color:var(--ink);font-weight:600}
 .ubar{height:8px;border-radius:99px;background:var(--soft);border:1px solid var(--line);overflow:hidden}
 .ubar i{display:block;height:100%;width:0;background:var(--acc);border-radius:99px;transition:width .4s}
-.usage.low .ubar i{background:var(--warm)}
-.usage.out .ubar i{background:var(--err)}
+.urow{display:flex;flex-direction:column;gap:4px}
+.urow.low .ubar i{background:var(--warm)}
+.urow.out .ubar i{background:var(--err)}
 .head .tabs{flex:0 0 100%}
 h1{font:700 clamp(1.5rem,3vw,2rem)/1.15 "Instrument Sans",system-ui,sans-serif;letter-spacing:-.01em;margin:0}
 .sub{margin:6px 0 14px;color:var(--mute);font-size:.9rem}
@@ -149,11 +150,16 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .hint2{color:var(--mute);font-size:.8rem;margin:5px 0 0}
 .btn .spin{width:14px;height:14px;margin-right:8px;border-width:2px;border-color:rgba(255,255,255,.35);border-top-color:var(--onacc)}
 .ksaved{display:none;align-items:center;gap:10px;justify-content:space-between;height:42px;padding:0 6px 0 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:.92rem}
+.kload{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:150px;color:var(--mute);font-size:.9rem}
+.kload[hidden]{display:none}
+.kload .spin{width:28px;height:28px}
 .kt{display:inline-flex;align-items:center;gap:6px}
 .kt .ck{color:var(--acc);flex:none}
 .ksaved b{color:var(--acc);font-weight:600}
 .sf.saved .ksaved{display:flex}
-.sf.saved input,.sf.saved .hint2{display:none}
+.sf.saved .krow,.sf.saved .hint2{display:none}
+.krow{display:flex;gap:8px;align-items:center}
+.krow input{flex:1;min-width:0}
 .btn.primary{background:var(--acc);color:var(--onacc);border-color:var(--acc)}
 .btn.primary:hover{color:var(--onacc);opacity:.9}
 [hidden]{display:none!important}
@@ -171,7 +177,7 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 <header class="top"><div class="wrap head">
   <div><h1>Pencari prospek hair extension</h1>
   <p class="sub">Salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya.</p></div>
-  <div class="hbtns"><div class="usage" id="usage" hidden title="Sisa kuota pencarian SerpApi bulan ini"><span id="utxt"></span><div class="ubar"><i id="ufill"></i></div></div><button class="ghost" id="setb" type="button">Pengaturan</button><button class="ghost" id="outb" type="button">Keluar</button></div>
+  <div class="hbtns"><div class="usage" id="usage" hidden title="Sisa kuota pencarian SerpApi bulan ini"></div><button class="ghost" id="setb" type="button">Pengaturan</button><button class="ghost" id="outb" type="button">Keluar</button></div>
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" id="t1" aria-selected="true">Cari tempat</button>
     <button class="tab" role="tab" id="t2" aria-selected="false">Siapa yang membeli?</button>
@@ -228,10 +234,11 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 <dialog id="dlg" aria-label="Detail tempat"><div id="dbody"></div></dialog>
 <dialog id="setd" aria-label="Pengaturan"><div id="sbody">
   <div class="dh"><div><h2>Pengaturan</h2><p class="dr">API key disimpan terenkripsi di server, jadi cukup diisi sekali dan berlaku di semua browser.</p></div><button class="x" id="sx" type="button" aria-label="Tutup">✕</button></div>
-  <div class="load" id="kload" style="padding:22px 0"><div class="spin"></div><span>Memuat…</span></div>
+  <div id="kload" class="kload"><div class="spin"></div><span>Memuat…</span></div>
   <div id="kbody" hidden>
-  <div class="sf f" id="kf1"><label for="k1">API key SerpApi (Google Maps)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh1"></span></span><button class="btn" id="kc1" type="button">Ganti</button></div><input type="password" id="k1" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><p class="hint2">Buat di <a class="lk" href="https://serpapi.com" target="_blank" rel="noopener">serpapi.com</a>. Dipakai untuk sumber Google Maps.</p></div>
-  <div class="sf f" id="kf2"><label for="k2">API key Geoapify (opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh2"></span></span><button class="btn" id="kc2" type="button">Ganti</button></div><input type="password" id="k2" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><p class="hint2">Buat di <a class="lk" href="https://geoapify.com" target="_blank" rel="noopener">geoapify.com</a>. Dipakai untuk sumber OpenStreetMap.</p></div>
+  <div class="sf f" id="kf1"><label for="k1">API key SerpApi akun 1 (Google Maps)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh1"></span></span><button class="btn" id="kc1" type="button">Ganti</button></div><div class="krow"><input type="password" id="k1" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx1" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://serpapi.com" target="_blank" rel="noopener">serpapi.com</a>. Dipakai untuk sumber Google Maps.</p></div>
+  <div class="sf f" id="kf2"><label for="k2">API key SerpApi akun 2 (opsional, cadangan)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh2"></span></span><button class="btn" id="kc2" type="button">Ganti</button></div><div class="krow"><input type="password" id="k2" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx2" type="button" hidden>Batal</button></div><p class="hint2">Dipakai otomatis kalau kuota akun 1 habis.</p></div>
+  <div class="sf f" id="kf3"><label for="k3">API key Geoapify (opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh3"></span></span><button class="btn" id="kc3" type="button">Ganti</button></div><div class="krow"><input type="password" id="k3" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx3" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://geoapify.com" target="_blank" rel="noopener">geoapify.com</a>. Dipakai untuk sumber OpenStreetMap.</p></div>
   <label class="chk sf" id="kshow"><input type="checkbox" id="ks"> Tampilkan key</label>
   <div class="acts" id="kacts"><button class="btn primary" id="ksave" type="button">Simpan</button><button class="btn" id="kclear" type="button">Hapus key tersimpan</button></div>
   <p class="info" id="kmsg" hidden></p>
@@ -578,19 +585,22 @@ $("dlg").onclick=function(e){if(e.target===this)this.close()};
 function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
 function showLogin(msg){$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
 function showApp(){$("login").hidden=true;$("app").hidden=false;loadUsage()}
-function loadUsage(){fetch("/api/usage").then(function(r){return r.json()}).then(function(j){var u=$("usage");if(!j.available){u.hidden=true;return}var pct=j.limit?Math.min(100,Math.round(j.used/j.limit*100)):0;$("utxt").innerHTML="<b>"+j.used+" / "+j.limit+"</b> pencarian";$("ufill").style.width=pct+"%";u.className="usage"+(j.left<=0?" out":pct>=80?" low":"");u.title="Sisa "+j.left+" pencarian SerpApi bulan ini";u.hidden=false}).catch(function(){})}
+function loadUsage(){fetch("/api/usage").then(function(r){return r.json()}).then(function(j){var u=$("usage"),a=j.accounts||[];if(!a.length){u.hidden=true;return}u.innerHTML=a.map(function(x){var pct=x.limit?Math.min(100,Math.round(x.used/x.limit*100)):0,c=x.left<=0?" out":pct>=80?" low":"";return"<div class='urow"+c+"' title='Sisa "+x.left+" pencarian bulan ini'><span><b>"+x.used+" / "+x.limit+"</b> pencarian"+(a.length>1?" · "+x.label:"")+"</span><div class='ubar'><i style='width:"+pct+"%'></i></div></div>"}).join("");u.hidden=false}).catch(function(){})}
+var KEYS=[["1","serp"],["2","serp2"],["3","geo"]],was={};
+function isSaved(n){return $("kf"+n).classList.contains("saved")}
 function keyState(j){
-  [["1","serp"],["2","geo"]].forEach(function(p){var on=j[p[1]].set;$("kf"+p[0]).classList.toggle("saved",on);$("kh"+p[0]).textContent=on?"("+j[p[1]].hint+")":"";$("k"+p[0]).value=""});
+  KEYS.forEach(function(p){var on=j[p[1]].set;$("kf"+p[0]).classList.toggle("saved",on);was[p[0]]=on;$("kh"+p[0]).textContent=on?"("+j[p[1]].hint+")":"";$("k"+p[0]).value=""});
   keyUi();
 }
 function keyUi(){
-  var edit=!$("kf1").classList.contains("saved")||!$("kf2").classList.contains("saved");
+  var edit=KEYS.some(function(p){return!isSaved(p[0])});
+  KEYS.forEach(function(p){$("kx"+p[0]).hidden=!(was[p[0]]&&!isSaved(p[0]))});
   $("ksave").hidden=!edit;$("kshow").hidden=!edit;
-  $("kclear").hidden=!$("kf1").classList.contains("saved")&&!$("kf2").classList.contains("saved");
+  $("kclear").hidden=!KEYS.some(function(p){return isSaved(p[0])});
 }
 function busy(on){var b=$("ksave");b.disabled=on;$("kclear").disabled=on;b.innerHTML=on?"<span class='spin'></span>Menyimpan…":"Simpan"}
 function openSet(){
-  $("k1").value="";$("k2").value="";$("kmsg").hidden=true;$("kf1").classList.remove("saved");$("kf2").classList.remove("saved");keyUi();
+  KEYS.forEach(function(p){was[p[0]]=false;$("k"+p[0]).value="";$("kf"+p[0]).classList.remove("saved")});$("kmsg").hidden=true;keyUi();
   $("kbody").hidden=true;$("kload").hidden=false;
   $("setd").showModal();
   fetch("/api/keys").then(function(r){if(r.status===401){$("setd").close();showLogin("Sesi habis, silakan masuk lagi.");throw 0}return r.json().then(function(j){return{ok:r.ok,j:j}})}).then(function(o){
@@ -610,7 +620,7 @@ $("lform").onsubmit=function(e){
 $("setb").onclick=openSet;
 $("sx").onclick=function(){$("setd").close()};
 $("setd").onclick=function(e){if(e.target===this)this.close()};
-$("ks").onchange=function(){var t=this.checked?"text":"password";$("k1").type=t;$("k2").type=t};
+$("ks").onchange=function(){var t=this.checked?"text":"password";KEYS.forEach(function(p){$("k"+p[0]).type=t})};
 function saveKeys(body,okMsg){
   busy(true);
   fetch("/api/keys",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
@@ -620,10 +630,10 @@ function saveKeys(body,okMsg){
     .catch(function(){kmsg("Tidak bisa menghubungi server.")})
     .then(function(){busy(false)});
 }
-$("ksave").onclick=function(){var b={},a=$("k1").value.trim(),g=$("k2").value.trim();if(a)b.serp=a;if(g)b.geo=g;if(!a&&!g){kmsg("Tidak ada yang diubah.");return}saveKeys(b,"Tersimpan di server.")};
-$("kc1").onclick=function(){$("kf1").classList.remove("saved");keyUi();$("k1").focus()};
-$("kc2").onclick=function(){$("kf2").classList.remove("saved");keyUi();$("k2").focus()};
-$("kclear").onclick=function(){if(confirm("Hapus semua key yang tersimpan di server?"))saveKeys({serp:"",geo:""},"Key dihapus.")};
+$("ksave").onclick=function(){var b={},n=0;KEYS.forEach(function(p){var v=$("k"+p[0]).value.trim();if(v){b[p[1]]=v;n++}});if(!n){kmsg("Tidak ada yang diubah.");return}saveKeys(b,"Tersimpan di server.")};
+KEYS.forEach(function(p){$("kx"+p[0]).onclick=function(){$("k"+p[0]).value="";$("kf"+p[0]).classList.add("saved");keyUi()}});
+KEYS.forEach(function(p){$("kc"+p[0]).onclick=function(){$("kf"+p[0]).classList.remove("saved");keyUi();$("k"+p[0]).focus()}});
+$("kclear").onclick=function(){if(confirm("Hapus semua key yang tersimpan di server?"))saveKeys({serp:"",serp2:"",geo:""},"Key dihapus.")};
 $("outb").onclick=function(){fetch("/api/session",{method:"DELETE"}).then(function(){location.reload()},function(){location.reload()})};
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"],["Importir dan distributor di luar negeri","Volume besar. Cari lewat direktori B2B seperti Alibaba atau Global Sources.",""],["Perias pengantin","Cari lewat Instagram dengan kata kunci “bridal hair” plus nama kota.",""],["Pabrik wig dan rambut","Calon mitra atau pesaing. Cari lewat direktori ekspor.",""]];
 function tab(n){[1,2].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}

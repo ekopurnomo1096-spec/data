@@ -158,9 +158,17 @@ module.exports = async (req, res) => {
       const key = (await getKey("geo")) || process.env.GEOAPIFY_KEY;
       results = key ? await geoSearch(pt, kind, key) : await overpassSearch(pt, kind);
     } else {
-      const key = (await getKey("serp")) || process.env.SERPAPI_KEY;
-      if (!key) return res.status(500).json({ error: "API key SerpApi belum diisi. Buka Pengaturan lalu masukkan key-nya" });
-      results = await serpSearch(city, kind, key);
+      const [k1, k2] = await Promise.all([getKey("serp"), getKey("serp2")]);
+      const keys = [k1 || process.env.SERPAPI_KEY, k2].filter(Boolean);
+      if (!keys.length) return res.status(500).json({ error: "API key SerpApi belum diisi. Buka Pengaturan lalu masukkan key-nya" });
+      // Pakai akun 1 dulu; kalau kuotanya habis atau key ditolak, pindah ke akun 2
+      for (let i = 0; i < keys.length; i++) {
+        try { results = await serpSearch(city, kind, keys[i]); break; }
+        catch (e) {
+          if (i < keys.length - 1 && /out of searches|run out|limit|exceed|invalid|unauthorized|quota/i.test(e.message)) continue;
+          throw e;
+        }
+      }
     }
     res.setHeader("Cache-Control", "private, no-store");
     return res.status(200).json({ results });
