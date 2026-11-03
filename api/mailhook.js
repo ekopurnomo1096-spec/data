@@ -1,11 +1,14 @@
 // Endpoint PUBLIK (tanpa login) untuk dua hal, dibedakan lewat ?a=
 //   ?a=unsub&e=<email>&t=<tanda tangan>  GET = halaman konfirmasi, POST = berhenti berlangganan (juga untuk "one-click" dari Gmail/Apple Mail)
-//   ?a=resend                            POST = webhook Resend (email.bounced, email.complained) -> alamat masuk daftar suppression
+//   ?a=resend                            POST = webhook Resend (email.bounced, email.complained) -> alamat masuk daftar suppression;
+//                                        email.received (balasan masuk) -> dibaca dan diklasifikasi AI (lihat _reply.js)
+//   ?a=inbound&k=<INBOUND_SECRET>        POST JSON {from, subject, text, html?, id?} = jalur umum untuk meneruskan balasan dari Gmail (Apps Script), Zapier, Cloudflare Email Worker dll
 // Keamanan: tautan berhenti berlangganan bertanda tangan HMAC per alamat (tidak bisa ditebak). Webhook diverifikasi
 // tanda tangan Svix memakai RESEND_WEBHOOK_SECRET (isi "whsec_..." dari Resend > Webhooks); tanpa itu webhook ditolak.
 const crypto = require("crypto");
 const { dbConfigured } = require("./_store");
 const M = require("./_mail");
+const R = require("./_reply");
 
 const page = (title, body) => '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
   "<title>" + M.escHtml(title) + '</title><style>body{margin:0;background:#f3efe7;font:16px/1.5 Arial,Helvetica,sans-serif;color:#222}' +
@@ -68,6 +71,20 @@ module.exports = async (req, res) => {
       return res.status(405).json({ error: "metode tidak didukung" });
     }
 
+    if (a === "inbound") { // jalur umum untuk meneruskan balasan dari luar Resend
+      if (req.method !== "POST") return res.status(405).json({ error: "metode tidak didukung" });
+      const secret = process.env.INBOUND_SECRET || "";
+      const k = String((req.query && req.query.k) || (req.headers && req.headers["x-inbound-key"]) || "");
+      const ka = Buffer.from(k), kb = Buffer.from(secret);
+      if (!secret) return res.status(500).json({ error: "INBOUND_SECRET belum diisi di Vercel" });
+      if (ka.length !== kb.length || !crypto.timingSafeEqual(ka, kb)) return res.status(401).json({ error: "kunci tidak valid" });
+      let b = req.body;
+      if (typeof b === "string") { try { b = JSON.parse(b); } catch (e) { b = null; } }
+      if (!b || typeof b !== "object") return res.status(400).json({ error: "isi tidak valid" });
+      const out = await R.processReply({ from: b.from, subject: b.subject, text: typeof b.text === "string" ? b.text.slice(0, 20000) : "", html: typeof b.html === "string" ? b.html.slice(0, 40000) : "", mid: b.id ? "in:" + String(b.id).slice(0, 100) : "", src: "inbound", auto: !!b.auto });
+      return res.status(out.ok ? 200 : 400).json(out.reply ? { ok: true, cat: out.reply.cat, lead: out.reply.id || "" } : out);
+    }
+
     if (a === "resend") {
       if (req.method !== "POST") return res.status(405).json({ error: "metode tidak didukung" });
       const secret = process.env.RESEND_WEBHOOK_SECRET || "";
@@ -78,6 +95,20 @@ module.exports = async (req, res) => {
       try { ev = JSON.parse(raw); } catch (e) { /* di bawah */ }
       if (!ev || typeof ev !== "object") return res.status(400).json({ error: "isi tidak valid" });
       const type = String(ev.type || ""), d = ev.data || {};
+      if (type === "email.received") { // balasan masuk: webhook hanya membawa metadata, isinya diambil lewat API Resend
+        const eid = String(d.email_id || d.id || "");
+        if (!/^[\w-]{8,80}$/.test(eid)) return res.status(400).json({ error: "email_id tidak valid" });
+        const rc = await M.config();
+        if (!rc.key) return res.status(500).json({ error: "API key Resend belum diisi" });
+        const rr = await fetch("https://api.resend.com/emails/receiving/" + eid, { headers: { Authorization: "Bearer " + rc.key }, signal: AbortSignal.timeout(15000) });
+        const full = await rr.json().catch(() => ({}));
+        if (!rr.ok) return res.status(502).json({ error: "Gagal mengambil isi email dari Resend (" + rr.status + ")" }); // status 5xx membuat Resend mengulang kirim webhook
+        const hd = full.headers || d.headers || {};
+        const hv = k => { const key = Object.keys(hd).find(x => x.toLowerCase() === k); return key ? String(hd[key]) : ""; };
+        const auto = /auto-(replied|generated)/i.test(hv("auto-submitted")) || /bulk|auto_reply|junk/i.test(hv("precedence")) || !!hv("x-autoreply") || !!hv("x-autorespond");
+        const out = await R.processReply({ from: full.from || d.from, subject: full.subject || d.subject, text: full.text, html: full.html, mid: "rs:" + eid, src: "resend", auto });
+        return res.status(200).json({ ok: true, reply: !!(out && out.reply), dup: !!(out && out.dup) });
+      }
       let reason = "";
       if (type === "email.complained") reason = "spam";
       else if (type === "email.suppressed") reason = "bounce";

@@ -197,7 +197,7 @@ async function recordSent(items, used) {
 }
 
 // ---- Statistik harian, jeda (kill switch), dan batas bounce ----------------------------------------------
-const STATK = "hairleads:stats"; // field "YYYY-MM-DD:metrik" (UTC). Metrik: sent, fu, bounce, spam, unsub, added, found, queued, s{tahap}v{variasi}
+const STATK = "hairleads:stats"; // field "YYYY-MM-DD:metrik" (UTC). Metrik: sent, fu, bounce, spam, unsub, added, found, queued, reply, s{tahap}v{variasi}
 const AUTOK = "hairleads:auto";  // sama dengan AUTO di _jobs.js (field cfg, log, first, pause, pbase)
 async function stat(metric, n) {
   if (!dbConfigured() || !n) return;
@@ -211,12 +211,12 @@ async function getStats(days) {
   for (let i = 0; i + 1 < raw.length; i += 2) {
     const [d, m] = String(raw[i]).split(":");
     if (!m || d < from) continue;
-    const o = by[d] || (by[d] = { d, sent: 0, fu: 0, bounce: 0, spam: 0, unsub: 0, added: 0, found: 0, queued: 0, v: {} });
+    const o = by[d] || (by[d] = { d, sent: 0, fu: 0, bounce: 0, spam: 0, unsub: 0, added: 0, found: 0, queued: 0, reply: 0, v: {} });
     const n = parseInt(raw[i + 1], 10) || 0;
     if (/^s\d+v\d+$/.test(m)) o.v[m] = n; else if (m in o) o[m] = n;
   }
   const out = [];
-  for (let k = 0; k < days; k++) { const d = new Date(Date.now() - k * 864e5).toISOString().slice(0, 10); out.push(by[d] || { d, sent: 0, fu: 0, bounce: 0, spam: 0, unsub: 0, added: 0, found: 0, queued: 0, v: {} }); }
+  for (let k = 0; k < days; k++) { const d = new Date(Date.now() - k * 864e5).toISOString().slice(0, 10); out.push(by[d] || { d, sent: 0, fu: 0, bounce: 0, spam: 0, unsub: 0, added: 0, found: 0, queued: 0, reply: 0, v: {} }); }
   return out;
 }
 async function getPause() {

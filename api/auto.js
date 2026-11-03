@@ -2,6 +2,7 @@
 // GET                      = {cfg, queue, log, supp, searches, mail, flags}
 // GET  ?a=cron             = dijalankan Vercel Cron setiap hari (header Authorization: Bearer CRON_SECRET), menjalankan semua pekerjaan
 // POST {action:"cfg", cfg}               simpan pengaturan
+// POST {action:"scoretest", cfg}          uji bobot skor dan batas (belum disimpan) pada prospek yang ada
 // POST {action:"approve", ids?|all?}     setujui prospek di antrean (all = semua yang menunggu)
 // POST {action:"reject", ids}            tolak (tidak akan diantrekan lagi)
 // POST {action:"run", job}               jalankan sekarang: "all" | "mail" | "refresh" | "rotate" | "enrich"
@@ -12,6 +13,8 @@ const { isAuthed } = require("./_auth");
 const { dbConfigured, cmd, hgetall } = require("./_store");
 const M = require("./_mail");
 const J = require("./_jobs");
+const SC = require("./_score");
+const scoreDefs = SC.KEYS.map(k => ({ k, d: SC.DEFS[k][0], l: SC.DEFS[k][1], g: SC.DEFS[k][2] }));
 
 const META = "hairleads:cmeta";
 const parse = M.parse;
@@ -25,7 +28,7 @@ function cronOk(req) {
 
 async function state(req) {
   const cfg = await J.getCfg();
-  const out = { cfg, queue: [], log: [], supp: { n: 0, list: [] }, searches: [], flags: {} };
+  const out = { cfg, scoreDefs, queue: [], log: [], supp: { n: 0, list: [] }, searches: [], flags: {} };
   const rc = await M.config();
   out.mail = { ready: !!(rc.key && /@/.test(rc.from)), addr: !!rc.addr, used: await M.usedToday(), limit: M.DAILY };
   out.pause = await M.getPause();
@@ -67,7 +70,7 @@ module.exports = async (req, res) => {
     }
 
     if (!isAuthed(req)) return res.status(401).json({ error: "Belum login" });
-    if (!dbConfigured()) return res.status(200).json({ nodb: true, cfg: J.defaultCfg(), queue: [], log: [], supp: { n: 0, list: [] }, searches: [], flags: {}, mail: {}, counts: {}, seq: {} });
+    if (!dbConfigured()) return res.status(200).json({ nodb: true, cfg: J.defaultCfg(), scoreDefs, queue: [], log: [], supp: { n: 0, list: [] }, searches: [], flags: {}, mail: {}, counts: {}, seq: {} });
 
     if (req.method === "GET") return res.status(200).json(await state(req));
     if (req.method !== "POST") return res.status(405).json({ error: "metode tidak didukung" });
@@ -80,6 +83,9 @@ module.exports = async (req, res) => {
     if (b.action === "cfg") {
       const cfg = await J.setCfg(b.cfg);
       return res.status(200).json({ ok: true, cfg });
+    }
+    if (b.action === "scoretest") { // uji bobot skor tanpa menyimpan
+      return res.status(200).json({ ok: true, ...(await J.scorePreview(b.cfg)) });
     }
     if (b.action === "approve" || b.action === "reject") {
       const q = await hgetall(J.QUEUE), args = [];

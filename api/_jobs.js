@@ -10,7 +10,7 @@ const { dbConfigured, cmd, hgetall, getKey, getActive } = require("./_store");
 const { pickSerp, sanitizeSerp, DEFAULT: SERP_DEFAULT } = require("./_serp");
 const { sanitizeLead } = require("./_leads");
 const { findContacts } = require("./_contacts");
-const { scoreLead, FREE } = require("./_score");
+const { scoreLead, normWeights, DEFAULT_W, FREE } = require("./_score");
 const { TEMPLATE, BRAND } = require("./_template");
 const M = require("./_mail");
 const places = require("./places");
@@ -42,6 +42,7 @@ function defaultCfg() {
     serp: { ...SERP_DEFAULT }, // pindah akun SerpApi otomatis kalau sisa kuota akun aktif di bawah "below"
     mail: {
       on: false, approve: true, minScore: 40, perDay: 20, followOn: true, maxBounce: 4,
+      weights: { ...DEFAULT_W }, // bobot skor prospek (positif dan negatif), lihat _score.js
       warm: { on: true, start: 10, add: 5, everyDays: 3 }, // pemanasan: batas harian mulai dari "start", naik "add" tiap "everyDays" hari sampai perDay
       steps: [
         { days: 0, subject: "Human hair extension supplier from Indonesia", text: TEMPLATE },
@@ -69,7 +70,7 @@ function sanitizeCfg(c) {
       keys: Array.isArray(r.keys) ? [...new Set(r.keys.map(k => String(k).slice(0, 300)).filter(Boolean))].slice(0, 40) : []
     },
     mail: { on: bool(m.on, false), approve: bool(m.approve, true), minScore: num(m.minScore, 0, 100, 40), perDay: num(m.perDay, 1, 100, 20), followOn: bool(m.followOn, true),
-      maxBounce: num(m.maxBounce, 1, 20, 4),
+      maxBounce: num(m.maxBounce, 1, 20, 4), weights: normWeights(m.weights),
       warm: { on: bool((m.warm || {}).on, true), start: num((m.warm || {}).start, 1, 100, 10), add: num((m.warm || {}).add, 1, 100, 5), everyDays: num((m.warm || {}).everyDays, 1, 30, 3) },
       steps: [] }
   };
@@ -400,7 +401,7 @@ async function jobQueue(cfg, ctx) {
     if (rec && rec.s) continue; // hanya yang belum dihubungi
     const to = firstEmail(x);
     if (!to || mailedTo.has(to) || seenTo.has(to)) continue;
-    const sc = scoreLead(x);
+    const sc = scoreLead(x, cfg.mail.weights);
     if (sc.s < cfg.mail.minScore) continue;
     cand.push({ x, to, sc, dk: [ownDom(to) && "d:" + ownDom(to), x.website && siteHost(x.website) && "s:" + siteHost(x.website)].filter(Boolean) });
   }
@@ -421,7 +422,7 @@ async function jobQueue(cfg, ctx) {
   const take = cfg.mail.approve ? ok.slice(0, room) : ok.slice(0, 200);
   const args = [], now = Date.now();
   for (const c of take) {
-    args.push(c.x.id, JSON.stringify({ id: c.x.id, to: c.to, name: M.clean(c.x.name, 80), sc: c.sc.s, why: c.sc.why.slice(0, 3), st: cfg.mail.approve ? "pending" : "ok", t: now }));
+    args.push(c.x.id, JSON.stringify({ id: c.x.id, to: c.to, name: M.clean(c.x.name, 80), sc: c.sc.s, why: c.sc.neg.concat(c.sc.why).slice(0, 4), st: cfg.mail.approve ? "pending" : "ok", t: now }));
   }
   for (let i = 0; i < args.length; i += 200) await cmd(["HSET", QUEUE, ...args.slice(i, i + 200)]);
   if (take.length) await M.stat("queued", take.length);
@@ -430,6 +431,33 @@ async function jobQueue(cfg, ctx) {
   if (dupDomain) res.dupDomain = dupDomain;
   if (pendingMx) res.mxLater = pendingMx;
   return res;
+}
+
+// Uji bobot: hitung ulang skor prospek yang memenuhi syarat antrean (Belum dihubungi, punya email, belum pernah dikirimi)
+// dengan bobot dan batas dari halaman (belum perlu disimpan). Tidak mengubah data apa pun.
+async function scorePreview(cfgIn) {
+  const cfg = sanitizeCfg({ mail: { ...(cfgIn && cfgIn.mail), steps: undefined } });
+  const data = await loadData();
+  const mraw = await hgetall(M.MAIL), mailed = new Set(Object.keys(mraw));
+  const rows = [];
+  for (const x of data.map.values()) {
+    if (!x.id || mailed.has(x.id)) continue;
+    const rec = data.leads[x.id];
+    if (rec && rec.s) continue;
+    const to = firstEmail(x);
+    if (!to) continue;
+    const sc = scoreLead(x, cfg.mail.weights);
+    rows.push({ id: x.id, name: M.clean(x.name, 80), to, s: sc.s, why: sc.neg.concat(sc.why).slice(0, 5) });
+  }
+  rows.sort((a, b) => b.s - a.s);
+  const min = cfg.mail.minScore, pass = rows.filter(r => r.s >= min).length;
+  const bands = [0, 0, 0, 0, 0]; // 0-19, 20-39, 40-59, 60-79, 80-100
+  rows.forEach(r => { bands[Math.min(4, Math.floor(r.s / 20))]++; });
+  const withNeg = rows.filter(r => r.why.some(w => /^(jaringan|bukan bisnis|email tidak|rating rendah|hampir tanpa|website hanya)/.test(w))).length;
+  // contoh: 5 teratas, 5 di sekitar batas, dan yang kena sinyal negatif
+  const near = rows.filter(r => Math.abs(r.s - min) <= 10).slice(0, 5);
+  const hit = rows.filter(r => r.why.some(w => /^(jaringan|bukan bisnis|email tidak|rating rendah|hampir tanpa|website hanya)/.test(w))).slice(0, 5);
+  return { total: rows.length, pass, min, bands, withNeg, top: rows.slice(0, 5), near, hit };
 }
 
 // ---- Mail: kirim ------------------------------------------------------------------------------------------
@@ -661,4 +689,4 @@ async function runAuto(opts) {
   return out;
 }
 
-module.exports = { rotInfo, QUEUE, SEQ, AUTO, warmInfo, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, notifyAfter };
+module.exports = { scorePreview, rotInfo, QUEUE, SEQ, AUTO, warmInfo, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, notifyAfter };

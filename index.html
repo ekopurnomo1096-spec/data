@@ -422,8 +422,24 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .aup textarea{height:auto;min-height:84px;padding:10px 12px;resize:vertical;line-height:1.45}
 .aup textarea:focus-visible,.aup input[type=number]:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .aup+.aup{margin-top:16px}
+.rpc{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:8px;background:var(--bg)}
+.rpc.done{opacity:.6}
+.rpc .rh{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.86rem}
+.rpc .rh b{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.rpt{font-size:.72rem;font-weight:600;border-radius:99px;padding:2px 9px;border:1px solid var(--line);color:var(--mute);white-space:nowrap}
+.rpt.interested,.rpt.question{border-color:var(--acc);color:var(--acc)}
+.rpt.not_interested,.rpt.unsubscribe{color:var(--err)}
+.rpc p{margin:6px 0 0;font-size:.86rem}
+.rpc pre{white-space:pre-wrap;font:inherit;font-size:.84rem;background:var(--surf);border:1px solid var(--soft);border-radius:6px;padding:8px 10px;margin:6px 0 0}
+.rpc .eacts{margin-top:8px}
 .aurow{display:flex;gap:12px;flex-wrap:wrap}
 .aurow .f{flex:1 1 130px;min-width:0}
+.scw{display:grid;grid-template-columns:1fr 84px;gap:8px 14px;align-items:center;margin-top:8px}
+.scw label{font-size:.84rem;color:var(--ink)}
+.scw input[type=number]{height:36px;text-align:right}
+.sct{margin-top:10px;font-size:.86rem}
+.sct ul{margin:4px 0 8px;padding-left:18px}.sct li{margin:2px 0}.sct small{color:var(--mute)}
+.scng{color:var(--err)}
 .aupz{margin:0 0 12px;padding:10px 12px;border-radius:8px;background:var(--errbg);color:var(--err);font-size:.9rem}.austat{width:100%;border-collapse:collapse;font-size:.84rem;margin-top:8px}.austat th,.austat td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--line)}.austat th:first-child,.austat td:first-child{text-align:left}.austat th{color:var(--mute);font-weight:600}
 .aup{padding:14px 16px}
 .aup+.aup{margin-top:12px}
@@ -608,6 +624,17 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <details class="panel aup aud" open>
     <summary>Antrean persetujuan <em class="tn" id="auqn"></em></summary>
     <div id="auq"></div>
+  </details>
+  <details class="panel aup aud" id="rpp" open>
+    <summary>Balasan (AI) <em class="tn" id="rpn"></em></summary>
+    <p class="hint2" style="margin:0 0 10px">Balasan calon pembeli dibaca AI: dikelompokkan (tertarik, bertanya, menolak, minta berhenti, balasan otomatis), status prospek diubah sendiri (Dibalas / Tidak cocok) sehingga follow-up berhenti, dan disiapkan draf balasan. Draf tidak pernah terkirim otomatis.</p>
+    <div id="rplist"></div>
+    <details class="aud2" style="margin-top:12px"><summary>Tempel balasan manual</summary>
+      <div class="aurow" style="margin-top:8px"><div class="f" style="margin-top:0"><label for="rpfrom">Email pengirim</label><input type="text" id="rpfrom" placeholder="nama@contoh.com" autocomplete="off"></div><div class="f" style="margin-top:0"><label for="rpsub">Subjek (opsional)</label><input type="text" id="rpsub" maxlength="200" autocomplete="off"></div></div>
+      <div class="sf f"><label for="rptx">Isi balasan</label><textarea id="rptx" rows="5" placeholder="Tempel isi balasan dari kotak masukmu"></textarea></div>
+      <div class="eacts"><span class="hint2" id="rpmsg" style="margin:0"></span><span class="sp"></span><button class="btn primary" id="rpgo" type="button">Baca dengan AI</button></div>
+    </details>
+    <details class="aud2" style="margin-top:8px"><summary>Cara balasan masuk otomatis</summary><div id="rpsetup"></div></details>
   </details>
   <details class="panel aup aud">
     <summary>Statistik 7 hari</summary>
@@ -1800,10 +1827,59 @@ function auLoad(full){
     AU.st=o.j;
     if(o.j.nodb){$("aust").innerHTML="<span class='bad'>Database belum terhubung. Hubungkan Upstash Redis di Vercel lalu Redeploy.</span>";return}
     if(full||!AU.cfg)AU.cfg=o.j.cfg;
-    auStatus();auQueue();auSupp();auLog();auStats();
+    auStatus();auQueue();auSupp();auLog();auStats();rpLoad();
     if(full)auCfg();
   }).catch(function(e){if(e!==0)$("aust").innerHTML="<span class='bad'>Tidak bisa menghubungi server.</span>"});
 }
+// ---- Balasan (AI): lihat api/_reply.js dan api/replies.js
+var RP={items:[],cfg:{}};
+function rpApi(body){
+  return fetch("/api/replies",body?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:undefined)
+    .then(function(r){return r.json().catch(function(){return{}}).then(function(j){if(r.status===401){showLogin("Sesi habis, silakan masuk lagi.");throw 0}return{ok:r.ok,j:j}})});
+}
+var RPL={interested:"Tertarik",question:"Bertanya",not_interested:"Menolak",unsubscribe:"Minta berhenti",auto_reply:"Balasan otomatis",other:"Lainnya"};
+var RPS={"":"Belum dihubungi",chat:"Sudah dihubungi",balas:"Dibalas",deal:"Deal",tidak:"Tidak cocok"};
+function rpLoad(){
+  return rpApi().then(function(o){
+    if(!o.ok)return;
+    RP.items=o.j.items||[];RP.cfg=o.j.cfg||{};rpRender();
+  }).catch(function(){});
+}
+function rpRender(){
+  var it=RP.items,open=it.filter(function(x){return!x.done}).length;
+  $("rpn").textContent=it.length?"("+(open?open+" baru":it.length)+")":"";
+  $("rplist").innerHTML=it.length?it.map(function(x,i){
+    return"<div class='rpc"+(x.done?" done":"")+"'><div class='rh'><span class='rpt "+esc(x.cat)+"'>"+esc(RPL[x.cat]||x.cat)+"</span><b>"+esc(x.name||x.fn||x.from)+"</b><small class='hint2' style='margin:0'>"+esc(x.from)+" · "+esc(fmtDate(x.t))+"</small></div>"+
+      (x.sub?"<p><b>"+esc(x.sub)+"</b></p>":"")+
+      "<p>"+esc(x.sum||"")+(x.why?" <small class='hint2'>("+esc(x.why)+(x.ai?"":", tanpa AI")+")</small>":"")+"</p>"+
+      (x.id?(x.st!==x.sf?"<p class='hint2'>Status: "+esc(RPS[x.sf]||"Belum dihubungi")+" → <b>"+esc(RPS[x.st]||"")+"</b></p>":"<p class='hint2'>Status tetap: "+esc(RPS[x.st]||"")+"</p>"):"<p class='hint2'>Pengirim tidak cocok dengan prospek mana pun, status tidak diubah.</p>")+
+      (x.draft?"<pre>"+esc(x.draft)+"</pre>":"")+
+      "<div class='eacts'>"+(x.draft?"<button class='btn' type='button' data-a='copy' data-i='"+i+"'>Salin draf</button>":"")+
+      "<button class='ghost' type='button' data-a='done' data-i='"+i+"'>"+(x.done?"Buka lagi":"Tandai selesai")+"</button><button class='ghost' type='button' data-a='del' data-i='"+i+"'>Hapus</button></div></div>";
+  }).join(""):"<p class='info'>Belum ada balasan.</p>";
+  [].forEach.call(document.querySelectorAll("#rplist button[data-a]"),function(b){b.onclick=function(){
+    var x=RP.items[+b.getAttribute("data-i")],a=b.getAttribute("data-a");
+    if(a==="copy"){(navigator.clipboard?navigator.clipboard.writeText(x.draft):Promise.reject()).then(function(){flash("Draf disalin")},function(){flash("Tidak bisa menyalin, salin manual")});return}
+    if(a==="del"&&!confirm("Hapus balasan ini dari daftar? Status prospek tidak berubah."))return;
+    rpApi(a==="done"?{action:"done",rid:x.rid,on:!x.done}:{action:"del",rid:x.rid}).then(function(o){if(!o.ok){flash(o.j.error||"Gagal");return}rpLoad()}).catch(function(){});
+  }});
+  var c=RP.cfg||{},base=c.base||"https://DOMAINMU";
+  $("rpsetup").innerHTML="<p class='hint2'><b>1. Resend Receiving (disarankan).</b> Di Resend aktifkan Receiving untuk domain pengirim (tambah record MX yang diminta), lalu di Webhooks tambahkan event <code>email.received</code> ke webhook yang sama ("+esc(base)+"/api/mailhook?a=resend). Lalu isi <b>Reply-To</b> (tab Email &gt; Pengaturan email) dengan alamat di domain itu, mis. <code>reply@domainmu.com</code>. "+(c.webhook?"<b>Webhook sudah aktif.</b>":"<span class='bad'>RESEND_WEBHOOK_SECRET belum diisi di Vercel.</span>")+"</p>"+
+    "<p class='hint2'><b>2. Jalur umum.</b> Isi <code>INBOUND_SECRET</code> di Vercel, lalu teruskan balasan dari Gmail (Apps Script), Zapier, atau Cloudflare Email Worker dengan POST JSON <code>{from, subject, text}</code> ke "+esc(base)+"/api/mailhook?a=inbound&amp;k=SECRET. "+(c.inbound?"<b>Aktif.</b>":"Belum diisi.")+"</p>"+
+    "<p class='hint2'><b>3. Manual.</b> Tempel balasan di atas; hasilnya diperlakukan sama.</p>";
+}
+$("rpgo").onclick=function(){
+  var b=$("rpgo"),from=$("rpfrom").value.trim(),tx=$("rptx").value.trim();
+  if(!from||!tx){$("rpmsg").textContent="Isi email pengirim dan isi balasan.";return}
+  b.disabled=true;$("rpmsg").textContent="Membaca…";
+  rpApi({action:"analyze",from:from,subject:$("rpsub").value.trim(),text:tx}).then(function(o){
+    b.disabled=false;
+    if(!o.ok){$("rpmsg").textContent=o.j.error||"Gagal";return}
+    $("rpmsg").textContent=o.j.dup?"Balasan ini sudah pernah dibaca.":"Selesai: "+(RPL[o.j.reply.cat]||"");
+    if(!o.j.dup){$("rptx").value="";$("rpsub").value=""}
+    rpLoad();auLoad(false);
+  }).catch(function(){b.disabled=false});
+};
 function acT(l,v){return"<div class='ac'><small>"+l+"</small><b>"+v+"</b></div>"}
 function acB(t){return"<div class='ac bad'>"+t+"</div>"}
 function auStatus(){
@@ -1938,8 +2014,8 @@ function auReadSteps(){
 function auStats(){
   var st=(AU.st&&AU.st.stats||[]).slice(0,7);
   if(!st.length){$("austats").innerHTML="<p class='info'>Belum ada data.</p>";return}
-  var h="<div class='tw'><table class='austat'><thead><tr><th>Tanggal</th><th>Email</th><th>Follow-up</th><th>Bounce</th><th>Spam</th><th>Berhenti</th><th>Tempat baru</th><th>Ada kontak</th></tr></thead><tbody>";
-  st.forEach(function(x){h+="<tr><td>"+esc(x.d.slice(5))+"</td><td>"+x.sent+"</td><td>"+x.fu+"</td><td>"+x.bounce+"</td><td>"+x.spam+"</td><td>"+x.unsub+"</td><td>"+x.added+"</td><td>"+x.found+"</td></tr>"});
+  var h="<div class='tw'><table class='austat'><thead><tr><th>Tanggal</th><th>Email</th><th>Follow-up</th><th>Bounce</th><th>Spam</th><th>Berhenti</th><th>Balasan</th><th>Tempat baru</th><th>Ada kontak</th></tr></thead><tbody>";
+  st.forEach(function(x){h+="<tr><td>"+esc(x.d.slice(5))+"</td><td>"+x.sent+"</td><td>"+x.fu+"</td><td>"+x.bounce+"</td><td>"+x.spam+"</td><td>"+x.unsub+"</td><td>"+(x.reply||0)+"</td><td>"+x.added+"</td><td>"+x.found+"</td></tr>"});
   h+="</tbody></table></div>";
   var tot={};(AU.st.stats||[]).forEach(function(x){Object.keys(x.v||{}).forEach(function(k){tot[k]=(tot[k]||0)+x.v[k]})});
   var ks=Object.keys(tot).sort();
@@ -1962,6 +2038,19 @@ function auCfg(){
     +"<div class='f'><label for='au_mbn'>Jeda jika bounce (%)</label><input type='number' id='au_mbn' min='1' max='20' value='"+m.maxBounce+"'></div></div>"
     +"<p class='hint2'>Tanpa persetujuan, prospek yang lolos langsung dikirimi. Follow-up berhenti sendiri kalau status berubah ke Dibalas, Deal, atau Tidak cocok. Skor dihitung dari kelengkapan data prospek, dan hanya yang berstatus Belum dihubungi yang dikirimi. Alamat di Daftar berhenti selalu dilewati.</p>"
     +"<p class='hint2'>Jika bounce 3 hari terakhir melewati batas di atas, atau ada 2 laporan spam atau lebih, semua kirim berhenti sampai kamu klik Lanjutkan.</p>",true);
+  var sd=AU.st.scoreDefs||[],sw=m.weights||{};
+  if(sd.length){
+    var chg=sd.filter(function(d){return sw[d.k]!=null&&sw[d.k]!==d.d}).length;
+    var grp=function(g){return"<div class='scw'>"+sd.filter(function(d){return d.g===g}).map(function(d){
+      return"<label for='au_w_"+d.k+"'>"+esc(d.l)+"</label><input type='number' class='au_w' data-k='"+d.k+"' id='au_w_"+d.k+"' min='0' max='100' value='"+Math.abs(sw[d.k]!=null?sw[d.k]:d.d)+"'>"}).join("")+"</div>"};
+    h+=auSec("Skor prospek",chg?chg+" bobot diubah":"bawaan",
+      "<p class='hint2' style='margin:0 0 6px'>Skor 0-100 menentukan siapa yang masuk antrean (batasnya di \"Skor minimal\" pada Kirim otomatis). Isi poin yang ditambahkan atau dikurangkan. Isi 0 untuk mematikan satu sinyal.</p>"
+      +"<p class='hint2'><b>Menambah skor</b></p>"+grp("pos")
+      +"<p class='hint2' style='margin-top:14px'><b>Mengurangi skor</b> (isi angka positif, nanti dikurangkan)</p>"+grp("neg")
+      +"<div class='eacts' style='margin-top:12px'><button class='ghost' id='au_sctest' type='button'>Uji bobot</button><button class='ghost' id='au_scdef' type='button'>Kembalikan bawaan</button><span class='hint2' id='au_scm' style='margin:0'></span></div>"
+      +"<div class='sct' id='au_scres'></div>"
+      +"<p class='hint2'>\"Uji bobot\" menghitung ulang prospek yang ada (belum dihubungi, punya email, belum pernah dikirimi) dengan bobot di atas tanpa menyimpan. Klik Simpan pengaturan supaya dipakai. Daftar kata untuk jaringan besar, bukan bisnis rambut, dan email tidak dibaca orang ada di api/_score.js. Nama yang memuat wig/extension/weave dan sejenisnya tidak pernah dikurangi sebagai bukan bisnis rambut.</p>");
+  }
   h+=auSec("Pemanasan domain",onoff(m.warm.on),
     "<label class='chk'><input type='checkbox' id='au_won'"+(m.warm.on?" checked":"")+"> Naikkan batas kirim bertahap (disarankan untuk domain pengirim baru)</label>"
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_wst'>Mulai dari (email/hari)</label><input type='number' id='au_wst' min='1' max='100' value='"+m.warm.start+"'></div>"
@@ -2015,11 +2104,37 @@ function auCfg(){
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_em'>Maks website per jalan</label><input type='number' id='au_em' min='1' max='200' value='"+e.max+"'></div></div>");
   $("aucfg").innerHTML=h;
   auSteps(m.steps);
+  if($("au_sctest")){
+    $("au_scdef").onclick=function(){(AU.st.scoreDefs||[]).forEach(function(d){var i=$("au_w_"+d.k);if(i)i.value=Math.abs(d.d)});$("au_scm").textContent="Bobot dikembalikan ke bawaan. Klik Simpan pengaturan untuk memakainya.";$("au_scres").innerHTML=""};
+    $("au_sctest").onclick=function(){
+      var b=this,msg=$("au_scm"),box=$("au_scres");b.disabled=true;msg.textContent="Menghitung…";box.innerHTML="";
+      auApi({action:"scoretest",cfg:{mail:{minScore:+$("au_msc").value,weights:auReadW()}}}).then(function(o){
+        b.disabled=false;
+        if(!o.ok){msg.textContent=o.j.error||"Gagal menghitung";return}
+        msg.textContent="";auScRes(o.j,box);
+      }).catch(function(){b.disabled=false;msg.textContent="Tidak bisa menghubungi server."});
+    };
+  }
   $("au_ntest").onclick=function(){
     var b=this,msg=$("au_ntm");b.disabled=true;msg.textContent="Mengirim…";
     auApi({action:"digest"}).then(function(o){b.disabled=false;msg.textContent=o.ok?"Terkirim ke "+o.j.to+".":(o.j.error||"Gagal mengirim")}).catch(function(){b.disabled=false;msg.textContent="Tidak bisa menghubungi server."});
   };
   $("auadd").onclick=function(){var st=auReadSteps();st.push({days:(st.length?st[st.length-1].days:0)+6,subject:"",text:"",alts:[]});auSteps(st,st.length-1)};
+}
+function auReadW(){
+  var o={};[].forEach.call(document.querySelectorAll("#aucfg .au_w"),function(i){o[i.getAttribute("data-k")]=i.value});return o;
+}
+function auScRes(r,box){
+  if(!r.total){box.innerHTML="<p class='info'>Belum ada prospek yang memenuhi syarat (belum dihubungi, punya email, belum pernah dikirimi).</p>";return}
+  var L=["0-19","20-39","40-59","60-79","80-100"];
+  var row=function(x){return"<li><b>"+esc(x.name||x.to)+"</b> <small>skor "+x.s+(x.why&&x.why.length?" · "+esc(x.why.join(", ")):"")+"</small></li>"};
+  var neg=function(x){return"<li><b>"+esc(x.name||x.to)+"</b> <small class='scng'>skor "+x.s+" · "+esc(x.why.join(", "))+"</small></li>"};
+  var h="<p><b>"+r.pass+" dari "+r.total+"</b> prospek lolos batas skor "+r.min+".</p>"
+    +"<p><small>Sebaran skor: "+r.bands.map(function(n,i){return L[i]+": "+n}).join(" · ")+"</small></p>";
+  if(r.top.length)h+="<p style='margin:8px 0 0'>Skor tertinggi</p><ul>"+r.top.map(row).join("")+"</ul>";
+  if(r.near.length)h+="<p style='margin:8px 0 0'>Dekat batas (±10)</p><ul>"+r.near.map(row).join("")+"</ul>";
+  if(r.hit.length)h+="<p style='margin:8px 0 0'>Kena sinyal negatif ("+r.withNeg+" prospek)</p><ul>"+r.hit.map(neg).join("")+"</ul>";
+  box.innerHTML=h;
 }
 function auCollect(){
   return{
@@ -2031,7 +2146,7 @@ function auCollect(){
       keys:[].map.call(document.querySelectorAll("#au_rk input:checked"),function(i){return i.getAttribute("data-k")})},
     rotate:{on:$("au_xon").checked,maxSearches:+$("au_xm").value,reserve:+$("au_xr").value,pages:+$("au_xp").value,
       kinds:[].map.call(document.querySelectorAll(".au_xk:checked"),function(i){return i.value}),cities:$("au_xc").value.split(/\r?\n/)},
-    mail:{on:$("au_mon").checked,approve:$("au_mapp").checked,followOn:$("au_mfo").checked,minScore:+$("au_msc").value,perDay:+$("au_mpd").value,maxBounce:+$("au_mbn").value,warm:{on:$("au_won").checked,start:+$("au_wst").value,add:+$("au_wad").value,everyDays:+$("au_wev").value},steps:auReadSteps()}
+    mail:{on:$("au_mon").checked,approve:$("au_mapp").checked,followOn:$("au_mfo").checked,minScore:+$("au_msc").value,weights:auReadW(),perDay:+$("au_mpd").value,maxBounce:+$("au_mbn").value,warm:{on:$("au_won").checked,start:+$("au_wst").value,add:+$("au_wad").value,everyDays:+$("au_wev").value},steps:auReadSteps()}
   };
 }
 $("ausave").onclick=function(){
