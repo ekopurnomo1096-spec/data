@@ -9,7 +9,7 @@
 const { dbConfigured, cmd, hgetall, getKey, getActive } = require("./_store");
 const { pickSerp, sanitizeSerp, DEFAULT: SERP_DEFAULT } = require("./_serp");
 const { sanitizeLead } = require("./_leads");
-const { findContacts } = require("./_contacts");
+const { findContacts, tidyEmail } = require("./_contacts");
 const { scoreLead, normWeights, DEFAULT_W, FREE } = require("./_score");
 const { TEMPLATE, BRAND } = require("./_template");
 const M = require("./_mail");
@@ -166,7 +166,7 @@ const firstEmail = x => {
 // Alamat Gmail, Yahoo, dll pertama milik tempat itu (sama dengan filter "Hanya email Gmail, Yahoo, dll" di tab Email). Domain sendiri tidak dipakai.
 const freeEmail = x => {
   const l = x.emails && x.emails.length ? x.emails : [x.email];
-  for (const e of l) { const t = String(e || "").trim().toLowerCase(); if (M.EMAIL.test(t) && FREE.test(t)) return t; }
+  for (const e of l) { const t = tidyEmail(e); if (M.EMAIL.test(t) && FREE.test(t)) return t; }
   return "";
 };
 const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
@@ -512,7 +512,7 @@ async function jobMailSend(cfg, ctx) {
     if (!q || q.st !== "ok") continue;
     const rec = ctx.data.leads[id];
     if (mailed.has(id) || (rec && rec.s) || !M.EMAIL.test(q.to || "") || !FREE.test(String(q.to).toLowerCase())) { stale.push(id); continue; }
-    fresh.push({ id, to: String(q.to).toLowerCase(), name: q.name || "", n: 0, sc: q.sc || 0, fu: false });
+    fresh.push({ id, to: tidyEmail(q.to), name: q.name || "", n: 0, sc: q.sc || 0, fu: false });
   }
   fresh.sort((a, b) => b.sc - a.sc);
   if (stale.length) await cmd(["HDEL", QUEUE, ...stale]);

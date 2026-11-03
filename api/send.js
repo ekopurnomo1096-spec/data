@@ -9,6 +9,7 @@
 const { isAuthed } = require("./_auth");
 const { dbConfigured, cmd, hgetall } = require("./_store");
 const M = require("./_mail");
+const { tidyEmail } = require("./_contacts");
 
 module.exports = async (req, res) => {
   try {
@@ -60,7 +61,7 @@ module.exports = async (req, res) => {
     const bad = [], seenTo = new Set();
     let items = [];
     for (const o of list) {
-      const id = String((o && o.id) || ""), to = M.clean(o && o.to, 200).toLowerCase();
+      const id = String((o && o.id) || ""), to = tidyEmail(M.clean(o && o.to, 200));
       if (!M.ID.test(id) || !M.EMAIL.test(to) || seenTo.has(to)) { bad.push(id); continue; }
       seenTo.add(to);
       const subject = M.clean(o.subject, 200);

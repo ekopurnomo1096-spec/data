@@ -8,6 +8,13 @@ function blocked(host) {
   return /^(localhost|.*\.local|.*\.internal)$/i.test(host) || /^\d+\.\d+\.\d+\.\d+$/.test(host) || host.includes(":");
 }
 
+// Bersihkan alamat hasil tangkap dari halaman web: sisa penulisan URL (mis. "%20" di depan), spasi, dan tanda baca di ujung dibuang.
+function tidyEmail(e) {
+  let t = String(e || "");
+  try { t = decodeURIComponent(t); } catch (x) { /* ada "%" yang bukan kode URL: biarkan apa adanya */ }
+  return (t.trim().split(/\s+/).pop() || "").toLowerCase().replace(/^[^a-z0-9]+/, "").replace(/[^a-z0-9]+$/, "");
+}
+
 // Mengembalikan {html, err}. err = true kalau situs gagal dijangkau (timeout, jaringan, 5xx, 429). 404 dan sejenisnya bukan kegagalan.
 async function grab(url) {
   const c = new AbortController();
@@ -64,8 +71,9 @@ async function findContacts(url, deadline) {
       queue = [...contactLinks(g.html, base), ...PATHS.map(p => new URL(p, base).href)];
     }
     const text = g.html.replace(/&#0*64;|&commat;|\[at\]/gi, "@");
-    (text.match(/mailto:([^"'?>\s]+)/gi) || []).forEach(m => found.add(m.slice(7).toLowerCase()));
-    (text.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g) || []).forEach(m => found.add(m.toLowerCase()));
+    const addEmail = m => { const t = tidyEmail(m); if (t.indexOf("@") > 0) found.add(t); };
+    (text.match(/mailto:([^"'?>\s]+)/gi) || []).forEach(m => addEmail(m.slice(7)));
+    (text.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g) || []).forEach(addEmail);
     for (const m of text.matchAll(WA)) wa.add(m[1]);
     if ([...found].some(e => !BAD.test(e)) && wa.size) break;
   }
@@ -74,4 +82,4 @@ async function findContacts(url, deadline) {
   return { emails, whatsapp: [...wa].slice(0, 2), failed };
 }
 
-module.exports = { findContacts };
+module.exports = { findContacts, tidyEmail };
