@@ -144,12 +144,10 @@ module.exports = async (req, res) => {
         "- next_step: langkah berikutnya yang paling masuk akal, 1-2 kalimat Indonesia, konkret.\n" +
         "- followup_days: bilangan bulat 1-30, berapa hari lagi sebaiknya follow-up.\n" +
         "- wa_message: pesan WhatsApp.\n" +
-        "- email_subject dan email_body: versi email dari pesan yang sama.\n" +
         "Aturan pesan PERTAMA (catatan kosong atau belum pernah dihubungi): pakai TEMPLATE di bawah sebagai dasar. " +
         "Pertahankan persis daftar produk, nomor WhatsApp, alamat website, dan inti kalimatnya. " +
         "Yang boleh diubah hanya sapaan pembuka: ganti \"Hi!\" dengan sapaan yang menyebut nama tempat (mis. \"Hi Glamour Locks team!\"). " +
         "Boleh menambah paling banyak SATU kalimat personal singkat yang benar-benar berdasar data tempat (mis. mereka salon extension). Jangan menambah klaim lain. " +
-        "Di email, buat subjek singkat dan jelas (mis. wholesale human hair extensions from Indonesia). " +
         "Kalau negara tempat itu bukan berbahasa Inggris, terjemahkan template ke bahasa setempat, nama produk tetap bahasa Inggris. " +
         "Aturan FOLLOW-UP (catatan menunjukkan sudah pernah dihubungi): jangan kirim ulang template penuh. Tulis pesan singkat maksimal 60 kata yang menyapa dengan nama tempat, " +
         "merujuk kontak sebelumnya, menanyakan apakah sempat melihat, menawarkan katalog atau sampel, dan mencantumkan nomor WhatsApp serta website dari template. " +
@@ -161,7 +159,7 @@ module.exports = async (req, res) => {
       const assist = {
         status, status_why: str(o.status_why, 300), note_summary: str(o.note_summary, 300),
         next_step: str(o.next_step, 500), followup_days: clamp(o.followup_days, 1, 30) || 3,
-        wa_message: str(o.wa_message, 1500), email_subject: str(o.email_subject, 200), email_body: str(o.email_body, 3000)
+        wa_message: str(o.wa_message, 1500)
       };
       const items = await saveScores([{ id: lead.id, score: o.score, why: o.why }]);
       return res.status(200).json({ assist, ai: items[lead.id] });

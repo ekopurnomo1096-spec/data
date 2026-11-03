@@ -867,7 +867,6 @@ function renderAiBox(x,err){
     var fd=new Date(Date.now()+a.followup_days*864e5).toLocaleDateString("id-ID",{day:"numeric",month:"short"});
     h+="<div class='air'><span class='ail'>Langkah berikutnya</span>"+esc(a.next_step)+"<br><span class='hint'>Follow-up sekitar "+a.followup_days+" hari lagi ("+esc(fd)+")</span></div>";
     h+="<div class='air'><span class='ail'>Draf pesan WhatsApp</span><textarea id='aiwa' rows='5'>"+esc(a.wa_message)+"</textarea><div class='acts'><button class='btn' type='button' data-ai='cwa'>Salin</button>"+(wa?"<button class='btn' type='button' data-ai='owa'>"+IC.wa+"Buka di WhatsApp</button>":"")+"</div></div>";
-    h+="<div class='air'><span class='ail'>Draf email</span><input type='text' id='aisb' value='"+esc(a.email_subject)+"' aria-label='Subjek email'><textarea id='aieb' rows='6'>"+esc(a.email_body)+"</textarea><div class='acts'><button class='btn' type='button' data-ai='cem'>Salin</button>"+(em.length?"<button class='btn' type='button' data-ai='oem'>"+IC.mail+"Buka di email</button>":"")+"</div></div>";
   }
   h+="<div class='acts'><button class='btn' id='dai' type='button'>"+(a?"Buat ulang saran":"Minta saran AI")+"</button></div>";
   if(err)h+="<p class='aiwarn'>"+esc(err)+"</p>";
@@ -890,9 +889,7 @@ $("dbody").addEventListener("click",function(e){
   var x=curX,a=AIA[x.id],k=t.getAttribute("data-ai");
   if(k==="apply"&&a){saveLead(x,{s:a.status});var sel=$("dst");if(sel){sel.value=a.status;sel.className="stsel st-"+(a.status||"baru")}render();renderAiBox(x)}
   else if(k==="cwa")copyTxt($("aiwa").value,"Pesan WhatsApp tersalin");
-  else if(k==="cem")copyTxt($("aisb").value+"\n\n"+$("aieb").value,"Email tersalin");
   else if(k==="owa"){var w=waOf(x);if(w){window.open("https://wa.me/"+w.n+"?text="+encodeURIComponent($("aiwa").value),"_blank","noopener");markContacted(x,"WA")}}
-  else if(k==="oem"){var m=emailsOf(x)[0];if(m)location.href="mailto:"+m+"?subject="+encodeURIComponent($("aisb").value)+"&body="+encodeURIComponent($("aieb").value)}
 });
 function bigSrc(u){return u.replace(/=w\d+-h\d+/,"=w900-h900").replace(/=s\d+(?=$|-)/,"=s900")}
 function openPhoto(el){
