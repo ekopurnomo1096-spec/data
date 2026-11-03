@@ -293,7 +293,6 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
         <th class="num" data-k="rating" aria-sort="none"><button type="button">Rating</button></th>
         <th class="num" data-k="reviews" aria-sort="none"><button type="button">Ulasan</button></th>
         <th>Telepon</th><th>Email</th><th>Website</th>
-        <th class="num" data-k="score" aria-sort="none" title="Jumlah kontak yang tersedia dari 3: telepon, email, website"><button type="button">Kontak</button></th>
         <th>Peta</th>
       </tr></thead>
       <tbody id="tb"></tbody>
@@ -658,9 +657,8 @@ function render(){
       +"<td class='clip' data-l='Telepon'>"+(ph?IC.tel+"<a class='lk' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":NA)+"</td>"
       +"<td class='clip' data-l='Email'>"+(x.email?IC.mail+"<a class='lk' href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>":NA)+"</td>"
       +"<td class='clip' data-l='Website'>"+(site?IC.web+"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":NA)+"</td>"
-      +"<td class='num sc s"+sc+"' data-l='Kontak'>"+sc+" dari 3</td>"
       +"<td class='pt' data-l='Peta'>"+(x.osm?IC.pin+"<a class='lk' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Buka</a>":NA)+"</td></tr>";
-  }).join(""):"<tr><td colspan='9'><p class='info'>Tidak ada tempat yang cocok dengan filter. Ubah atau matikan filter untuk melihat semuanya.</p></td></tr>";
+  }).join(""):"<tr><td colspan='8'><p class='info'>Tidak ada tempat yang cocok dengan filter. Ubah atau matikan filter untuk melihat semuanya.</p></td></tr>";
   syncSort();
   $("res").hidden=false;
 }
