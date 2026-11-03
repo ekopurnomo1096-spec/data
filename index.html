@@ -83,6 +83,7 @@ a.lk:hover{color:var(--acc);text-decoration-color:currentColor}
 .na{color:var(--mute);opacity:.55}
 .star{color:var(--star)}
 svg{flex:none;width:15px;height:15px;vertical-align:-2px;margin-right:6px;color:var(--acc)}
+.pt{white-space:nowrap}
 .sc{color:var(--mute)}
 .sc.s0{opacity:.55}
 .sc.s3{color:var(--acc);font-weight:600}
@@ -91,7 +92,7 @@ dialog{width:min(520px,calc(100vw - 24px));max-height:calc(100vh - 40px);backgro
 dialog::backdrop{background:rgba(20,25,22,.5)}
 #dbody{padding:20px}
 .dh{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-.dh h2{font:400 1.7rem/1.15 "Instrument Serif",Georgia,serif;margin:0}
+.dh h2{font:600 1.1rem/1.35 "Instrument Sans",system-ui,sans-serif;margin:0;overflow-wrap:anywhere}
 .dr{margin:4px 0 0;color:var(--mute);font-size:.88rem}
 .x{flex:none;width:34px;height:34px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;font-size:1rem;cursor:pointer}
 .dl{margin:16px 0 0;border-top:1px solid var(--line)}
@@ -426,7 +427,7 @@ function render(){
       +"<td class='clip' data-l='Email'>"+(x.email?IC.mail+"<a class='lk' href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>":NA)+"</td>"
       +"<td class='clip' data-l='Website'>"+(site?IC.web+"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":NA)+"</td>"
       +"<td class='num sc s"+sc+"' data-l='Kontak'>"+sc+" dari 3</td>"
-      +"<td data-l='Peta'>"+(x.osm?IC.pin+"<a class='lk' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Buka</a>":NA)+"</td></tr>";
+      +"<td class='pt' data-l='Peta'>"+(x.osm?IC.pin+"<a class='lk' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Buka</a>":NA)+"</td></tr>";
   }).join(""):"<tr><td colspan='8'><p class='info'>Tidak ada tempat yang cocok dengan filter. Ubah atau matikan filter untuk melihat semuanya.</p></td></tr>";
   $("sortsel").value=sKey;
   $("res").hidden=false;
