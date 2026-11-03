@@ -12,29 +12,29 @@ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:en
 :root[data-theme="dark"]{--bg:#0e1826;--card:#16243a;--ink:#e6eef8;--mute:#9bacc0;--line:#27394f;--acc:#6aa5ff;--accsoft:#1f3556;--ok:#5fd08a;--err:#ff9a8f;--errbg:#3a1f22}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:900px;margin:0 auto;padding:30px 18px 70px}
-h1{font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.15;margin:0 0 10px;font-weight:800;letter-spacing:-.02em}
-.sub{color:var(--mute);margin:0 0 20px;max-width:60ch}
+h1{font-size:clamp(1.4rem,3.6vw,1.9rem);line-height:1.2;margin:0 0 8px;font-weight:800;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:0 0 20px;max-width:60ch;font-size:.92rem}
 .tabs{display:flex;gap:6px;margin-bottom:14px}
-.tab{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 18px;border-radius:999px;font:inherit;font-weight:500;cursor:pointer}
+.tab{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 16px;border-radius:999px;font:inherit;font-size:.88rem;font-weight:500;cursor:pointer}
 .tab[aria-selected="true"]{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
 :is(button,input,select,a):focus-visible{outline:3px solid var(--acc);outline-offset:2px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
 .form{display:grid;grid-template-columns:1fr 1.2fr 1.2fr auto;gap:12px;align-items:end}
 @media (max-width:640px){.form{grid-template-columns:1fr}}
 .form2{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;margin-bottom:12px}
 @media (max-width:640px){.form2{grid-template-columns:1fr}}
-.hint{color:var(--mute);font-size:.85rem;margin:-2px 0 16px}
+.hint{color:var(--mute);font-size:.78rem;margin:-2px 0 16px}
 .combo{position:relative}
 .combo-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card);border:1px solid var(--line);border-radius:10px;max-height:230px;overflow:auto;z-index:30;box-shadow:0 10px 28px rgba(0,0,0,.18);padding:4px}
-.combo-list div{padding:10px 12px;border-radius:7px;cursor:pointer;font-size:.95rem}
+.combo-list div{padding:9px 12px;border-radius:7px;cursor:pointer;font-size:.88rem}
 .combo-list div.hi,.combo-list div:hover{background:var(--accsoft)}
 .combo-list .none{color:var(--mute);cursor:default}
 .combo-list .none:hover{background:transparent}
-.f label{display:block;font-weight:700;font-size:.9rem;margin-bottom:6px}
-input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;height:48px}
-.go{height:48px;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:0 26px;font:inherit;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px}
+.f label{display:block;font-weight:700;font-size:.8rem;margin-bottom:5px}
+input[type=text],select{width:100%;font:inherit;font-size:.92rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;height:44px}
+.go{height:44px;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:0 22px;font:inherit;font-size:.92rem;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px}
 .go[disabled]{opacity:.7;cursor:progress}
 .status{margin-top:20px}
 .load{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--accsoft);border-radius:12px;font-weight:500}
@@ -46,18 +46,22 @@ input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(
 .err{background:var(--errbg);color:var(--err);border-radius:12px;padding:14px 16px;font-weight:500}
 .info{color:var(--mute);padding:6px 2px}
 .bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;margin:2px 0 6px}
-.bar b{font-size:1.05rem}
-.chk{display:flex;gap:8px;align-items:center;font-size:.95rem;cursor:pointer}
-.chk input{width:18px;height:18px}
-.ghost{background:transparent;color:var(--acc);border:1px solid var(--line);border-radius:10px;padding:9px 14px;font:inherit;font-weight:500;cursor:pointer}
+.bar b{font-size:.92rem;font-weight:700}
+.chk{display:flex;gap:7px;align-items:center;font-size:.86rem;cursor:pointer}
+.chk input{width:16px;height:16px}
+.ghost{background:transparent;color:var(--acc);border:1px solid var(--line);border-radius:10px;padding:8px 13px;font:inherit;font-size:.86rem;font-weight:500;cursor:pointer}
 .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:14px}
 .item{border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--card)}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.item h3{margin:0;font-size:1.05rem;line-height:1.3;font-weight:700}
-.rate{flex:none;text-align:right;font-weight:700;font-size:.95rem;line-height:1.2}
-.rate small{display:block;font-weight:400;color:var(--mute);font-size:.78rem}
-.addr{margin:0;color:var(--mute);font-size:.9rem;min-height:2.7em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rows{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:9px;font-size:.92rem}
+.item h3{margin:0;font-size:.98rem;line-height:1.3;font-weight:700}
+.rate{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.rate b{font-weight:700;font-size:.82rem}
+.rate small{font-weight:400;color:var(--mute);font-size:.72rem}
+.stars{position:relative;display:inline-block;font-size:12px;line-height:1;letter-spacing:1px}
+.stars i{font-style:normal;color:var(--line)}
+.stars em{position:absolute;top:0;left:0;overflow:hidden;white-space:nowrap;font-style:normal;color:#f2b600}
+.addr{margin:0;color:var(--mute);font-size:.84rem;min-height:2.6em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rows{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px;font-size:.86rem}
 .r2{display:flex;align-items:center;gap:10px;min-width:0;height:24px}
 .r2 svg{flex:none;color:var(--acc)}
 .r2 a,.r2 span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
@@ -65,13 +69,13 @@ input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(
 .r2 a:hover{color:var(--acc);text-decoration:underline}
 .r2.off{color:var(--mute)}
 .r2.off svg{color:var(--mute);opacity:.55}
-.mapl{margin-top:auto;padding-top:4px;display:inline-flex;align-items:center;gap:8px;color:var(--acc);font-weight:700;font-size:.9rem;text-decoration:none}
+.mapl{margin-top:auto;padding-top:4px;display:inline-flex;align-items:center;gap:8px;color:var(--acc);font-weight:700;font-size:.84rem;text-decoration:none}
 .mapl:hover{text-decoration:underline}
 .tag{align-self:flex-start;font-size:.78rem;font-weight:700;color:var(--ok)}
 .seg{border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-top:10px}
 .seg b{display:block}
 .seg span{color:var(--mute);font-size:.95rem}
-.note{margin-top:26px;font-size:.88rem;color:var(--mute);border-left:3px solid var(--acc);padding-left:12px;max-width:72ch}
+.note{margin-top:26px;font-size:.8rem;color:var(--mute);border-left:3px solid var(--acc);padding-left:12px;max-width:72ch}
 @media (prefers-reduced-motion:reduce){.spin,.sk{animation:none}}
 [hidden]{display:none!important}
 </style>
@@ -134,9 +138,14 @@ var IC={tel:ic("<path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.0
 mail:ic("<rect width='20' height='16' x='2' y='4' rx='2'/><path d='m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7'/>"),
 web:ic("<circle cx='12' cy='12' r='10'/><path d='M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20'/><path d='M2 12h20'/>"),
 pin:ic("<path d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/><circle cx='12' cy='10' r='3'/>")};
+function stars(rating){
+  var pct=Math.max(0,Math.min(100,(parseFloat(rating)||0)/5*100));
+  return"<span class='stars'><i>&#9733;&#9733;&#9733;&#9733;&#9733;</i><em style='width:"+pct.toFixed(0)+"%'>&#9733;&#9733;&#9733;&#9733;&#9733;</em></span>";
+}
 function row(icon,val,link,empty){return val?"<div class='r2'>"+icon+"<a href='"+link+"'"+(link.indexOf("http")===0?" target='_blank' rel='noopener'":"")+">"+esc(val)+"</a></div>":"<div class='r2 off'>"+icon+"<span>"+empty+"</span></div>"}
 var LABEL={salon:"salon",wig:"toko wig",beauty:"toko kecantikan"};
-var COUNTRY_NAMES=["Indonesia","Malaysia","Singapore","Thailand","Vietnam","Philippines","India","China","Hong Kong","Taiwan","Japan","South Korea","Pakistan","Bangladesh","Sri Lanka","Nepal","United States","Canada","Mexico","Brazil","Argentina","Chile","Colombia","Peru","United Kingdom","Ireland","France","Germany","Netherlands","Belgium","Spain","Portugal","Italy","Switzerland","Austria","Sweden","Norway","Denmark","Finland","Poland","Czech Republic","Greece","Turkey","Russia","Ukraine","United Arab Emirates","Saudi Arabia","Qatar","Egypt","South Africa","Nigeria","Kenya","Morocco","Australia","New Zealand"].sort(function(a,b){return a.localeCompare(b)});
+var COUNTRY_CODES={"Indonesia":"ID","Malaysia":"MY","Singapore":"SG","Thailand":"TH","Vietnam":"VN","Philippines":"PH","India":"IN","China":"CN","Hong Kong":"HK","Taiwan":"TW","Japan":"JP","South Korea":"KR","Pakistan":"PK","Bangladesh":"BD","Sri Lanka":"LK","Nepal":"NP","United States":"US","Canada":"CA","Mexico":"MX","Brazil":"BR","Argentina":"AR","Chile":"CL","Colombia":"CO","Peru":"PE","United Kingdom":"GB","Ireland":"IE","France":"FR","Germany":"DE","Netherlands":"NL","Belgium":"BE","Spain":"ES","Portugal":"PT","Italy":"IT","Switzerland":"CH","Austria":"AT","Sweden":"SE","Norway":"NO","Denmark":"DK","Finland":"FI","Poland":"PL","Czech Republic":"CZ","Greece":"GR","Turkey":"TR","Russia":"RU","Ukraine":"UA","United Arab Emirates":"AE","Saudi Arabia":"SA","Qatar":"QA","Egypt":"EG","South Africa":"ZA","Nigeria":"NG","Kenya":"KE","Morocco":"MA","Australia":"AU","New Zealand":"NZ"};
+var COUNTRY_NAMES=Object.keys(COUNTRY_CODES).sort(function(a,b){return a.localeCompare(b)});
 function combo(inputId,listId,opts){
   var inp=$(inputId),list=$(listId),items=[],hi=-1,cur="";
   function filtered(){
@@ -210,17 +219,20 @@ function comboAsync(inputId,listId,opts){
     f.forEach(function(d,i){d.classList.toggle("hi",i===hi)});
     if(f[hi])f[hi].scrollIntoView({block:"nearest"});
   });
+  return{refresh:function(){var q=inp.value.trim();if(q.length>=2)search(q)}};
 }
 (function initPicker(){
-  var countryCombo=combo("country","countryList",{onPick:function(){}});
+  var cityAsync;
+  var countryCombo=combo("country","countryList",{onPick:function(){if(cityAsync)cityAsync.refresh()}});
   countryCombo.setItems(COUNTRY_NAMES);
-  comboAsync("citysel","cityselList",{
+  $("country").addEventListener("input",function(){if(cityAsync)cityAsync.refresh()});
+  cityAsync=comboAsync("citysel","cityselList",{
     fetch:function(q,ok,fail){
-      var url="https://geocoding-api.open-meteo.com/v1/search?count=8&language=id&format=json&name="+encodeURIComponent(q);
+      var cname=$("country").value.trim(),code=COUNTRY_CODES[cname];
+      var url="https://geocoding-api.open-meteo.com/v1/search?count=10&language=id&format=json&name="+encodeURIComponent(q);
+      if(code)url+="&country_code="+code;
       fetch(url).then(function(r){return r.json()}).then(function(j){
         var list=j.results||[];
-        var cwant=$("country").value.trim().toLowerCase();
-        if(cwant)list=list.filter(function(x){return(x.country||"").toLowerCase()===cwant}).concat(list.filter(function(x){return(x.country||"").toLowerCase()!==cwant}));
         ok(list.map(function(x){
           var bits=[x.name,x.admin1,x.country].filter(Boolean);
           return{label:bits.join(", "),name:x.name,country:x.country||""};
@@ -257,7 +269,7 @@ function render(){
   $("list").innerHTML=r.length?r.map(function(x){
     var ph=x.phone?x.phone.split(/[;,]/)[0].trim():"";
     var site=x.website?href(x.website):"";
-    var rate=x.rating?"<span class='rate'>★ "+esc(x.rating)+(x.reviews?"<small>"+esc(x.reviews)+" ulasan</small>":"")+"</span>":"";
+    var rate=x.rating?"<span class='rate'>"+stars(x.rating)+"<b>"+esc(x.rating)+"</b>"+(x.reviews?"<small>"+esc(x.reviews)+" ulasan</small>":"")+"</span>":"";
     var addr=x.address||"";
     return"<div class='item'><div class='top'><h3>"+esc(x.name)+"</h3>"+rate+"</div><p class='addr' title='"+esc(addr)+"'>"+(addr?esc(addr):"Alamat belum diisi")+"</p><div class='rows'>"
       +row(IC.tel,ph,"tel:"+esc(ph.replace(/[^\d+]/g,"")),"Belum ada nomor telepon")
