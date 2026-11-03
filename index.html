@@ -3,130 +3,169 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cari prospek hair extension</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap">
+<title>Pencari prospek hair extension</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif&display=swap">
 <style>
-:root{--bg:#eef3f8;--card:#fff;--ink:#12263f;--mute:#586a80;--line:#d3deea;--acc:#1f6feb;--accsoft:#e1ecfb;--ok:#17803d;--err:#b42318;--errbg:#fdecea;
+:root{--bg:#f3f0e8;--surf:#fbfaf5;--ink:#1c2420;--mute:#626a63;--line:#ddd8ca;--soft:#ebe7da;--acc:#1d5a4c;--onacc:#fff;--accsoft:#dfeae4;--warm:#b9501f;--star:#c98a0b;--err:#a52a1e;--errbg:#f7e4df;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1826;--card:#16243a;--ink:#e6eef8;--mute:#9bacc0;--line:#27394f;--acc:#6aa5ff;--accsoft:#1f3556;--ok:#5fd08a;--err:#ff9a8f;--errbg:#3a1f22}}
-:root[data-theme="dark"]{--bg:#0e1826;--card:#16243a;--ink:#e6eef8;--mute:#9bacc0;--line:#27394f;--acc:#6aa5ff;--accsoft:#1f3556;--ok:#5fd08a;--err:#ff9a8f;--errbg:#3a1f22}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141916;--surf:#1b221e;--ink:#e8e5da;--mute:#9aa397;--line:#2f3a33;--soft:#252e28;--acc:#7fc4a8;--onacc:#10201a;--accsoft:#22362d;--warm:#e58f62;--star:#e0a93a;--err:#ff9d8f;--errbg:#3a2220}}
+:root[data-theme="dark"]{--bg:#141916;--surf:#1b221e;--ink:#e8e5da;--mute:#9aa397;--line:#2f3a33;--soft:#252e28;--acc:#7fc4a8;--onacc:#10201a;--accsoft:#22362d;--warm:#e58f62;--star:#e0a93a;--err:#ff9d8f;--errbg:#3a2220}
 html{scroll-padding-top:env(safe-area-inset-top,0px);overflow-y:scroll;scrollbar-gutter:stable}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:900px;margin:0 auto;padding:30px 18px 70px}
-h1{font-size:clamp(1.4rem,3.6vw,1.9rem);line-height:1.2;margin:0 0 8px;font-weight:800;letter-spacing:-.02em}
-.sub{color:var(--mute);margin:0 0 20px;max-width:60ch;font-size:.92rem}
-.tabs{display:flex;gap:6px;margin-bottom:14px}
-.tab{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 16px;border-radius:999px;font:inherit;font-size:.88rem;font-weight:500;cursor:pointer}
-.tab[aria-selected="true"]{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
-:is(button,input,select,a):focus-visible{outline:3px solid var(--acc);outline-offset:2px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
-.form{display:grid;grid-template-columns:1fr 1.2fr 1.2fr auto;gap:12px;align-items:end}
-@media (max-width:640px){.form{grid-template-columns:1fr}}
-.form2{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;margin-bottom:12px}
-@media (max-width:640px){.form2{grid-template-columns:1fr}}
-.hint{color:var(--mute);font-size:.78rem;margin:-2px 0 16px}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+.top{background:var(--surf);border-bottom:1px solid var(--line)}
+.head{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:flex-end;justify-content:space-between;padding-top:22px}
+h1{font:400 clamp(1.8rem,3.4vw,2.4rem)/1.1 "Instrument Serif",Georgia,serif;margin:0}
+.sub{margin:6px 0 14px;color:var(--mute);font-size:.9rem}
+.tabs{display:flex;gap:4px}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;font:inherit;font-weight:500;color:var(--mute);cursor:pointer;margin-bottom:-1px}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--warm);font-weight:600}
+main.wrap{padding:24px 20px 64px}
+:is(button,input,select,a):focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.panel{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:18px}
+.form{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 16px}
+@media (max-width:900px){.form{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.form{grid-template-columns:1fr}}
 .combo{position:relative}
-.combo-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card);border:1px solid var(--line);border-radius:10px;max-height:230px;overflow:auto;z-index:30;box-shadow:0 10px 28px rgba(0,0,0,.18);padding:4px}
-.combo-list div{padding:9px 12px;border-radius:7px;cursor:pointer;font-size:.88rem}
+.f label{display:block;font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:5px}
+input[type=text],input[type=search],select{width:100%;height:42px;font:inherit;font-size:.92rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:0 12px}
+input::placeholder{color:var(--mute);opacity:.8}
+.go{align-self:end;height:42px;background:var(--acc);color:var(--onacc);border:0;border-radius:8px;padding:0 22px;font:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px}
+.go[disabled]{opacity:.7;cursor:progress}
+.combo-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surf);border:1px solid var(--line);border-radius:8px;max-height:240px;overflow:auto;z-index:30;box-shadow:0 12px 30px rgba(0,0,0,.16);padding:4px}
+.combo-list div{padding:8px 10px;border-radius:6px;cursor:pointer;font-size:.88rem}
 .combo-list div.hi,.combo-list div:hover{background:var(--accsoft)}
 .combo-list .none{color:var(--mute);cursor:default}
 .combo-list .none:hover{background:transparent}
-.f label{display:block;font-weight:700;font-size:.8rem;margin-bottom:5px}
-input[type=text],select{width:100%;font:inherit;font-size:.92rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;height:44px}
-.go{height:44px;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:0 22px;font:inherit;font-size:.92rem;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px}
-.go[disabled]{opacity:.7;cursor:progress}
-.status{margin-top:20px}
-.load{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--accsoft);border-radius:12px;font-weight:500}
-.spin{flex:none;width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:sp .8s linear infinite}
-.go .spin{width:18px;height:18px;border-color:rgba(255,255,255,.4);border-top-color:#fff}
+.status{margin-top:18px}
+.load{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--accsoft);border-radius:8px;font-weight:500}
+.spin{flex:none;width:20px;height:20px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:sp .8s linear infinite}
+.go .spin{width:16px;height:16px;border-color:rgba(255,255,255,.35);border-top-color:var(--onacc)}
 @keyframes sp{to{transform:rotate(360deg)}}
-.sk{height:92px;border-radius:12px;margin-top:10px;background:linear-gradient(90deg,var(--line) 25%,var(--accsoft) 50%,var(--line) 75%);background-size:200% 100%;animation:sh 1.3s ease-in-out infinite}
+.sk{height:46px;border-radius:8px;margin-top:8px;background:linear-gradient(90deg,var(--soft) 25%,var(--surf) 50%,var(--soft) 75%);background-size:200% 100%;animation:sh 1.3s ease-in-out infinite}
 @keyframes sh{to{background-position:-200% 0}}
-.err{background:var(--errbg);color:var(--err);border-radius:12px;padding:14px 16px;font-weight:500}
-.info{color:var(--mute);padding:6px 2px}
-.bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;margin:2px 0 6px}
-.bar b{font-size:.92rem;font-weight:700}
+.err{background:var(--errbg);color:var(--err);border-radius:8px;padding:12px 14px;font-weight:500}
+.info{color:var(--mute);margin:0;padding:4px 2px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 14px}
+@media (max-width:760px){.stats{grid-template-columns:1fr 1fr}}
+.stat{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat small{color:var(--mute);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.stat b{display:block;font-size:1.8rem;font-weight:600;line-height:1.2}
+.stat span{color:var(--mute);font-size:.8rem}
+.meter{height:4px;background:var(--soft);border-radius:4px;margin-top:8px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--acc)}
+.tools{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:10px}
+.q{flex:1 1 220px;max-width:340px}
 .chk{display:flex;gap:7px;align-items:center;font-size:.86rem;cursor:pointer}
-.chk input{width:16px;height:16px}
-.ghost{background:transparent;color:var(--acc);border:1px solid var(--line);border-radius:10px;padding:8px 13px;font:inherit;font-size:.86rem;font-weight:500;cursor:pointer}
-.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:12px}
-.item{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:7px;background:var(--card)}
-.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-.item h3{margin:0;font-size:.98rem;line-height:1.3;font-weight:700}
-.rate{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
-.rate b{font-weight:700;font-size:.82rem}
-.rate small{font-weight:400;color:var(--mute);font-size:.72rem}
-.stars{position:relative;display:inline-block;font-size:12px;line-height:1;letter-spacing:1px}
-.stars i{font-style:normal;color:var(--line)}
-.stars em{position:absolute;top:0;left:0;overflow:hidden;white-space:nowrap;font-style:normal;color:#f2b600}
-.addr{margin:0;color:var(--mute);font-size:.82rem;line-height:1.4;min-height:2.3em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rows{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px;font-size:.84rem}
-.r2{display:flex;align-items:center;gap:8px;min-width:0;height:20px}
-.r2 svg{flex:none;color:var(--acc)}
-.r2 a,.r2 span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.r2 a{color:var(--ink);text-decoration:none;font-weight:500}
-.r2 a:hover{color:var(--acc);text-decoration:underline}
-.r2.off{color:var(--mute)}
-.r2.off svg{color:var(--mute);opacity:.55}
-.mapl{margin-top:auto;padding-top:2px;display:inline-flex;align-items:center;gap:6px;color:var(--acc);font-weight:700;font-size:.82rem;text-decoration:none}
-.mapl:hover{text-decoration:underline}
-.tag{align-self:flex-start;font-size:.78rem;font-weight:700;color:var(--ok)}
-.seg{border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-top:10px}
-.seg b{display:block}
-.seg span{color:var(--mute);font-size:.95rem}
-.note{margin-top:26px;font-size:.8rem;color:var(--mute);border-left:3px solid var(--acc);padding-left:12px;max-width:72ch}
+.chk input{width:16px;height:16px;accent-color:var(--acc)}
+.sp{flex:1}
+.sortsel{display:none;width:auto;height:38px}
+@media (max-width:760px){.sortsel{display:block}}
+.ghost{background:var(--surf);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 13px;height:38px;font:inherit;font-size:.86rem;font-weight:500;cursor:pointer}
+.ghost:hover{border-color:var(--acc);color:var(--acc)}
+.meta{color:var(--mute);font-size:.82rem;margin:0 0 8px}
+.tw{background:var(--surf);border:1px solid var(--line);border-radius:10px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--soft);white-space:nowrap}
+th button{all:unset;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
+th button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+th[aria-sort="ascending"] button::after{content:"\2191";color:var(--warm)}
+th[aria-sort="descending"] button::after{content:"\2193";color:var(--warm)}
+td{padding:11px 12px;border-bottom:1px solid var(--soft);vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--accsoft)}
+.nm b{display:block;font-weight:600;font-size:.93rem}
+.nm small{display:block;color:var(--mute);font-size:.8rem;line-height:1.4;margin-top:2px;max-width:44ch}
+.num{text-align:right;white-space:nowrap}
+.clip{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+a.lk{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+a.lk:hover{color:var(--acc);text-decoration-color:currentColor}
+.na{color:var(--mute);opacity:.55}
+.star{color:var(--star)}
+.pips{display:inline-flex;gap:3px;padding-top:4px}
+.pips i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.pips i.on{background:var(--acc)}
+@media (max-width:760px){
+ thead{display:none}
+ table,tbody,tr,td{display:block}
+ tr{border-bottom:1px solid var(--line);padding:10px 0}
+ tbody tr:last-child{border-bottom:0}
+ td{border:0;padding:3px 12px;display:flex;gap:10px;overflow-wrap:anywhere}
+ td[data-l]::before{content:attr(data-l);flex:none;width:64px;color:var(--mute);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;padding-top:2px}
+ td.nm{display:block}
+ td.nm::before{display:none}
+ .num{text-align:left}
+ .clip{max-width:none;white-space:normal}
+}
+.segs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.segs{grid-template-columns:1fr}}
+.seg{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;gap:14px}
+.seg .n{flex:none;font:400 1.6rem/1 "Instrument Serif",Georgia,serif;color:var(--warm);width:28px}
+.seg b{display:block;margin-bottom:2px}
+.seg span{color:var(--mute);font-size:.9rem}
+.seg .ghost{margin-top:10px}
 @media (prefers-reduced-motion:reduce){.spin,.sk{animation:none}}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
-<main>
-<h1>Temukan pembeli hair extension di kota mana pun</h1>
-<p class="sub">Cari salon dan toko wig asli lengkap dengan alamat dan kontaknya, di Indonesia maupun luar negeri.</p>
-
-<div class="tabs" role="tablist">
-  <button class="tab" role="tab" id="t1" aria-selected="true">Cari tempat</button>
-  <button class="tab" role="tab" id="t2" aria-selected="false">Siapa yang membeli?</button>
-</div>
-
-<section class="panel" id="p1">
-  <div class="form2">
-    <div class="f combo"><label for="country">Negara</label>
-      <input type="text" id="country" autocomplete="off" placeholder="Ketik untuk cari negara…">
-      <div class="combo-list" id="countryList" hidden></div></div>
-    <div class="f combo"><label for="citysel">Cari kota</label>
-      <input type="text" id="citysel" autocomplete="off" placeholder="Pilih negara dulu untuk lihat kota populer, atau ketik di sini">
-      <div class="combo-list" id="cityselList" hidden></div></div>
+<header class="top"><div class="wrap head">
+  <div><h1>Pencari prospek hair extension</h1>
+  <p class="sub">Salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya.</p></div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="t1" aria-selected="true">Cari tempat</button>
+    <button class="tab" role="tab" id="t2" aria-selected="false">Siapa yang membeli?</button>
   </div>
-  <div class="form">
+</div></header>
+<main class="wrap">
+<section id="p1">
+  <div class="panel form">
+    <div class="f combo"><label for="country">Negara</label>
+      <input type="text" id="country" autocomplete="off" placeholder="Ketik untuk cari negara">
+      <div class="combo-list" id="countryList" hidden></div></div>
+    <div class="f combo"><label for="citysel">Pilih kota</label>
+      <input type="text" id="citysel" autocomplete="off" placeholder="Ketik nama kota">
+      <div class="combo-list" id="cityselList" hidden></div></div>
+    <div class="f"><label for="city">Kota yang dicari</label><input type="text" id="city" placeholder="Contoh: London, Houston USA, Purwokerto"></div>
     <div class="f"><label for="kind">Jenis tempat</label>
       <select id="kind"><option value="salon">Salon rambut</option><option value="wig">Toko wig / beauty supply</option><option value="beauty">Toko kecantikan</option></select></div>
     <div class="f"><label for="source">Sumber data</label>
       <select id="source"><option value="google">Google Maps (lengkap)</option><option value="osm">OpenStreetMap (gratis, tipis)</option></select></div>
-    <div class="f"><label for="city">Kota</label><input type="text" id="city" placeholder="Contoh: London, Houston USA, Purwokerto"></div>
     <button class="go" id="run"><span id="runtxt">Cari</span></button>
   </div>
-  <div class="status" id="status" aria-live="polite"></div>
+  <div class="status" id="status" aria-live="polite"><p class="info">Pilih negara dan kota, lalu tekan Cari. Hasilnya bisa diurutkan dan difilter.</p></div>
   <div id="res" hidden>
-    <div class="bar"><b id="count"></b>
-      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-        <label class="chk"><input type="checkbox" id="onlyc"> Hanya yang punya kontak</label>
-        <label class="chk"><input type="checkbox" id="onlye"> Hanya yang punya email</label>
-        <button class="ghost" id="copy">Salin sebagai CSV</button><span id="copied" class="info" hidden></span>
-      </div>
+    <div class="stats" id="stats"></div>
+    <div class="tools">
+      <input type="search" class="q" id="q" placeholder="Filter nama atau alamat" aria-label="Filter nama atau alamat">
+      <label class="chk"><input type="checkbox" id="onlyc"> Punya kontak</label>
+      <label class="chk"><input type="checkbox" id="onlye"> Punya email</label>
+      <select id="sortsel" class="sortsel" aria-label="Urutkan"><option value="">Urutan asli</option><option value="name">Nama A–Z</option><option value="rating">Rating tertinggi</option><option value="reviews">Ulasan terbanyak</option><option value="score">Paling lengkap</option></select>
+      <span class="sp"></span>
+      <span id="copied" class="info" hidden></span>
+      <button class="ghost" id="copy" type="button">Salin CSV</button>
+      <button class="ghost" id="dl" type="button">Unduh CSV</button>
     </div>
-    <div class="list" id="list"></div>
+    <p class="meta" id="shown"></p>
+    <div class="tw"><table>
+      <thead><tr>
+        <th data-k="name" aria-sort="none"><button type="button">Tempat</button></th>
+        <th class="num" data-k="rating" aria-sort="none"><button type="button">Rating</button></th>
+        <th class="num" data-k="reviews" aria-sort="none"><button type="button">Ulasan</button></th>
+        <th>Telepon</th><th>Email</th><th>Website</th>
+        <th data-k="score" aria-sort="none"><button type="button">Lengkap</button></th>
+        <th>Peta</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table></div>
   </div>
 </section>
-
-<section class="panel" id="p2" hidden>
-  <p class="info" style="margin-top:0">Daftar pembeli yang paling mungkin tertarik. Yang punya tombol bisa langsung dicari di peta.</p>
-  <div id="segs"></div>
+<section id="p2" hidden>
+  <p class="info" style="margin-bottom:14px">Daftar pembeli yang paling mungkin tertarik. Yang punya tombol bisa langsung dicari di tab Cari tempat.</p>
+  <div class="segs" id="segs"></div>
 </section>
-
 </main>
-
 <script>
 (function(){
 var $=function(i){return document.getElementById(i)};
@@ -321,38 +360,57 @@ function comboAsync(inputId,listId,opts){
     if(!e.target.closest(".combo")){$("countryList").hidden=true;$("cityselList").hidden=true}
   });
 })();
-var rows=[],timer=null;
+var rows=[],timer=null,sKey="",sDir=1,lastQ="";
+function score(x){return(x.phone?1:0)+(x.email?1:0)+(x.website?1:0)}
+var SORTS={name:function(x){return x.name.toLowerCase()},rating:function(x){return parseFloat(x.rating)||0},reviews:function(x){return parseInt(String(x.reviews||"").replace(/\D/g,""),10)||0},score:score};
 var STEPS=["Mencari lokasi kota…","Mengambil data tempat…","Hampir selesai. Kota besar butuh waktu lebih lama…"];
+var NA="<span class='na'>–</span>";
 function loading(on){
   $("run").disabled=on;
   $("runtxt").textContent=on?"Mencari…":"Cari";
   if(on){
     $("res").hidden=true;
     var i=0;
-    $("status").innerHTML="<div class='load'><div class='spin'></div><span id='lm'>"+STEPS[0]+"</span></div><div class='sk'></div><div class='sk'></div><div class='sk'></div>";
+    $("status").innerHTML="<div class='load'><div class='spin'></div><span id='lm'>"+STEPS[0]+"</span></div><div class='sk'></div><div class='sk'></div><div class='sk'></div><div class='sk'></div>";
     timer=setInterval(function(){i=Math.min(i+1,STEPS.length-1);var m=$("lm");if(m)m.textContent=STEPS[i]},4000);
   }else{clearInterval(timer);$("status").innerHTML=""}
 }
 function say(cls,t){$("status").innerHTML="<div class='"+cls+"'>"+t+"</div>"}
 function href(u){return/^https?:\/\//i.test(u)?u:"https://"+u}
+function view(){
+  var only=$("onlyc").checked,onlye=$("onlye").checked,q=$("q").value.trim().toLowerCase();
+  var r=rows.filter(function(x){return(!only||x.phone||x.website||x.email)&&(!onlye||x.email)&&(!q||(x.name+" "+x.address).toLowerCase().indexOf(q)>-1)});
+  if(sKey){
+    var f=SORTS[sKey];
+    r=r.map(function(x,i){return[x,i]}).sort(function(a,b){var u=f(a[0]),v=f(b[0]);return u<v?-sDir:u>v?sDir:a[1]-b[1]}).map(function(p){return p[0]});
+  }
+  return r;
+}
 function render(){
-  var only=$("onlyc").checked,onlye=$("onlye").checked;
-  var r=rows.filter(function(x){return(!only||x.phone||x.website||x.email)&&(!onlye||x.email)});
-  var withc=rows.filter(function(x){return x.phone||x.website||x.email}).length;
-  var withe=rows.filter(function(x){return x.email}).length;
-  $("count").textContent=rows.length+" tempat ditemukan, "+withc+" punya kontak, "+withe+" punya email";
+  var r=view(),n=rows.length;
+  function cnt(k){return rows.filter(function(x){return x[k]}).length}
+  var st=[["Tempat ditemukan",n],["Ada telepon",cnt("phone")],["Ada email",cnt("email")],["Ada website",cnt("website")]];
+  $("stats").innerHTML=st.map(function(s,i){
+    var p=n?Math.round(s[1]/n*100):0;
+    return"<div class='stat'><small>"+s[0]+"</small><b>"+s[1]+"</b>"+(i?"<span>"+p+"% dari total</span><div class='meter'><i style='width:"+p+"%'></i></div>":"<span>"+esc(lastQ)+"</span>")+"</div>";
+  }).join("");
+  $("shown").textContent="Menampilkan "+r.length+" dari "+n+" tempat";
   $("copied").hidden=true;
-  $("list").innerHTML=r.length?r.map(function(x){
-    var ph=x.phone?x.phone.split(/[;,]/)[0].trim():"";
-    var site=x.website?href(x.website):"";
-    var rate=x.rating?"<span class='rate'>"+stars(x.rating)+"<b>"+esc(x.rating)+"</b>"+(x.reviews?"<small>"+esc(x.reviews)+" ulasan</small>":"")+"</span>":"";
-    var addr=x.address||"";
-    return"<div class='item'><div class='top'><h3>"+esc(x.name)+"</h3>"+rate+"</div><p class='addr' title='"+esc(addr)+"'>"+(addr?esc(addr):"Alamat belum diisi")+"</p><div class='rows'>"
-      +row(IC.tel,ph,"tel:"+esc(ph.replace(/[^\d+]/g,"")),"Belum ada nomor telepon")
-      +row(IC.mail,x.email,"mailto:"+esc(x.email||""),"Belum ada email")
-      +row(IC.web,site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""),esc(site),"Belum ada website")
-      +"</div>"+(x.osm?"<a class='mapl' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>"+IC.pin+"Lihat di peta</a>":"")+"</div>"
-  }).join(""):"<p class='info'>Tidak ada tempat yang punya kontak. Matikan filter untuk melihat semuanya.</p>";
+  document.querySelectorAll("th[data-k]").forEach(function(th){
+    th.setAttribute("aria-sort",th.getAttribute("data-k")===sKey?(sDir>0?"ascending":"descending"):"none");
+  });
+  $("tb").innerHTML=r.length?r.map(function(x){
+    var ph=x.phone?x.phone.split(/[;,]/)[0].trim():"",site=x.website?href(x.website):"",sc=score(x);
+    return"<tr><td class='nm'><b>"+esc(x.name)+"</b><small>"+(x.address?esc(x.address):"Alamat belum diisi")+"</small></td>"
+      +"<td class='num' data-l='Rating'>"+(x.rating?"<span class='star'>★</span> "+esc(x.rating):NA)+"</td>"
+      +"<td class='num' data-l='Ulasan'>"+(x.reviews?esc(x.reviews):NA)+"</td>"
+      +"<td class='clip' data-l='Telepon'>"+(ph?"<a class='lk' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":NA)+"</td>"
+      +"<td class='clip' data-l='Email'>"+(x.email?"<a class='lk' href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>":NA)+"</td>"
+      +"<td class='clip' data-l='Website'>"+(site?"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":NA)+"</td>"
+      +"<td data-l='Lengkap'><span class='pips' title='"+sc+" dari 3 kontak tersedia'>"+[0,1,2].map(function(i){return"<i class='"+(i<sc?"on":"")+"'></i>"}).join("")+"</span></td>"
+      +"<td data-l='Peta'>"+(x.osm?"<a class='lk' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Buka</a>":NA)+"</td></tr>";
+  }).join(""):"<tr><td colspan='8'><p class='info'>Tidak ada tempat yang cocok dengan filter. Ubah atau matikan filter untuk melihat semuanya.</p></td></tr>";
+  $("sortsel").value=sKey;
   $("res").hidden=false;
 }
 async function run(){
@@ -364,23 +422,37 @@ async function run(){
     try{j=JSON.parse(tx)}catch(x){throw new Error("server membalas error ("+r.status+"). Cek Logs di dashboard Vercel.")}
     if(!r.ok)throw new Error(j.error||"Gagal");
     rows=j.results;loading(false);
-    if(!rows.length)return say("info","Tidak ada "+LABEL[kind]+" di "+esc(city)+" pada data OpenStreetMap. Coba kota lain atau jenis tempat lain.");
+    if(!rows.length)return say("info","Tidak ada data "+LABEL[kind]+" di "+esc(city)+" dari sumber ini. Coba kota lain, jenis tempat lain, atau ganti sumber data.");
+    lastQ=LABEL[kind]+" di "+city;sKey="";sDir=1;
     render();
   }catch(e){loading(false);say("err","Pencarian gagal: "+esc(e.message.replace(/\.$/,""))+". Server peta gratis kadang sibuk, jadi coba lagi beberapa saat.")}
 }
-$("run").onclick=run;$("onlyc").onchange=render;$("onlye").onchange=render;
+$("sortsel").onchange=function(){sKey=this.value;sDir=sKey==="name"?1:-1;render()};
+$("run").onclick=run;$("onlyc").onchange=render;$("onlye").onchange=render;$("q").oninput=render;
 $("city").addEventListener("keydown",function(e){if(e.key==="Enter")run()});
+document.querySelectorAll("th[data-k] button").forEach(function(b){b.onclick=function(){
+  var k=b.parentNode.getAttribute("data-k");
+  if(sKey===k)sDir=-sDir;else{sKey=k;sDir=k==="name"?1:-1}
+  render();
+}});
+function csv(){
+  return"nama,alamat,telepon,website,email,rating,ulasan\n"+view().map(function(x){
+    return[x.name,x.address,x.phone,x.website,x.email,x.rating||"",x.reviews||""].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(",");
+  }).join("\n");
+}
+function done(t){$("copied").textContent=t;$("copied").hidden=false}
 $("copy").onclick=function(){
-  var only=$("onlyc").checked,onlye=$("onlye").checked;
-  var r=rows.filter(function(x){return(!only||x.phone||x.website||x.email)&&(!onlye||x.email)});
-  var csv="nama,alamat,telepon,website,email\n"+r.map(function(x){return[x.name,x.address,x.phone,x.website,x.email].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(",")}).join("\n");
-  function done(t){$("copied").textContent=t;$("copied").hidden=false}
-  try{navigator.clipboard.writeText(csv).then(function(){done("Tersalin.")},function(){done("Gagal menyalin.")})}catch(e){done("Gagal menyalin.")}
+  try{navigator.clipboard.writeText(csv()).then(function(){done("Tersalin.")},function(){done("Gagal menyalin.")})}catch(e){done("Gagal menyalin.")}
+};
+$("dl").onclick=function(){
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob(["\ufeff"+csv()],{type:"text/csv;charset=utf-8"}));
+  a.download="prospek.csv";document.body.appendChild(a);a.click();a.remove();
 };
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"],["Importir dan distributor di luar negeri","Volume besar. Cari lewat direktori B2B seperti Alibaba atau Global Sources.",""],["Perias pengantin","Cari lewat Instagram dengan kata kunci “bridal hair” plus nama kota.",""],["Pabrik wig dan rambut","Calon mitra atau pesaing. Cari lewat direktori ekspor.",""]];
 function tab(n){[1,2].forEach(function(i){$("p"+i).hidden=n!==i;$("t"+i).setAttribute("aria-selected",n===i)})}
 $("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};
-$("segs").innerHTML=SEG.map(function(s,i){return"<div class='seg'><b>"+s[0]+"</b><span>"+s[1]+"</span>"+(s[2]?"<div style='margin-top:8px'><button class='ghost' data-i='"+i+"'>Cari di peta</button></div>":"")+"</div>"}).join("");
+$("segs").innerHTML=SEG.map(function(s,i){return"<div class='seg'><div class='n'>"+(i+1)+"</div><div><b>"+s[0]+"</b><span>"+s[1]+"</span>"+(s[2]?"<div><button class='ghost' data-i='"+i+"'>Cari tempat ini</button></div>":"")+"</div></div>"}).join("");
 document.querySelectorAll("#segs button").forEach(function(b){b.onclick=function(){$("kind").value=SEG[+b.getAttribute("data-i")][2];tab(1);$("city").focus()}});
 })();
 </script>
