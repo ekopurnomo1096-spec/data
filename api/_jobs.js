@@ -163,6 +163,12 @@ const firstEmail = x => {
   const t = String(e).trim().toLowerCase();
   return M.EMAIL.test(t) ? t : "";
 };
+// Alamat Gmail, Yahoo, dll pertama milik tempat itu (sama dengan filter "Hanya email Gmail, Yahoo, dll" di tab Email). Domain sendiri tidak dipakai.
+const freeEmail = x => {
+  const l = x.emails && x.emails.length ? x.emails : [x.email];
+  for (const e of l) { const t = String(e || "").trim().toLowerCase(); if (M.EMAIL.test(t) && FREE.test(t)) return t; }
+  return "";
+};
 const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 function shortDate() { // "3 Nov" dalam WIB, sama dengan catatan otomatis di halaman
   const d = new Date(Date.now() + 7 * 36e5);
@@ -399,7 +405,7 @@ async function jobQueue(cfg, ctx) {
     if (!x.id || queue[x.id] || mailed.has(x.id)) continue;
     const rec = ctx.data.leads[x.id];
     if (rec && rec.s) continue; // hanya yang belum dihubungi
-    const to = firstEmail(x);
+    const to = freeEmail(x);
     if (!to || mailedTo.has(to) || seenTo.has(to)) continue;
     const sc = scoreLead(x, cfg.mail.weights);
     if (sc.s < cfg.mail.minScore) continue;
@@ -444,7 +450,7 @@ async function scorePreview(cfgIn) {
     if (!x.id || mailed.has(x.id)) continue;
     const rec = data.leads[x.id];
     if (rec && rec.s) continue;
-    const to = firstEmail(x);
+    const to = freeEmail(x);
     if (!to) continue;
     const sc = scoreLead(x, cfg.mail.weights);
     rows.push({ id: x.id, name: M.clean(x.name, 80), to, s: sc.s, why: sc.neg.concat(sc.why).slice(0, 5) });
@@ -505,7 +511,7 @@ async function jobMailSend(cfg, ctx) {
     const q = parse(qRaw[id]);
     if (!q || q.st !== "ok") continue;
     const rec = ctx.data.leads[id];
-    if (mailed.has(id) || (rec && rec.s) || !M.EMAIL.test(q.to || "")) { stale.push(id); continue; }
+    if (mailed.has(id) || (rec && rec.s) || !M.EMAIL.test(q.to || "") || !FREE.test(String(q.to).toLowerCase())) { stale.push(id); continue; }
     fresh.push({ id, to: String(q.to).toLowerCase(), name: q.name || "", n: 0, sc: q.sc || 0, fu: false });
   }
   fresh.sort((a, b) => b.sc - a.sc);
