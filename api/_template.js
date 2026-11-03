@@ -18,4 +18,16 @@ Website :
 https://emahairshop.com/
 
 Looking forward to working with you!`;
-module.exports = { TEMPLATE };
+
+// Data brand dipakai untuk header/footer HTML email (lihat send.js) dan sebagai fakta
+// yang boleh dipakai AI saat menulis email (lihat ai.js). Ubah di sini kalau datanya berubah.
+const BRAND = {
+  name: "EMAHAIRSHOP",
+  tagline: "Human hair supplier from Indonesia",
+  phone: "+62 895-3799-94528",
+  waLink: "https://wa.me/6289537994528",
+  website: "https://emahairshop.com/",
+  products: ["Hair Weft", "Hair Bulk", "I/U/K/V Tip", "Nano Ring", "Tape Hair", "Genius Weft"]
+};
+
+module.exports = { TEMPLATE, BRAND };

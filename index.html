@@ -211,7 +211,9 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .lbox h1{font-size:1.35rem}
 .lbox .sub{margin:0}
 .lbox .go,.lbox .err{margin:0}
-#sbody,#mbody{padding:20px}
+#sbody,#mbody,#emprevbody{padding:20px}
+.emprevframe{border:1px solid var(--line);border-radius:8px;overflow:hidden;height:min(60vh,520px);margin-top:10px;background:#fff}
+.emprevframe iframe{width:100%;height:100%;border:0;display:block}
 #mbody .sf{margin-top:14px}
 #mtx,#emtx{width:100%;font:inherit;font-size:.88rem;line-height:1.45;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;resize:vertical}
 .mlist{max-height:190px;overflow:auto;margin-top:14px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
@@ -372,7 +374,8 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
  tbody tr>td[data-l='Telepon']>svg{top:calc(50% + 2px)}
  tbody tr>td.pt{padding-bottom:6px}
  dialog{width:calc(100vw - 16px);max-height:calc(100vh - 24px)}
- #dbody,#sbody,#mbody{padding:16px}
+ #dbody,#sbody,#mbody,#emprevbody{padding:16px}
+ .emprevframe{height:min(50vh,420px)}
  .di{grid-template-columns:92px 1fr;gap:8px}
  .svc{padding:12px}
  .segs{gap:10px}
@@ -524,6 +527,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
       <p class="hint2">Sapaan di baris pertama otomatis memakai nama tempat (Hi Nama team!) selama baris itu tetap diawali Hi!</p></div>
     <p class="hint2" id="emfrom"></p>
     <p class="aiwarn" id="emerr" hidden></p>
+    <div class="eacts"><span class="sp"></span><button class="ghost" id="emprevbtn" type="button">Pratinjau email</button></div>
   </div>
   <div class="panel">
     <div class="svh">Kirim manual</div>
@@ -568,6 +572,12 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <p class="hint2" id="mfrom"></p>
   <p class="aiwarn" id="merr" hidden></p>
   <div class="acts"><button class="btn primary" id="msend" type="button">Kirim</button><button class="btn" id="mset" type="button" hidden>Buka tab Email</button><button class="btn" id="mcancel" type="button">Batal</button></div>
+</div></dialog>
+<dialog id="emprevd" aria-label="Pratinjau email"><div id="emprevbody">
+  <div class="dh"><div><h2>Pratinjau email</h2><p class="dr">Begini kira-kira tampilan email yang diterima calon pembeli.</p></div><button class="x" id="emprevx" type="button" aria-label="Tutup">✕</button></div>
+  <p class="hint2" id="emprevsj" style="font-weight:600;color:var(--ink)"></p>
+  <div class="emprevframe"><iframe id="emprevfr" title="Pratinjau email" sandbox=""></iframe></div>
+  <div class="acts"><button class="btn" id="emprevclose" type="button">Tutup</button></div>
 </div></dialog>
 <dialog id="setd" aria-label="Pengaturan"><div id="sbody">
   <div class="dh"><div><h2>Pengaturan</h2><p class="dr">API key disimpan terenkripsi di server, jadi cukup diisi sekali dan berlaku di semua browser.</p></div><button class="x" id="sx" type="button" aria-label="Tutup">✕</button></div>
@@ -1554,6 +1564,49 @@ function saveMKeys(body,okMsg){
 $("emksave").onclick=function(){var b={},n=0;MKEYS.forEach(function(p){var v=$("k"+p[0]).value.trim();if(v){b[p[1]]=v;n++}});if(!n){mkmsg("Tidak ada yang diubah.");return}saveMKeys(b,"Tersimpan di server.")};
 $("emkclear").onclick=function(){if(confirm("Hapus pengaturan email yang tersimpan di server?"))saveMKeys({rs:"",rsf:"",rrt:""},"Pengaturan email dihapus.")};
 $("emks").onchange=function(){$("k5").type=this.checked?"text":"password"};
+// Pratinjau email: meniru pembungkus HTML (header+footer) yang dipakai saat kirim sungguhan (lihat api/send.js)
+var EMBRAND={name:"EMAHAIRSHOP",tagline:"Human hair supplier from Indonesia",phone:"+62 895-3799-94528",waLink:"https://wa.me/6289537994528",website:"https://emahairshop.com/"};
+function emPrevBody(text){
+  var lines=String(text||"").split(/\n/),html="",inList=false;
+  function add(l){html+=l}
+  lines.forEach(function(raw){
+    var line=raw.trim();
+    if(!line){if(inList){add("</ul>");inList=false}return}
+    if(/^[•-]\s+/.test(line)){
+      if(!inList){add('<ul style="margin:0 0 14px;padding-left:20px">');inList=true}
+      add('<li style="margin:0 0 6px">'+esc(line.replace(/^[•-]\s+/,""))+"</li>");
+    }else{
+      if(inList){add("</ul>");inList=false}
+      add('<p style="margin:0 0 14px">'+esc(line)+"</p>");
+    }
+  });
+  if(inList)add("</ul>");
+  return html||'<p style="margin:0"></p>';
+}
+function emPrevHtml(text){
+  var siteLabel=EMBRAND.website.replace(/^https?:\/\//,"").replace(/\/$/,"");
+  return '<!doctype html><html><body style="margin:0;padding:0;background:#f3efe7;font-family:Arial,Helvetica,sans-serif">'+
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3efe7;padding:24px 0"><tr><td align="center">'+
+    '<table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border-radius:10px;overflow:hidden" cellpadding="0" cellspacing="0"><tr><td>'+
+    '<div style="background:#1f4d3d;padding:22px 28px">'+
+    '<span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:.02em">'+esc(EMBRAND.name)+'</span><br>'+
+    '<span style="color:#cfe3da;font-size:12px">'+esc(EMBRAND.tagline)+'</span></div>'+
+    '<div style="padding:28px;color:#2a2a2a;font-size:15px;line-height:1.55">'+emPrevBody(text)+'</div>'+
+    '<div style="padding:18px 28px;background:#f6f3ec;border-top:1px solid #e7e1d4;font-size:12.5px;color:#6b6b6b">'+
+    '<div style="margin-bottom:6px"><b>'+esc(EMBRAND.name)+'</b> — '+esc(EMBRAND.tagline)+'</div>'+
+    '<div>WhatsApp: <a href="'+esc(EMBRAND.waLink)+'" style="color:#1f4d3d;text-decoration:none">'+esc(EMBRAND.phone)+'</a> &nbsp;·&nbsp; Website: <a href="'+esc(EMBRAND.website)+'" style="color:#1f4d3d;text-decoration:none">'+esc(siteLabel)+'</a></div></div>'+
+    '</td></tr></table></td></tr></table></body></html>';
+}
+$("emprevbtn").onclick=function(){
+  var sj=$("emsj").value.trim(),tx=$("emtx").value;
+  if(!tx.trim()){emErr("Isi email masih kosong, tulis dulu sebelum pratinjau.");return}
+  $("emprevsj").textContent="Subjek: "+(sj||"(kosong)");
+  $("emprevfr").srcdoc=emPrevHtml(greet(tx,"Salon Anda"));
+  $("emprevd").showModal();
+};
+$("emprevx").onclick=function(){$("emprevd").close()};
+$("emprevclose").onclick=function(){$("emprevd").close()};
+$("emprevd").onclick=function(e){if(e.target===this)this.close()};
 function greet(tx,name){
   var n=String(name||"").replace(/[\r\n\t<>]+/g," ").trim().slice(0,80);
   return tx.replace(/^\s*Hi!/,n?"Hi "+n+" team!":"Hi!");

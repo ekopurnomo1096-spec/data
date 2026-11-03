@@ -6,6 +6,7 @@
 // Key Resend (nama "rs"), alamat pengirim ("rsf"), dan Reply-To opsional ("rrt") disimpan di Redis lewat Pengaturan; RESEND_API_KEY / RESEND_FROM di Vercel jadi cadangan.
 const { isAuthed } = require("./_auth");
 const { dbConfigured, getKey, cmd, hgetall } = require("./_store");
+const { BRAND } = require("./_template");
 
 const MAIL = "hairleads:mail";
 const DAYK = "hairleads:mailday"; // hitungan email terkirim per hari (UTC), field = "YYYY-MM-DD"
@@ -22,6 +23,42 @@ const EMAIL = /^[^\s@<>"]+@[^\s@<>"]+\.[A-Za-z]{2,}$/;
 const ID = /^[\w:./|-]{1,120}$/;
 
 const clean = (v, n) => String(v == null ? "" : v).replace(/[\r\n\t]+/g, " ").replace(/[<>]/g, "").trim().slice(0, n);
+
+// Bungkus isi email polos (text) jadi HTML rapi dengan header dan footer brand, supaya
+// email tidak terasa seperti pesan WA yang disalin-tempel. Paragraf dipisah baris kosong;
+// baris yang diawali "•" atau "-" otomatis jadi daftar bertitik.
+const escHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+function textToHtmlBody(text) {
+  const lines = String(text || "").split(/\n/);
+  let html = "", inList = false;
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) { if (inList) { html += "</ul>"; inList = false; } continue; }
+    if (/^[•-]\s+/.test(line)) {
+      if (!inList) { html += '<ul style="margin:0 0 14px;padding-left:20px">'; inList = true; }
+      html += '<li style="margin:0 0 6px">' + escHtml(line.replace(/^[•-]\s+/, "")) + "</li>";
+    } else {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += '<p style="margin:0 0 14px">' + escHtml(line) + "</p>";
+    }
+  }
+  if (inList) html += "</ul>";
+  return html || '<p style="margin:0"></p>';
+}
+function buildHtml(text) {
+  const siteLabel = escHtml(BRAND.website.replace(/^https?:\/\//, "").replace(/\/$/, ""));
+  return '<!doctype html><html><body style="margin:0;padding:0;background:#f3efe7;font-family:Arial,Helvetica,sans-serif">' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3efe7;padding:24px 0"><tr><td align="center">' +
+    '<table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border-radius:10px;overflow:hidden" cellpadding="0" cellspacing="0"><tr><td>' +
+    '<div style="background:#1f4d3d;padding:22px 28px">' +
+    '<span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:.02em">' + escHtml(BRAND.name) + "</span><br>" +
+    '<span style="color:#cfe3da;font-size:12px">' + escHtml(BRAND.tagline) + "</span></div>" +
+    '<div style="padding:28px;color:#2a2a2a;font-size:15px;line-height:1.55">' + textToHtmlBody(text) + "</div>" +
+    '<div style="padding:18px 28px;background:#f6f3ec;border-top:1px solid #e7e1d4;font-size:12.5px;color:#6b6b6b">' +
+    "<div style=\"margin-bottom:6px\"><b>" + escHtml(BRAND.name) + "</b> — " + escHtml(BRAND.tagline) + "</div>" +
+    "<div>WhatsApp: <a href=\"" + escHtml(BRAND.waLink) + "\" style=\"color:#1f4d3d;text-decoration:none\">" + escHtml(BRAND.phone) + "</a> &nbsp;·&nbsp; Website: <a href=\"" + escHtml(BRAND.website) + "\" style=\"color:#1f4d3d;text-decoration:none\">" + siteLabel + "</a></div></div>" +
+    "</td></tr></table></td></tr></table></body></html>";
+}
 // Template email dikosongkan: subjek dan isi harus ditulis sendiri sebelum kirim
 function compose() {
   return { subject: "", text: "" };
@@ -105,7 +142,7 @@ module.exports = async (req, res) => {
     const r = await fetch("https://api.resend.com/emails/batch", {
       method: "POST",
       headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
-      body: JSON.stringify(items.map(i => ({ from, to: [i.to], subject: i.subject, text: i.text, ...(replyTo ? { reply_to: replyTo } : {}) }))),
+      body: JSON.stringify(items.map(i => ({ from, to: [i.to], subject: i.subject, text: i.text, html: buildHtml(i.text), ...(replyTo ? { reply_to: replyTo } : {}) }))),
       signal: AbortSignal.timeout(25000)
     });
     const j = await r.json().catch(() => ({}));

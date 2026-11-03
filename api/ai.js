@@ -9,7 +9,7 @@ const AI = "hairleads:ai";
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 const STATUS_CODES = ["", "chat", "balas", "deal", "tidak"];
 // Template pesan pertama ada di _template.js (nomor, website, daftar produk).
-const { TEMPLATE } = require("./_template");
+const { TEMPLATE, BRAND } = require("./_template");
 const parse = v => { try { return JSON.parse(v); } catch (e) { return null; } };
 const str = (v, n) => (typeof v === "string" ? v.slice(0, n) : "");
 const clamp = (v, a, b) => Math.max(a, Math.min(b, Math.round(Number(v)) || 0));
@@ -152,15 +152,20 @@ module.exports = async (req, res) => {
       const curSubject = str(b.subject, 200).trim();
       const curText = str(b.text, 5000).trim();
       const prompt =
-        "Tulis satu draf email penawaran pertama dari EMAHAIRSHOP ke calon pembeli grosir. Isi JSON dengan field persis: subject (judul email, maks 80 karakter) dan text (isi email).\n" +
+        "Tulis satu draf email penawaran pertama dari " + BRAND.name + " ke calon pembeli grosir. Isi JSON dengan field persis: subject (judul email, maks 80 karakter) dan text (isi email).\n" +
+        "Konteks penting: ini EMAIL, bukan pesan siaran WhatsApp. Tulis seperti pesan pribadi singkat dari satu orang ke pemilik toko, bukan seperti brosur atau katalog.\n" +
         "Aturan:\n" +
-        "- Fakta (daftar produk, nomor WhatsApp, alamat website) hanya boleh diambil dari TEMPLATE. Jangan mengarang harga, diskon, sertifikat, jumlah minimum order, atau klaim lain, kecuali PERMINTAAN PENGGUNA menyebutkannya.\n" +
+        "- JANGAN memakai format daftar produk dengan tanda \"•\" dan JANGAN menutup dengan nomor WhatsApp atau alamat website diulang di baris sendiri seperti brosur — itu semua sudah otomatis muncul rapi di footer email, jadi tidak perlu ditulis lagi di isi pesan.\n" +
+        "- Sebut paling banyak 2-3 jenis produk saja, disebut mengalir dalam kalimat biasa (bukan daftar), dipilih dari daftar produk di FAKTA.\n" +
+        "- Panjang wajar untuk email personal: sekitar 4-7 kalimat pendek. Nada hangat, sopan, to the point, terasa ditulis khusus untuk tempat itu, bukan pesan massal yang disalin-tempel.\n" +
+        "- Boleh menyebut nama brand pengirim dan mengajak membalas email ini kalau tertarik, tapi jangan mengarang nama orang yang menulis kalau tidak diminta.\n" +
+        "- Fakta (jenis produk, brand) hanya boleh diambil dari FAKTA di bawah. Jangan mengarang harga, diskon, sertifikat, jumlah minimum order, nomor WhatsApp, atau klaim lain, kecuali PERMINTAAN PENGGUNA menyebutkannya.\n" +
         "- Baris pertama isi email harus tepat diawali \"Hi!\" (sistem otomatis menggantinya dengan nama tempat). Jangan memakai placeholder seperti [nama].\n" +
-        "- Teks polos tanpa markdown, tanpa tanda bintang atau pagar. Daftar boleh memakai tanda \"•\".\n" +
-        "- Ikuti PERMINTAAN PENGGUNA soal gaya, nada, panjang, bahasa, dan isi. Kalau tidak ada permintaan, tulis dalam bahasa Inggris, ramah, dan ringkas, berdasar TEMPLATE.\n" +
+        "- Teks polos tanpa markdown, tanpa tanda bintang, pagar, atau bullet \"•\".\n" +
+        "- Ikuti PERMINTAAN PENGGUNA soal gaya, nada, panjang, bahasa, dan isi. Kalau tidak ada permintaan, tulis dalam bahasa Inggris.\n" +
         (curText ? "- DRAF SAAT INI diberikan: revisi draf itu sesuai permintaan, pertahankan bagian yang tidak diminta diubah.\n" : "") +
         "\nPERMINTAAN PENGGUNA: " + (brief || "(tidak ada)") + "\n\n" +
-        "TEMPLATE:\n" + TEMPLATE + "\n" +
+        "FAKTA:\nBrand: " + BRAND.name + " (" + BRAND.tagline + ")\nProduk: " + BRAND.products.join(", ") + "\n" +
         (curText ? "\nDRAF SAAT INI\nSubjek: " + curSubject + "\nIsi:\n" + curText + "\n" : "");
       const o = await gemini(key, prompt, 4096);
       const subject = str(o.subject, 200).replace(/[\r\n\t]+/g, " ").trim();
