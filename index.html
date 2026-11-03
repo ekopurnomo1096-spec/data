@@ -935,7 +935,7 @@ var AIW='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width
 function aidShow(st,title,msg,pct){
   var d=$("aid");d.className="ai-"+st;
   $("aidt").textContent=title;$("aidm").textContent=msg;$("aidbar").style.width=pct+"%";
-  $("aidi").innerHTML=st==="run"?"<div class='spin'></div>":st==="ok"?IC.ok:st==="err"?AIW:"";
+  $("aidi").innerHTML=st==="run"?"<div class='spin'></div>":st==="err"?AIW:"";
   $("aidpb").hidden=st==="info";
   $("aidx").hidden=st==="run";$("aids").hidden=true;
   if(!d.open)d.showModal();
