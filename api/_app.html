@@ -793,6 +793,25 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
 .aurow>.f{display:flex;flex-direction:column;justify-content:flex-end}
 .aurow>.f label{line-height:1.3}
 .aurow>.f input{width:100%}
+
+/* Menu WhatsApp */
+#pwa{max-width:960px}
+#pwa .panel+.panel{margin-top:16px}
+#walist{max-height:520px;margin-top:0}
+#walist .mrow{cursor:default}
+#walist .mrow .btn{flex:none;height:34px}
+#walist .mrow small{white-space:nowrap}
+@media (min-width:761px){#pwa .tools #waq{flex:1 1 240px;max-width:none}#pwa .tools #wast,#pwa .tools #wase{flex:0 1 190px}}
+@media (max-width:760px){
+ #pwa .tools .tbtns,#pwa .tools .chk{grid-column:1/-1}
+ #pwa .tools .tbtns{margin-left:0}
+ #pwa .tools .tbtns .ghost{width:100%}
+ #walist .mrow{display:grid;grid-template-columns:44px minmax(0,1fr);gap:6px 12px;align-items:center;padding:12px 14px}
+ #walist .mrow .th{grid-row:1/3}
+ #walist .mrow>span:not(.th){grid-column:2}
+ #walist .mrow .mtag{grid-column:2;justify-self:start}
+ #walist .mrow .btn{grid-column:1/-1;justify-content:center;height:40px;margin-top:4px}
+}
 </style>
 </head>
 <body>
@@ -818,6 +837,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <button class="tab" type="button" id="t3" data-v="3" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z'/></svg><span>Tersimpan</span><em class="tn tsk" id="t3n"></em></button>
     <div class="ngl">Hubungi</div>
     <button class="tab" type="button" id="t4" data-v="4" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><rect x='2' y='4' width='20' height='16' rx='2'/><path d='M22 7l-10 6L2 7'/></svg><span>Email</span></button>
+    <button class="tab" type="button" id="twa" data-v="wa" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='currentColor' aria-hidden='true'><path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z'/></svg><span>WhatsApp</span></button>
     <button class="tab" type="button" id="tbalas" data-v="balas" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg><span>Balasan</span><em class="tn" id="rpnav"></em></button>
     <button class="tab" type="button" id="t6" data-v="6" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M3 3v18h18'/><path d='M7 15l4-6 4 3 4-7'/></svg><span>Riwayat kirim</span></button>
     <div class="ngl">Otomatis</div>
@@ -953,6 +973,21 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <div class="eacts"><span class="hint2" id="emsel" style="margin:0"></span><span class="sp"></span><button class="btn primary" id="emsend" type="button" disabled>Kirim email</button></div>
   </div>
 
+</section>
+<section id="pwa" hidden>
+  <div class="panel">
+    <div class="svh">Prospek dengan WhatsApp</div>
+    <div class="tools">
+      <input type="search" class="q" id="waq" placeholder="Cari nama atau alamat" aria-label="Cari prospek">
+      <select id="wast" class="sortsel" aria-label="Filter status prospek"><option value="baru" selected>Belum dihubungi</option><option value="all">Semua status</option><option value="chat">Sudah dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak cocok</option></select>
+      <select id="wase" class="sortsel" aria-label="Filter pencarian"><option value="">Semua pencarian</option></select>
+      <label class="chk" title="Nomor telepon berformat internasional yang bisa dipakai WhatsApp, belum tentu aktif"><input type="checkbox" id="wapn" checked> Termasuk nomor dari telepon</label>
+      <div class="tbtns"><button class="ghost" id="warefresh" type="button">Muat ulang</button></div>
+    </div>
+    <p class="info" id="wainfo">Memuat…</p>
+    <div class="mlist rd" id="walist" hidden></div>
+    <p class="hint2">Tombol “Buka WhatsApp” membuka chat dengan nomor prospek. Setelah dibuka, status jadi Sudah dihubungi dan catatan ditambah “WA, tanggal”. </p>
+  </div>
 </section>
 <section id="p6" hidden>
   <div class="panel">
@@ -2217,7 +2252,7 @@ $("elist").addEventListener("change",function(e){
 });
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"]];
 var CUR="1";
-var PG={"7":["Dasbor","Corong prospek, perbandingan variasi email A/B, dan performa per negara dan kota."],"1":["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],"2":["Siapa yang membeli?","Kelompok pembeli yang paling mungkin tertarik pada hair extension."],"3":["Tersimpan","Prospek yang sudah kamu tandai dan pencarian yang pernah disimpan."],"4":["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],"6":["Riwayat kirim","Semua email yang pernah dikirim lewat aplikasi ini, manual maupun otomatis."],"ringkas":["Status","Status jalan otomatis dan tombol jalankan sekarang."],"antrean":["Antrean persetujuan","Email yang menunggu persetujuanmu sebelum dikirim."],"balas":["Balasan","Balasan calon pembeli dibaca AI, lalu status prospek diperbarui."],"kirim":["Kirim otomatis","Aturan kirim otomatis, batas harian, dan follow-up."],"warm":["Pemanasan domain","Naikkan batas kirim bertahap untuk domain pengirim baru."],"teks":["Teks email","Isi email pertama dan follow-up yang dikirim otomatis."],"ulang":["Cari ulang","Ulangi pencarian tersimpan secara berkala, hanya tempat baru yang ditambahkan."],"putar":["Putaran kota","Cari kota baru dari daftar secara bergantian."],"cariem":["Cari email","Cek website tempat baru untuk mencari email dan WhatsApp."],"skor":["Skor prospek","Atur bobot skor yang menentukan siapa masuk antrean."],"lapor":["Laporan & peringatan","Ringkasan harian dan peringatan masalah lewat email."],"bersih":["Pembersihan data","Buang data lama otomatis supaya database tetap ringan."],"serp":["Akun SerpApi","Pindah akun otomatis saat kuota akun aktif menipis."],"berhenti":["Daftar berhenti","Alamat yang tidak akan dikirimi email lagi."]};
+var PG={"7":["Dasbor","Corong prospek, perbandingan variasi email A/B, dan performa per negara dan kota."],"1":["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],"2":["Siapa yang membeli?","Kelompok pembeli yang paling mungkin tertarik pada hair extension."],"3":["Tersimpan","Prospek yang sudah kamu tandai dan pencarian yang pernah disimpan."],"wa":["WhatsApp","Daftar prospek yang punya WhatsApp, buka chat-nya langsung dari sini."],"4":["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],"6":["Riwayat kirim","Semua email yang pernah dikirim lewat aplikasi ini, manual maupun otomatis."],"ringkas":["Status","Status jalan otomatis dan tombol jalankan sekarang."],"antrean":["Antrean persetujuan","Email yang menunggu persetujuanmu sebelum dikirim."],"balas":["Balasan","Balasan calon pembeli dibaca AI, lalu status prospek diperbarui."],"kirim":["Kirim otomatis","Aturan kirim otomatis, batas harian, dan follow-up."],"warm":["Pemanasan domain","Naikkan batas kirim bertahap untuk domain pengirim baru."],"teks":["Teks email","Isi email pertama dan follow-up yang dikirim otomatis."],"ulang":["Cari ulang","Ulangi pencarian tersimpan secara berkala, hanya tempat baru yang ditambahkan."],"putar":["Putaran kota","Cari kota baru dari daftar secara bergantian."],"cariem":["Cari email","Cek website tempat baru untuk mencari email dan WhatsApp."],"skor":["Skor prospek","Atur bobot skor yang menentukan siapa masuk antrean."],"lapor":["Laporan & peringatan","Ringkasan harian dan peringatan masalah lewat email."],"bersih":["Pembersihan data","Buang data lama otomatis supaya database tetap ringan."],"serp":["Akun SerpApi","Pindah akun otomatis saat kuota akun aktif menipis."],"berhenti":["Daftar berhenti","Alamat yang tidak akan dikirimi email lagi."]};
 var HN={"7":"dasbor","1":"cari","2":"pembeli","3":"tersimpan","4":"email","6":"riwayat"},HR={};Object.keys(HN).forEach(function(k){HR[HN[k]]=k});
 var AUV=["ringkas","antrean","balas","kirim","warm","teks","ulang","putar","cariem","skor","lapor","bersih","serp","berhenti"];
 var ASEC={kirim:["Kirim otomatis"],warm:["Pemanasan domain"],teks:["Teks email"],ulang:["Cari ulang"],putar:["Putaran kota"],cariem:["Cari email"],skor:["Skor prospek"],lapor:["Laporan dan peringatan"],bersih:["Pembersihan data"],serp:["Akun SerpApi"]};
@@ -2244,6 +2279,7 @@ function tab(n){
   try{history.replaceState(null,"",tabPath(n))}catch(e){}
   var page=AUV.indexOf(n)>-1?"5":n;
   [1,2,3,4,5,6,7].forEach(function(i){$("p"+i).hidden=String(i)!==page});
+  $("pwa").hidden=page!=="wa";
   [].forEach.call(document.querySelectorAll(".tab[data-v]"),function(b){
     var on=b.getAttribute("data-v")===n;
     b.setAttribute("aria-selected",on?"true":"false");
@@ -2264,11 +2300,72 @@ $("sidenav").addEventListener("click",function(e){
   afterTab(v);
 });
 function afterTab(v){
+  if(v==="wa")waLoad();
   if(v==="4"||v==="6"){renderMail();loadMailTab()}
   if(AUV.indexOf(v)>-1){if(!AU.st)auLoad(true)}
 }
 $("segs").innerHTML=SEG.map(function(s,i){return"<div class='seg'><div class='n'>"+(i+1)+"</div><div><b>"+s[0]+"</b><span>"+s[1]+"</span>"+(s[2]?"<div><button class='ghost' data-i='"+i+"'>Cari tempat ini</button></div>":"")+"</div></div>"}).join("");
 document.querySelectorAll("#segs button").forEach(function(b){b.onclick=function(){$("kind").value=SEG[+b.getAttribute("data-i")][2];tab(1);$("city").focus()}});
+
+
+// ---- WhatsApp: daftar prospek ber-WA dari semua pencarian tersimpan, pesan terisi lewat wa.me (dikirim manual, tidak ada pengiriman otomatis)
+var WA={rows:[],loaded:false,loading:false};
+function waLoad(force){
+  if(WA.loading||(WA.loaded&&!force))return;
+  WA.loading=true;$("wainfo").textContent="Memuat prospek dari pencarian tersimpan…";$("walist").hidden=true;
+  fetch("/api/leads").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){
+    if(j.items)LS=j.items;if(j.searches)SAVED=j.searches;
+    var list=SAVED.slice(),out={},seq=Promise.resolve(),i=0,pool=[];
+    function worker(){
+      if(i>=list.length)return Promise.resolve();
+      var m=list[i++];
+      return fetch("/api/places?city="+encodeURIComponent(m.city)+"&kind="+encodeURIComponent(m.kind)+"&source="+encodeURIComponent(m.source)+"&cacheonly=1")
+        .then(function(r){return r.ok?r.json():{results:[]}}).catch(function(){return{results:[]}})
+        .then(function(d){(d.results||[]).forEach(function(x){if(!x||!x.id||out[x.id])return;x.ctx=x.ctx||m.city;x.sk=m.key;out[x.id]=x})})
+        .then(worker);
+    }
+    for(var k=0;k<4;k++)pool.push(worker());
+    return Promise.all(pool).then(function(){return out});
+  }).then(function(out){
+    var a=Object.keys(out).map(function(k){return out[k]});hydrate(a);
+    WA.rows=a.filter(function(x){return waOf(x)});WA.loaded=true;WA.loading=false;
+    var sel=$("wase"),cur=sel.value;
+    sel.innerHTML="<option value=''>Semua pencarian</option>"+SAVED.map(function(m){return"<option value='"+esc(m.key)+"'>"+esc(m.city)+" · "+esc(LABEL&&LABEL[m.kind]||m.kind)+"</option>"}).join("");
+    sel.value=cur;waRender();
+  }).catch(function(e){WA.loading=false;if(e===0){showLogin("Sesi habis, silakan masuk lagi.");return}$("wainfo").textContent="Gagal memuat prospek. Coba Muat ulang."});
+}
+function waRender(){
+  var q=$("waq").value.trim().toLowerCase(),st=$("wast").value,se=$("wase").value,ph=$("wapn").checked;
+  var all=WA.rows.filter(function(x){
+    var w=waOf(x);if(!w||(!ph&&w.src==="phone"))return false;
+    if(se&&x.sk!==se)return false;
+    var s=stOf(x);if(st!=="all"&&(st==="baru"?s!=="":s!==st))return false;
+    if(q&&(x.name+" "+(x.address||"")).toLowerCase().indexOf(q)<0)return false;
+    return true;
+  }).sort(function(a,b){return(b.rating||0)-(a.rating||0)||(b.reviews||0)-(a.reviews||0)});
+  var shown=all.slice(0,100);WA.shown=shown;
+  $("wainfo").textContent=all.length?("Menampilkan "+shown.length+" dari "+all.length+" prospek dengan WhatsApp."):"Tidak ada prospek yang cocok. Cari tempat lalu cari email/WhatsApp-nya, atau longgarkan filter.";
+  var box=$("walist");box.hidden=!shown.length;
+  box.innerHTML=shown.map(function(x,i){
+    var w=waOf(x),s=stOf(x);
+    return"<div class='mrow'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>+"+esc(w.n)+(w.src==="phone"?" · dari telepon":"")+(x.address?" · "+esc(x.address):"")+"</small></span><em class='mtag pl st-"+(s||"baru")+"'>"+esc(stLabel(s))+"</em><button class='btn primary' type='button' data-i='"+i+"'>Buka WhatsApp</button></div>";
+  }).join("");
+}
+function waMark(x){
+  var line="WA, "+new Date().toLocaleDateString("id-ID",{day:"numeric",month:"short"}),cur=noteOf(x);
+  var patch={n:cur.indexOf(line)>-1?cur:(cur?cur+"\n"+line:line)};
+  if(!stOf(x))patch.s="chat";
+  saveLead(x,patch);
+}
+$("walist").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-i]");if(!b)return;
+  var x=(WA.shown||[])[+b.getAttribute("data-i")],w=x&&waOf(x);if(!w)return;
+  window.open("https://wa.me/"+w.n,"_blank","noopener");
+  waMark(x);setTimeout(waRender,50);
+});
+["waq"].forEach(function(id){$(id).addEventListener("input",waRender)});
+["wast","wase","wapn"].forEach(function(id){$(id).addEventListener("change",waRender)});
+$("warefresh").onclick=function(){waLoad(true)};
 
 // ---- Otomatis: pengaturan, antrean persetujuan, daftar berhenti (lihat api/auto.js dan api/_jobs.js)
 var AU={st:null,cfg:null,busy:false};

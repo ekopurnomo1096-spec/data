@@ -185,6 +185,8 @@ async function searchCore(q, opts) {
       }
     } catch (e) { /* cache rusak atau Redis bermasalah: cari seperti biasa */ }
   }
+  // cacheonly: hanya membaca hasil tersimpan (dipakai menu WhatsApp), tidak pernah memakai kuota SerpApi
+  if (q.cacheonly) return { results: [], cached: true, empty: true };
 
   let results, more = false, ll = "", prev = [], prevDupes = 0, hit = null, acct = 0, switched = null, pageMore = false;
   if ((start > 0 || opts.merge) && dbConfigured()) {
@@ -250,7 +252,7 @@ module.exports = async (req, res) => {
     if (!isAuthed(req)) return res.status(401).json({ error: "Belum login" });
     res.setHeader("Cache-Control", "private, no-store");
     const qy = req.query || {};
-    const out = await searchCore({ city: qy.city, kind: qy.kind, source: qy.source, start: qy.start, refresh: qy.refresh === "1" });
+    const out = await searchCore({ city: qy.city, kind: qy.kind, source: qy.source, start: qy.start, refresh: qy.refresh === "1", cacheonly: qy.cacheonly === "1" });
     return res.status(200).json(out);
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message });
