@@ -25,15 +25,20 @@ ISI
    Variabel koneksi terisi otomatis.
 2) Project > Settings > Environment Variables, tambahkan APP_PASSWORD = kata sandi untuk masuk
    ke halaman ini (pilih yang panjang dan unik). Centang Production, Preview, Development.
+3) Tambahkan juga LOGIN_PATH = teks rahasia bebas tanpa garis miring (contoh: masuk-x7q2). Ini
+   alamat satu-satunya tempat halaman login muncul: https://domainmu.com/masuk-x7q2 - domain tanpa
+   alamat ini (termasuk "/" polos) sengaja memberi 404, supaya orang lain yang iseng buka domainnya
+   tidak nemu form login sama sekali. Ganti LOGIN_PATH kapan saja kalau alamatnya kebagi ke orang
+   yang salah (sesi yang sudah login tidak kena pengaruh, cuma alamat masuk pertama kali yang beda).
    Lalu Deployments > titik tiga di deploy terbaru > Redeploy.
-3) Buka halaman, masuk, klik "Pengaturan", isi API key SerpApi (dan Geoapify, opsional).
-   Key disimpan terenkripsi di Redis (hairleads:keys), berlaku di semua browser dan perangkat.
-   Kalau APP_PASSWORD diganti, key harus diisi ulang.
+4) Buka https://domainmu.com/<LOGIN_PATH>, masuk, klik "Pengaturan", isi API key SerpApi (dan
+   Geoapify, opsional). Key disimpan terenkripsi di Redis (hairleads:keys), berlaku di semua
+   browser dan perangkat. Kalau APP_PASSWORD diganti, key harus diisi ulang.
 
 Progress bar kuota SerpApi tampil di pojok kanan atas, diambil dari Account API SerpApi
 (tidak mengurangi kuota).
 
-PENTING: jangan menaruh API key atau kata sandi di index.html atau di GitHub.
+PENTING: jangan menaruh API key, kata sandi, atau LOGIN_PATH di file aplikasi (api/_app.html) atau di GitHub - semua itu hanya boleh di Environment Variables Vercel.
 
 
 2. VARIABEL DI VERCEL
@@ -42,6 +47,9 @@ Setelah mengubah variabel, selalu Redeploy.
 
 Wajib
   APP_PASSWORD            Kata sandi masuk.
+  LOGIN_PATH              Alamat rahasia tempat halaman login muncul (lihat bagian 1, langkah 3).
+                          Tanpa ini seluruh situs memberi 404, termasuk "/" - tidak ada yang bisa
+                          masuk sama sekali, jadi wajib diisi.
 
 Untuk fitur Otomatis (disarankan semua)
   CRON_SECRET             Teks acak panjang. Tanpa ini jadwal harian ditolak. Vercel mengirimnya
