@@ -809,7 +809,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
  #walist .mrow{display:grid;grid-template-columns:44px minmax(0,1fr);gap:6px 12px;align-items:center;padding:12px 14px}
  #walist .mrow .th{grid-row:1/3}
  #walist .mrow>span:not(.th){grid-column:2}
- #walist .mrow .mtag{grid-column:2;justify-self:start}
+ #walist .mrow .stsel{grid-column:2;justify-self:start}
  #walist .mrow .btn{grid-column:1/-1;justify-content:center;height:40px;margin-top:4px}
 }
 </style>
@@ -986,7 +986,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     </div>
     <p class="info" id="wainfo">Memuat…</p>
     <div class="mlist rd" id="walist" hidden></div>
-    <p class="hint2">Tombol “Buka WhatsApp” hanya membuka chat dan tidak mengubah status. Kalau sudah benar-benar chat, tekan “Tandai sudah dihubungi” yang muncul di baris itu: status jadi Sudah dihubungi dan catatan ditambah “WA, tanggal”. </p>
+    <p class="hint2">Tombol “Buka WhatsApp” hanya membuka chat. Ubah status prospek lewat dropdown di barisnya. </p>
   </div>
 </section>
 <section id="p6" hidden>
@@ -2309,7 +2309,7 @@ document.querySelectorAll("#segs button").forEach(function(b){b.onclick=function
 
 
 // ---- WhatsApp: daftar prospek ber-WA dari semua pencarian tersimpan, pesan terisi lewat wa.me (dikirim manual, tidak ada pengiriman otomatis)
-var WA={rows:[],loaded:false,loading:false,opened:{}};
+var WA={rows:[],loaded:false,loading:false};
 function waLoad(force){
   if(WA.loading||(WA.loaded&&!force))return;
   WA.loading=true;$("wainfo").textContent="Memuat prospek dari pencarian tersimpan…";$("walist").hidden=true;
@@ -2348,22 +2348,20 @@ function waRender(){
   var box=$("walist");box.hidden=!shown.length;
   box.innerHTML=shown.map(function(x,i){
     var w=waOf(x),s=stOf(x);
-    return"<div class='mrow'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>+"+esc(w.n)+(w.src==="phone"?" · dari telepon":"")+(x.address?" · "+esc(x.address):"")+"</small></span><em class='mtag pl st-"+(s||"baru")+"'>"+esc(stLabel(s))+"</em><button class='btn"+(WA.opened[x.id]?"":" primary")+"' type='button' data-i='"+i+"'>Buka WhatsApp</button>"+(WA.opened[x.id]?"<button class='btn primary' type='button' data-m='"+i+"'>Tandai sudah dihubungi</button>":"")+"</div>";
+    return"<div class='mrow'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>+"+esc(w.n)+(w.src==="phone"?" \u00b7 dari telepon":"")+(x.address?" \u00b7 "+esc(x.address):"")+"</small></span>"+stSel(x,"","  data-wi='"+i+"'")+"<button class='btn primary' type='button' data-i='"+i+"'>Buka WhatsApp</button></div>";
   }).join("");
 }
-function waMark(x){
-  var line="WA, "+new Date().toLocaleDateString("id-ID",{day:"numeric",month:"short"}),cur=noteOf(x);
-  var patch={n:cur.indexOf(line)>-1?cur:(cur?cur+"\n"+line:line)};
-  if(!stOf(x))patch.s="chat";
-  saveLead(x,patch);
-}
 $("walist").addEventListener("click",function(e){
-  var mk=e.target.closest("button[data-m]");
-  if(mk){var y=(WA.shown||[])[+mk.getAttribute("data-m")];if(y){delete WA.opened[y.id];waMark(y);setTimeout(waRender,50)}return}
   var b=e.target.closest("button[data-i]");if(!b)return;
   var x=(WA.shown||[])[+b.getAttribute("data-i")],w=x&&waOf(x);if(!w)return;
   window.open("https://wa.me/"+w.n,"_blank","noopener");
-  WA.opened[x.id]=1;waRender();
+});
+$("walist").addEventListener("change",function(e){
+  var sel=e.target.closest("select.stsel");if(!sel)return;
+  var x=(WA.shown||[])[+sel.getAttribute("data-wi")];if(!x)return;
+  sel.className="stsel st-"+(sel.value||"baru");
+  saveLead(x,statusPatch(x,sel.value));
+  setTimeout(waRender,450);
 });
 ["waq"].forEach(function(id){$(id).addEventListener("input",waRender)});
 ["wast","wase","wapn"].forEach(function(id){$(id).addEventListener("change",waRender)});
