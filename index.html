@@ -1638,7 +1638,7 @@ $("svbox").addEventListener("click",function(e){
 });
 function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
 function showLogin(msg){$("boot").hidden=true;$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
-function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();loadLeads();loadAI();if(!FIRSTTAB){FIRSTTAB=1;var h=decodeURIComponent((location.hash||"").slice(1));if(h&&h!=="5"&&Object.prototype.hasOwnProperty.call(PG,h)){tab(h);afterTab(h)}else tab("7")}}
+function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();loadLeads();loadAI();if(!FIRSTTAB){FIRSTTAB=1;var h=decodeURIComponent((location.hash||"").slice(1));h=HR[h]||h;if(h&&h!=="5"&&Object.prototype.hasOwnProperty.call(PG,h)){tab(h);afterTab(h)}else tab("7")}}
 var FIRSTTAB=0;
 var CK="<svg class='ck' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M5 12.5l4.5 4.5L19 7.5'/></svg>",CH="<svg class='ch' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M6 9l6 6 6-6'/></svg>";
 function umClose(){var m=document.querySelector(".umenu"),t=document.querySelector(".utrig");if(m)m.hidden=true;if(t)t.setAttribute("aria-expanded","false")}
@@ -2075,6 +2075,7 @@ $("elist").addEventListener("change",function(e){
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"]];
 var CUR="1";
 var PG={"7":["Dasbor","Corong prospek, perbandingan variasi email A/B, dan performa per negara dan kota."],"1":["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],"2":["Siapa yang membeli?","Kelompok pembeli yang paling mungkin tertarik pada hair extension."],"3":["Tersimpan","Prospek yang sudah kamu tandai dan pencarian yang pernah disimpan."],"4":["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],"6":["Riwayat kirim","Semua email yang pernah dikirim lewat aplikasi ini, manual maupun otomatis."],"ringkas":["Status","Status jalan otomatis dan tombol jalankan sekarang."],"antrean":["Antrean persetujuan","Email yang menunggu persetujuanmu sebelum dikirim."],"balas":["Balasan","Balasan calon pembeli dibaca AI, lalu status prospek diperbarui."],"kirim":["Kirim otomatis","Aturan kirim otomatis, batas harian, dan follow-up."],"warm":["Pemanasan domain","Naikkan batas kirim bertahap untuk domain pengirim baru."],"teks":["Teks email","Isi email pertama dan follow-up yang dikirim otomatis."],"ulang":["Cari ulang","Ulangi pencarian tersimpan secara berkala, hanya tempat baru yang ditambahkan."],"putar":["Putaran kota","Cari kota baru dari daftar secara bergantian."],"cariem":["Cari email","Cek website tempat baru untuk mencari email dan WhatsApp."],"skor":["Skor prospek","Atur bobot skor yang menentukan siapa masuk antrean."],"lapor":["Laporan & peringatan","Ringkasan harian dan peringatan masalah lewat email."],"bersih":["Pembersihan data","Buang data lama otomatis supaya database tetap ringan."],"serp":["Akun SerpApi","Pindah akun otomatis saat kuota akun aktif menipis."],"berhenti":["Daftar berhenti","Alamat yang tidak akan dikirimi email lagi."]};
+var HN={"7":"dasbor","1":"cari","2":"pembeli","3":"tersimpan","4":"email","6":"riwayat"},HR={};Object.keys(HN).forEach(function(k){HR[HN[k]]=k});
 var AUV=["ringkas","antrean","balas","kirim","warm","teks","ulang","putar","cariem","skor","lapor","bersih","serp","berhenti"];
 var ASEC={kirim:["Kirim otomatis"],warm:["Pemanasan domain"],teks:["Teks email"],ulang:["Cari ulang"],putar:["Putaran kota"],cariem:["Cari email"],skor:["Skor prospek"],lapor:["Laporan dan peringatan"],bersih:["Pembersihan data"],serp:["Akun SerpApi"]};
 function applyAuto(){
@@ -2097,7 +2098,7 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape")navOpen(fals
 function tab(n){
   n=String(n===5||n==="5"?"ringkas":n);
   CUR=n;
-  try{history.replaceState(null,"","#"+n)}catch(e){}
+  try{history.replaceState(null,"","#"+(HN[n]||n))}catch(e){}
   var page=AUV.indexOf(n)>-1?"5":n;
   [1,2,3,4,5,6,7].forEach(function(i){$("p"+i).hidden=String(i)!==page});
   [].forEach.call(document.querySelectorAll(".tab[data-v]"),function(b){
