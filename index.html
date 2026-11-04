@@ -683,10 +683,11 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
 .aub .aurow{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
 .aub .aurow>.f{display:flex;flex-direction:column;justify-content:flex-end;margin:0;min-width:0}
 .aub .aurow>.f:last-child:nth-child(odd){grid-column:1/-1}
-.aub .aurow>.f label{line-height:1.3;margin-bottom:6px}
+.aub .aurow>.f label{line-height:1.3;margin-bottom:6px;font-size:.66rem;letter-spacing:.02em}
 .aub .aurow>.f input{width:100%}
 .aub .aurow:has(>.chk){display:flex;flex-wrap:wrap;gap:8px}
 .aub .aurow>.chk{flex:1 1 0;min-width:0;white-space:nowrap;justify-content:center;align-items:center;height:42px;padding:0 4px;font-size:.8rem;gap:5px;border:1px solid var(--line);border-radius:10px;background:var(--surf)}
+.aub .aurow>.chk,.aub .aurow>.chk+.chk{margin:0}
 .aub .aurow>.chk:has(input:checked){border-color:var(--acc);background:var(--accsoft);color:var(--acc)}
 .aub>.chk{align-items:flex-start;line-height:1.4;padding:4px 0}
 .aub>.chk input{flex:none;margin:2px 0 0}
@@ -2410,7 +2411,7 @@ function auCfg(){
     +"<label class='chk'><input type='checkbox' id='au_mapp'"+(m.approve?" checked":"")+"> Minta persetujuan dulu (disarankan)</label>"
     +"<label class='chk'><input type='checkbox' id='au_mfo'"+(m.followOn?" checked":"")+"> Kirim follow-up otomatis</label>"
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_msc'>Skor minimal (0-100)</label><input type='number' id='au_msc' min='0' max='100' value='"+m.minScore+"'></div>"
-    +"<div class='f'><label for='au_mpd'>Target email per hari</label><input type='number' id='au_mpd' min='1' max='100' value='"+m.perDay+"'></div>"
+    +"<div class='f'><label for='au_mpd'>Target email / hari</label><input type='number' id='au_mpd' min='1' max='100' value='"+m.perDay+"'></div>"
     +"<div class='f'><label for='au_mbn'>Jeda jika bounce (%)</label><input type='number' id='au_mbn' min='1' max='20' value='"+m.maxBounce+"'></div></div>"
     +"<p class='hint2'>Tanpa persetujuan, prospek yang lolos langsung dikirimi. Follow-up berhenti sendiri kalau status berubah ke Dibalas, Deal, atau Tidak cocok. Skor dihitung dari kelengkapan data prospek, dan hanya yang berstatus Belum dihubungi yang dikirimi. Alamat di Daftar berhenti selalu dilewati.</p>"
     +"<p class='hint2'>Jika bounce 3 hari terakhir melewati batas di atas, atau ada 2 laporan spam atau lebih, semua kirim berhenti sampai kamu klik Lanjutkan.</p>",true);
@@ -2457,9 +2458,9 @@ function auCfg(){
   h+=auSec("Cari ulang",onoff(r.on),
     "<label class='chk'><input type='checkbox' id='au_ron'"+(r.on?" checked":"")+"> Ulangi pencarian tersimpan secara berkala (hanya tempat baru yang ditambahkan)</label>"
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_rd'>Ulangi setiap (hari)</label><input type='number' id='au_rd' min='1' max='60' value='"+r.everyDays+"'></div>"
-    +"<div class='f'><label for='au_rm'>Maks pencarian per hari</label><input type='number' id='au_rm' min='1' max='30' value='"+r.maxSearches+"'></div>"
+    +"<div class='f'><label for='au_rm'>Maks pencarian / hari</label><input type='number' id='au_rm' min='1' max='30' value='"+r.maxSearches+"'></div>"
     +"<div class='f'><label for='au_rr'>Sisakan kuota SerpApi</label><input type='number' id='au_rr' min='0' max='1000' value='"+r.reserve+"'></div>"
-    +"<div class='f'><label for='au_rp'>Halaman per pencarian (1-3)</label><input type='number' id='au_rp' min='1' max='3' value='"+r.pages+"'></div>"
+    +"<div class='f'><label for='au_rp'>Halaman / pencarian (1-3)</label><input type='number' id='au_rp' min='1' max='3' value='"+r.pages+"'></div>"
     +"<div class='f'><label for='au_rdy'>Matikan setelah kosong (kali)</label><input type='number' id='au_rdy' min='0' max='10' value='"+(r.dryMax==null?3:r.dryMax)+"'></div></div>"
     +"<p class='hint2'>Tiap halaman Google Maps (20 tempat) memakai 1 kuota SerpApi dan dihitung ke \"Maks pencarian per hari\". Halaman 2 dan 3 hanya diambil kalau seluruh isi halaman sebelumnya tempat baru; isi 1 kalau hanya mau halaman pertama. Pencarian dilewati kalau sisa kuota di bawah angka yang disisakan. Pencarian yang beberapa kali berturut-turut tidak menambah tempat baru dimatikan sendiri centangnya (isi 0 untuk menonaktifkan aturan ini; dihitung paling banyak sekali per hari, dan Anda dikabari lewat email peringatan). Pilih pencarian yang mau diulang:</p>"
     +(se.length?"<div class='mlist aulist' id='au_rk'>"+se.map(function(x){
@@ -2468,11 +2469,11 @@ function auCfg(){
   var ro=c.rotate||{on:false,maxSearches:2,reserve:30,pages:1,kinds:["salon"],cities:[]},rt=AU.st.rot;
   h+=auSec("Putaran kota",onoff(ro.on),
     "<label class='chk'><input type='checkbox' id='au_xon'"+(ro.on?" checked":"")+"> Cari kota baru dari daftar secara bergantian (bukan mengulang kota yang sama)</label>"
-    +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_xm'>Maks pencarian per hari</label><input type='number' id='au_xm' min='1' max='10' value='"+ro.maxSearches+"'></div>"
+    +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_xm'>Maks pencarian / hari</label><input type='number' id='au_xm' min='1' max='10' value='"+ro.maxSearches+"'></div>"
     +"<div class='f'><label for='au_xr'>Sisakan kuota SerpApi</label><input type='number' id='au_xr' min='0' max='1000' value='"+ro.reserve+"'></div>"
-    +"<div class='f'><label for='au_xp'>Halaman per kota (1-3)</label><input type='number' id='au_xp' min='1' max='3' value='"+ro.pages+"'></div></div>"
+    +"<div class='f'><label for='au_xp'>Halaman / kota (1-3)</label><input type='number' id='au_xp' min='1' max='3' value='"+ro.pages+"'></div></div>"
     +"<div class='aurow' style='margin-top:10px'>"+["salon","wig","beauty"].map(function(k){return"<label class='chk'><input type='checkbox' class='au_xk' value='"+k+"'"+(ro.kinds.indexOf(k)>-1?" checked":"")+"> "+L[k]+"</label>"}).join("")+"</div>"
-    +"<div class='f' style='margin-top:10px'><label for='au_xc'>Daftar kota (satu per baris, format: Kota, Negara)</label><textarea id='au_xc' rows='8' spellcheck='false'>"+esc((ro.cities||[]).join("\n"))+"</textarea></div>"
+    +"<div class='f' style='margin-top:10px'><label for='au_xc'>Daftar kota (Kota, Negara / baris)</label><textarea id='au_xc' rows='8' spellcheck='false'>"+esc((ro.cities||[]).join("\n"))+"</textarea></div>"
     +"<p class='hint2'>"+(rt?"Progres: <b>"+(rt.total-rt.left)+" dari "+rt.total+"</b> kombinasi kota dan jenis sudah dicari"+(rt.left&&rt.next&&rt.next.length?". Berikutnya: "+esc(rt.next.join(", ")):(rt.left?"":". Semua sudah dicari, tambahkan kota baru di daftar."))+".":"Simpan pengaturan dulu untuk melihat progres.")+"</p>"
     +"<p class='hint2'>Tiap jalan mengambil kota berikutnya yang belum dicari dan hanya menambah tempat baru. Memakai 1 kuota SerpApi per halaman (terpisah dari Cari ulang) dan dilewati jika sisa kuota di bawah batas. Halaman 2 dan 3 hanya diambil jika halaman sebelumnya semuanya tempat baru. Daftar kota bisa diubah. Tanpa centang jenis tempat, putaran tidak jalan.</p>");
   h+=auSec("Cari email",onoff(e.on),
