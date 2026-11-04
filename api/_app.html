@@ -1341,12 +1341,23 @@ function renderSaved(){
     h+="<div class='svc mine'><div class='sm'><b>"+t.length+" tempat</b><span class='pls'>"+det+"</span></div><div class='acts'><button type='button' class='ghost' id='mine'>Buka</button></div></div>";
   }else h+="<p class='info'>Belum ada prospek. Ubah status atau tulis catatan di tempat mana pun, nanti muncul di sini.</p>";
   h+="<div class='svh'>Pencarian tersimpan</div>";
-  if(SAVED.length)SAVED.forEach(function(m,i){
-    h+="<div class='svc'><div class='sm'><div class='svt'><b>"+esc(m.city)+"</b><em class='pl sc-hi'>"+m.n+" tempat</em></div><span class='svd'><em class='pl'>"+esc(LABEL[m.kind]||m.kind)+"</em>"+(m.source==="osm"?"<em class='pl'>OSM</em>":"")+"<i>Disimpan "+esc(fmtDate(m.at))+"</i></span></div><div class='acts'><button type='button' class='ghost cb' data-i='"+i+"' title='Buka tanpa memakai kuota'>Buka</button><button type='button' class='ghost cx' data-i='"+i+"' aria-label='Hapus simpanan "+esc(m.city)+"'>Hapus</button></div></div>";
-  });
-  else h+="<p class='info'>Belum ada pencarian tersimpan. Hasil tiap pencarian disimpan otomatis.</p>";
+  if(SAVED.length)h+="<div class='tools' style='margin-bottom:10px'><input type='search' class='q' id='svq' placeholder='Cari kota atau jenis tempat' aria-label='Cari pencarian tersimpan' autocomplete='off' value='"+esc(SVQ)+"'></div>";
+  h+="<div id='svl'>"+savedList()+"</div>";
   box.innerHTML=h;
 }
+var SVQ="";
+// Daftar pencarian tersimpan, disaring oleh kotak cari. data-i tetap indeks asli di SAVED supaya tombol Buka/Hapus tidak salah sasaran.
+function savedList(){
+  var q=SVQ.trim().toLowerCase(),h="",n=0;
+  SAVED.forEach(function(m,i){
+    if(q&&(m.city+" "+(LABEL[m.kind]||m.kind)+" "+m.kind).toLowerCase().indexOf(q)<0)return;
+    n++;
+    h+="<div class='svc'><div class='sm'><div class='svt'><b>"+esc(m.city)+"</b><em class='pl sc-hi'>"+m.n+" tempat</em></div><span class='svd'><em class='pl'>"+esc(LABEL[m.kind]||m.kind)+"</em>"+(m.source==="osm"?"<em class='pl'>OSM</em>":"")+"<i>Disimpan "+esc(fmtDate(m.at))+"</i></span></div><div class='acts'><button type='button' class='ghost cb' data-i='"+i+"' title='Buka tanpa memakai kuota'>Buka</button><button type='button' class='ghost cx' data-i='"+i+"' aria-label='Hapus simpanan "+esc(m.city)+"'>Hapus</button></div></div>";
+  });
+  if(!SAVED.length)return"<p class='info'>Belum ada pencarian tersimpan. Hasil tiap pencarian disimpan otomatis.</p>";
+  return n?h:"<p class='info'>Tidak ada pencarian tersimpan yang cocok dengan \u201c"+esc(SVQ.trim())+"\u201d.</p>";
+}
+$("svbox").addEventListener("input",function(e){if(e.target.id!=="svq")return;SVQ=e.target.value;$("svl").innerHTML=savedList()});
 function loadLeads(){
   return fetch("/api/leads").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){LS=j.items||{};SAVED=j.searches||[];renderSaved()}).catch(function(e){if(e===0)return;$("t3n").classList.remove("tsk");$("svbox").innerHTML="<p class='info'>Gagal memuat data tersimpan. Muat ulang halaman.</p>"});
 }
