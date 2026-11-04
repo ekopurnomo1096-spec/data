@@ -681,7 +681,8 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
  .svc .sm:has(.svt){display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px}
  .svc .sm:has(.svt) .svt{display:contents}
  .svc .sm:has(.svt) .svt b{flex:none}
- .svc .sm:has(.svt) .svd{margin-top:0}
+ .svc .sm:has(.svt) .svd{display:contents}
+ .svc .sm:has(.svt) .svd i{flex-basis:100%;order:5}
 }
 @media (max-width:760px){
  .svc .sm:has(.svt){display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px 10px}
