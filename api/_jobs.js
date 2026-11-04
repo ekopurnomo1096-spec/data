@@ -156,7 +156,7 @@ async function loadData() {
     if (l.retry) { base.retry = l.retry; base.rt = l.rt || 0; }
     map.set(id, base);
   }
-  return { map, leads, refs };
+  return { map, leads, refs, entries };
 }
 const firstEmail = x => {
   const e = (x.emails && x.emails.length ? x.emails[0] : x.email) || "";

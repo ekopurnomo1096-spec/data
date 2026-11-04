@@ -551,6 +551,12 @@ main.wrap{max-width:1180px;margin:0 auto}
 .tab.tsub{height:32px;font-size:.84rem;font-weight:500;line-height:1.2;border-radius:6px}
 .tab.tsub[aria-selected="true"]::before{left:-7px;top:6px;bottom:6px;width:3px}
 #aucfg>.aus{border-top:0;padding:2px 0}
+
+.dsr{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px}.dsr select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surf);color:var(--ink)}
+.dsk{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:8px 0 12px}.dsk div{background:var(--soft);border-radius:10px;padding:8px 10px}.dsk b{display:block;font-size:1.15rem}.dsk span{color:var(--mute);font-size:.78rem}
+.dsf{margin:6px 0 4px}.dsf .fr{display:grid;grid-template-columns:110px 1fr 90px;gap:8px;align-items:center;margin:4px 0;font-size:.85rem}.dsf .bar{height:14px;background:var(--soft);border-radius:99px;overflow:hidden}.dsf .bar i{display:block;height:100%;background:var(--acc);border-radius:99px}.dsf .fr em{font-style:normal;color:var(--mute);text-align:right}
+.dsh{font-weight:600;margin:14px 0 4px;font-size:.9rem}.dsw{color:var(--acc);font-weight:600}.dsm{color:var(--mute)}
+.dst{display:flex;align-items:flex-end;gap:2px;height:70px;margin-top:6px}.dst div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%}.dst i{display:block;background:var(--acc);min-height:1px;border-radius:2px 2px 0 0}.dst u{display:block;background:var(--warm);min-height:0;border-radius:2px 2px 0 0;text-decoration:none}
 </style>
 </head>
 <body>
@@ -740,6 +746,13 @@ main.wrap{max-width:1180px;margin:0 auto}
       <div class="eacts"><span class="hint2" id="rpmsg" style="margin:0"></span><span class="sp"></span><button class="btn primary" id="rpgo" type="button">Baca dengan AI</button></div>
     </details>
     <details class="aud2" style="margin-top:8px"><summary>Cara balasan masuk otomatis</summary><div id="rpsetup"></div></details>
+  </details>
+  <details class="panel aup aud" data-g="ringkas" id="dspanel">
+    <summary>Dasbor</summary>
+    <div class="dsr"><label for="dsdays" class="hint2" style="margin:0">Jendela waktu</label>
+      <select id="dsdays"><option value="7">7 hari</option><option value="14">14 hari</option><option value="30" selected>30 hari</option><option value="90">90 hari</option></select>
+      <button class="ghost" id="dsgo" type="button">Segarkan</button><span class="hint2" id="dsmsg" style="margin:0"></span></div>
+    <div id="dsbody"><p class="info">Buka panel ini untuk memuat data.</p></div>
   </details>
   <details class="panel aup aud" data-g="ringkas" open>
     <summary>Statistik 7 hari</summary>
@@ -1984,6 +1997,59 @@ function auLoad(full){
     if(full)auCfg();
   }).catch(function(e){if(e!==0)$("aust").innerHTML="<span class='bad'>Tidak bisa menghubungi server.</span>"});
 }
+// ---- Dasbor: corong, variasi A/B, tren (lihat api/dash.js). Dimuat saat panel dibuka, bukan tiap auLoad (membaca seluruh data tersimpan).
+var DS={busy:false,loaded:false};
+function dsPct(a,b){return b?(a/b*100).toFixed(a/b*100<10&&a?1:0)+"%":"-"}
+function dsLoad(){
+  if(DS.busy)return;DS.busy=true;
+  var days=$("dsdays").value;$("dsmsg").textContent="Memuat...";
+  fetch("/api/dash?days="+days).then(function(r){
+    return r.json().catch(function(){return{}}).then(function(j){
+      if(r.status===401){showLogin("Sesi habis, silakan masuk lagi.");throw 0}
+      if(!r.ok||j.error)throw new Error(j.error||"Gagal memuat");
+      return j});
+  }).then(function(j){
+    DS.loaded=true;$("dsmsg").textContent="";
+    $("dsbody").innerHTML=j.nodb?"<p class='info'>Database belum terhubung.</p>":dsRender(j);
+  }).catch(function(e){if(e!==0){$("dsmsg").textContent="";$("dsbody").innerHTML="<p class='aiwarn'>"+esc(e&&e.message||"Tidak bisa menghubungi server")+"</p>"}})
+  .then(function(){DS.busy=false});
+}
+function dsRender(j){
+  var f=j.funnel,w=j.window,h="";
+  h+="<div class='dsk'><div><b>"+f.found+"</b><span>tempat tersimpan</span></div><div><b>"+w.sent+"</b><span>email terkirim ("+j.days+" hari)</span></div><div><b>"+w.reply+"</b><span>balasan</span></div><div><b>"+dsPct(w.reply,w.sent)+"</b><span>tingkat balasan</span></div><div><b>"+dsPct(w.bounce,w.sent)+"</b><span>bounce</span></div></div>";
+  var st=[["Ditemukan",f.found],["Punya kontak",f.contact],["Dikirimi",f.emailed],["Dibalas",f.replied],["Deal",f.deal]];
+  h+="<p class='dsh'>Corong (seluruh data tersimpan)</p><div class='dsf'>";
+  st.forEach(function(r,i){var prev=i?st[i-1][1]:r[1];
+    h+="<div class='fr'><span>"+r[0]+"</span><div class='bar'><i style='width:"+(f.found?Math.max(r[1]/f.found*100,r[1]?1.5:0):0)+"%'></i></div><em>"+r[1]+(i?" · "+dsPct(r[1],prev):"")+"</em></div>"});
+  h+="</div><p class='hint2'>Persen di kanan dibanding tahap sebelumnya. \"Dikirimi\" termasuk tempat yang sudah berstatus atau punya urutan follow-up. \"Dibalas\" dihitung dari balasan manusia (balasan otomatis dan permintaan berhenti tidak dihitung) atau status Dibalas/Deal.</p>";
+  h+="<p class='dsh'>Variasi email (A/B) · "+j.days+" hari</p>";
+  if(!j.variants.length)h+="<p class='info'>Belum ada kiriman otomatis bertanda variasi pada jendela ini.</p>";
+  j.variants.forEach(function(s){
+    var name=s.stage===0?"Email pertama":"Follow-up "+s.stage;
+    var vt={lead:"Variasi "+String.fromCharCode(65+s.lead)+" cenderung unggul (tingkat kepercayaan sekitar 90%).",thin:"Belum cukup data: butuh minimal "+j.minSent+" terkirim per variasi untuk dibandingkan.",unclear:"Belum ada pemenang yang jelas. Teruskan rotasi.",single:"Hanya satu variasi terkirim."}[s.verdict]||"";
+    h+="<div class='tw'><table class='austat'><thead><tr><th>"+name+"</th><th>Terkirim</th><th>Dibalas</th><th>Tingkat</th></tr></thead><tbody>";
+    s.rows.forEach(function(r){var win=s.verdict==="lead"&&r.v===s.lead;
+      h+="<tr"+(win?" class='dsw'":"")+"><td>Variasi "+String.fromCharCode(65+r.v)+(win?" ★":"")+"</td><td>"+r.sent+"</td><td>"+r.rep+"</td><td>"+dsPct(r.rep,r.sent)+"</td></tr>"});
+    h+="</tbody></table></div><p class='hint2'>"+vt+"</p>";
+  });
+  var tbl=function(title,rows,cap){
+    if(!rows.length)return"";
+    var o="<p class='dsh'>"+title+"</p><div class='tw'><table class='austat'><thead><tr><th>Nama</th><th>Tempat</th><th>Kontak</th><th>Dikirimi</th><th>Dibalas</th><th>Deal</th><th>Balas/kirim</th></tr></thead><tbody>";
+    rows.forEach(function(r){o+="<tr><td>"+esc(r.name)+"</td><td>"+r.found+"</td><td>"+r.contact+"</td><td>"+r.emailed+"</td><td>"+r.replied+"</td><td>"+r.deal+"</td><td>"+dsPct(r.replied,r.emailed)+"</td></tr>"});
+    return o+"</tbody></table></div>"+(cap?"<p class='hint2'>"+cap+"</p>":"")};
+  h+=tbl("Per negara",j.countries,"Negara diambil dari teks setelah koma terakhir pada nama kota pencarian.");
+  h+=tbl("Per kota (teratas)",j.cities,j.cityCount>j.cities.length?"Menampilkan "+j.cities.length+" dari "+j.cityCount+" kota, diurutkan menurut balasan lalu kiriman. Satu tempat dihitung di pencarian pertama yang memuatnya.":"Satu tempat dihitung di pencarian pertama yang memuatnya.");
+  var mx=0;j.trend.forEach(function(x){if(x.sent>mx)mx=x.sent});
+  if(mx){h+="<p class='dsh'>Tren harian</p><div class='dst'>"+j.trend.map(function(x){
+      return"<div title='"+esc(x.d)+": "+x.sent+" terkirim, "+x.reply+" balasan, "+x.bounce+" bounce'><u style='height:"+(x.reply/mx*100)+"%'></u><i style='height:"+(x.sent/mx*100)+"%'></i></div>"}).join("")+"</div><p class='hint2'>Hijau = terkirim (termasuk follow-up), oranye = balasan. Arahkan kursor ke batang untuk rinciannya. Tanggal memakai UTC.</p>"}
+  var ck=Object.keys(j.cats||{});
+  if(ck.length){var L={interested:"Tertarik",question:"Bertanya",not_interested:"Menolak",unsubscribe:"Minta berhenti",auto_reply:"Balasan otomatis",other:"Lainnya"};
+    h+="<p class='dsh'>Jenis balasan</p><p class='hint2' style='margin:0'>"+ck.map(function(k){return(L[k]||k)+": "+j.cats[k]}).join(" · ")+"</p>"}
+  return h;
+}
+$("dspanel").addEventListener("toggle",function(){if(this.open&&!DS.loaded)dsLoad()});
+$("dsgo").onclick=dsLoad;$("dsdays").onchange=dsLoad;
+
 // ---- Balasan (AI): lihat api/_reply.js dan api/replies.js
 var RP={items:[],cfg:{}};
 function rpApi(body){

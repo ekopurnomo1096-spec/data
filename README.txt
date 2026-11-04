@@ -127,3 +127,11 @@ Cara balasan masuk (pilih salah satu atau semuanya):
   2. Jalur umum: isi INBOUND_SECRET (teks acak panjang) di Vercel, lalu teruskan balasan dari Gmail (Apps Script), Zapier, Make, atau Cloudflare Email Worker dengan POST JSON {from, subject, text} ke https://DOMAINMU/api/mailhook?a=inbound&k=INBOUND_SECRET (atau header x-inbound-key).
   3. Manual: tab Otomatis > Balasan (AI) > Tempel balasan manual.
 Balasan yang sama (id pesan sama) hanya dihitung sekali. Setelah balasan masuk, buka ulang halaman supaya status di daftar tempat ikut ter-update.
+
+DASBOR (tab Otomatis > Dasbor)
+- Panel baru, hanya baca (api/dash.js). Dimuat saat panel dibuka atau tombol Segarkan ditekan, bukan tiap halaman dibuka, karena membaca seluruh pencarian tersimpan. Tidak memakai kuota SerpApi maupun Resend.
+- Ringkasan: tempat tersimpan, email terkirim, balasan, tingkat balasan, dan bounce pada jendela 7/14/30/90 hari (statistik harian disimpan 90 hari).
+- Corong (seluruh data tersimpan): Ditemukan > Punya kontak (email atau WA) > Dikirimi (riwayat kirim, urutan follow-up, atau sudah berstatus) > Dibalas (balasan manusia, bukan balasan otomatis atau permintaan berhenti; atau status Dibalas/Deal) > Deal.
+- Variasi A/B per tahap: terkirim, dibalas, tingkat balasan. Pemenang hanya ditandai kalau tiap variasi sudah terkirim minimal 30 kali dan selisihnya lolos uji dua proporsi (sekitar 90% yakin). Selain itu tampil "belum cukup data" atau "belum ada pemenang". Batas 30 ada di MIN_SENT pada api/dash.js. Hanya kiriman lewat jalur Otomatis yang bertanda variasi.
+- Per negara dan per kota: dihitung dari nama kota pencarian (negara = teks setelah koma terakhir). Satu tempat dihitung sekali, di pencarian pertama yang memuatnya.
+- Tren harian dan jenis balasan (Tertarik, Bertanya, dst).
