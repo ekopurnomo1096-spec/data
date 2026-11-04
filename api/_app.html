@@ -1626,8 +1626,18 @@ function ruleScore(x){
   return{s:Math.max(0,Math.min(100,s)),why:why};
 }
 function emailsOf(x){return x.emails&&x.emails.length?x.emails:(x.email?[x.email]:[])}
+// Perkiraan kode negara dari data tempat itu sendiri (telepon berawalan +, format telepon/alamat AS). Kosong = tidak yakin.
+function ccOf(x){
+  var raw=firstPhone(x),p=raw.replace(/[^\d+]/g,"");
+  if(p.indexOf("00")===0)p="+"+p.slice(2);
+  if(p.charAt(0)==="+"){var d=p.slice(1);return d.charAt(0)==="1"||d.charAt(0)==="7"?d.charAt(0):d.slice(0,2)}
+  if(/^\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(raw)||/,\s*[A-Z]{2}\s+\d{5}(-\d{4})?\b/.test(x.address||""))return"1";
+  return"";
+}
+// Nomor WA dari website dianggap meragukan kalau kode negaranya beda dari telepon/alamat tempat itu (mis. WA +62 untuk salon di Los Angeles).
+function waMismatch(x,n){var cc=ccOf(x);return !!cc&&String(n).indexOf(cc)!==0}
 function waOf(x){
-  if(x.wa)return{n:x.wa,src:"website"};
+  if(x.wa&&!waMismatch(x,x.wa))return{n:x.wa,src:"website"};
   var p=firstPhone(x).replace(/[^\d+]/g,"");
   if(p.indexOf("00")===0)p="+"+p.slice(2);
   if(p.charAt(0)==="+")return p.length>8?{n:p.slice(1),src:"phone"}:null;
