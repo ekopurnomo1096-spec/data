@@ -678,6 +678,24 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
 .pl.st-tidak{opacity:.75}
 .pl.sc-hi{border-color:var(--acc);color:var(--acc);background:var(--accsoft);font-weight:600}
 .pl.sc-mid{border-color:var(--star);color:var(--star);background:color-mix(in srgb,var(--star) 10%,var(--surf))}
+/* Form pengaturan otomatis di HP: kolom rata, centang rapi, tombol simpan penuh */
+@media (max-width:760px){
+.aub .aurow{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
+.aub .aurow>.f{display:flex;flex-direction:column;justify-content:flex-end;margin:0;min-width:0}
+.aub .aurow>.f:last-child:nth-child(odd){grid-column:1/-1}
+.aub .aurow>.f label{line-height:1.3;margin-bottom:6px}
+.aub .aurow>.f input{width:100%}
+.aub .aurow:has(>.chk){display:flex;flex-wrap:wrap;gap:8px}
+.aub .aurow>.chk{flex:1 1 0;min-width:0;white-space:nowrap;justify-content:center;align-items:center;height:42px;padding:0 4px;font-size:.8rem;gap:5px;border:1px solid var(--line);border-radius:10px;background:var(--surf)}
+.aub .aurow>.chk:has(input:checked){border-color:var(--acc);background:var(--accsoft);color:var(--acc)}
+.aub>.chk{align-items:flex-start;line-height:1.4;padding:4px 0}
+.aub>.chk input{flex:none;margin:2px 0 0}
+.aub .hint2{line-height:1.55;margin-top:12px}
+.aub textarea#au_xc{min-height:220px;font-size:.88rem;line-height:1.55}
+.eacts:has(#ausave){flex-direction:column;align-items:stretch;gap:10px}
+.eacts:has(#ausave)>.sp{display:none}
+.eacts:has(#ausave) #ausave{width:100%;justify-content:center;height:44px}
+}
 </style>
 </head>
 <body>
