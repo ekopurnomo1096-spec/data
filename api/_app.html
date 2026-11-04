@@ -2025,7 +2025,10 @@ function mailPool(){
   Object.keys(LS).forEach(function(k){var r=LS[k];if(r&&r.lead)add(r.lead)});
   return out;
 }
-function leadByMail(e){e=String(e||"").toLowerCase();var p=mailPool();for(var i=0;i<p.length;i++)if(emailsOf(p[i]).some(function(m){return String(m).toLowerCase()===e}))return p[i];return null}
+function leadByMail(e){e=String(e||"").toLowerCase();
+  function find(p){for(var i=0;i<p.length;i++)if(emailsOf(p[i]).some(function(m){return String(m).toLowerCase()===e}))return p[i];return null}
+  // Tempat yang tidak ada di pencarian aktif dan tidak punya status/catatan dicari juga di semua pencarian tersimpan (supaya foto & nama tetap muncul)
+  return find(mailPool())||find(typeof WA!=="undefined"&&WA.all||[])}
 function mailView(){
   var q=$("emq").value.trim().toLowerCase(),fs=$("emst").value,hide=$("emhide").checked,free=$("emfree").checked;
   return mailPool().filter(function(x){
@@ -2362,7 +2365,8 @@ function waLoad(force){
     return Promise.all(pool).then(function(){return out});
   }).then(function(out){
     var a=Object.keys(out).map(function(k){return out[k]});hydrate(a);
-    WA.rows=a.filter(function(x){return waOf(x)});WA.loaded=true;WA.loading=false;
+    WA.all=a;WA.rows=a.filter(function(x){return waOf(x)});WA.loaded=true;WA.loading=false;
+    try{if(AU&&AU.st&&$("ausupp"))auSupp()}catch(_){}
     var sel=$("wase"),cur=sel.value;
     sel.innerHTML="<option value=''>Semua pencarian</option>"+SAVED.map(function(m){return"<option value='"+esc(m.key)+"'>"+esc(m.city)+" · "+esc(LABEL&&LABEL[m.kind]||m.kind)+"</option>"}).join("");
     sel.value=cur;waRender();
@@ -2664,6 +2668,7 @@ function auQueue(){
 var AUR={unsub:"berhenti berlangganan",bounce:"bounce",spam:"lapor spam",manual:"manual"};
 function auSupp(){
   var s=AU.st.supp||{n:0,list:[]};
+  if(s.n&&!WA.loaded&&!WA.loading)waLoad();
   $("ausn").textContent=s.n?"("+s.n+")":"";
   $("ausupp").innerHTML=s.n?"<div class='mlist aulist' style='margin-top:12px'>"+s.list.map(function(x){
     var ld=leadByMail(x.e);return"<div class='mrow"+(ld?" klk' tabindex='0' data-lem='"+esc(x.e)+"'":"' style='cursor:default'")+">"+thumb({name:(ld&&ld.name)||x.e,thumbnail:ld&&ld.thumbnail})+"<span><b>"+esc((ld&&ld.name)||x.e)+"</b><small>"+(ld?esc(x.e)+" · ":"")+esc(AUR[x.r]||x.r||"")+(x.t?" · "+esc(fmtDate(x.t)):"")+"</small></span><button class='ghost' type='button' data-e='"+esc(x.e)+"'>Hapus</button></div>";
