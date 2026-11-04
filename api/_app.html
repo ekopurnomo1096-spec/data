@@ -1370,10 +1370,22 @@ $("more").onclick=async function(){
   b.disabled=false;b.textContent="Muat 20 lagi";
 };
 $("sortsel").onchange=function(){var v=this.value;if(v==="namez"){sKey="name";sDir=-1}else{sKey=v;sDir=(v==="name"||v==="status")?1:-1}render()};
+// ID pendek di alamat untuk pencarian tersimpan (bentuk UUID). Diturunkan dari key pencarian, jadi tiap pencarian
+// selalu punya ID yang sama dan tidak perlu disimpan di database. Kota dan kata kunci tidak tampil di alamat.
+var UUIDRE=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+function sid(key){
+  var s="hl:"+String(key),h1=1779033703,h2=3144134277,h3=1013904242,h4=2773480762,i,k;
+  for(i=0;i<s.length;i++){k=s.charCodeAt(i);h1=h2^Math.imul(h1^k,597399067);h2=h3^Math.imul(h2^k,2869860233);h3=h4^Math.imul(h3^k,951274213);h4=h1^Math.imul(h4^k,2716044179)}
+  h1=Math.imul(h3^(h1>>>18),597399067);h2=Math.imul(h4^(h2>>>22),2869860233);h3=Math.imul(h1^(h3>>>17),951274213);h4=Math.imul(h2^(h4>>>19),2716044179);
+  h1^=(h2^h3^h4);h2^=h1;h3^=h1;h4^=h1;
+  var x=[h1,h2,h3,h4].map(function(n){return("00000000"+(n>>>0).toString(16)).slice(-8)}).join("");
+  x=x.slice(0,12)+"4"+x.slice(13,16)+"89ab"[parseInt(x.charAt(16),16)&3]+x.slice(17);
+  return x.slice(0,8)+"-"+x.slice(8,12)+"-"+x.slice(12,16)+"-"+x.slice(16,20)+"-"+x.slice(20);
+}
 function openSavedSearch(m){
   $("city").value=m.city;$("kind").value=m.kind;$("source").value=m.source;
   placeRes(3);run(false);
-  try{history.replaceState(null,"","#"+encodeURIComponent(m.key))}catch(e){}
+  try{history.replaceState(null,"","#"+sid(m.key))}catch(e){}
 }
 var resHome=1;
 function placeRes(n){
@@ -1684,10 +1696,10 @@ $("svbox").addEventListener("click",function(e){
 function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
 function showLogin(msg){$("boot").hidden=true;$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
 function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{if(location.pathname!=="/")history.replaceState(null,"","/"+location.search+location.hash)}catch(e){}try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();var leadsP=loadLeads();loadAI();if(!FIRSTTAB){FIRSTTAB=1;var h=decodeURIComponent((location.hash||"").slice(1));
-  var key=h.indexOf("tersimpan/")===0?h.slice("tersimpan/".length):(h.indexOf("|")>0?h:"");
-  if(key){
+  var key=h.indexOf("tersimpan/")===0?h.slice("tersimpan/".length):(h.indexOf("|")>0?h:""),uid=UUIDRE.test(h)?h:"";
+  if(key||uid){
     tab("3");afterTab("3");
-    leadsP.then(function(){var m=SAVED.filter(function(x){return x.key===key})[0];if(m)openSavedSearch(m)});
+    leadsP.then(function(){var m=SAVED.filter(function(x){return uid?sid(x.key)===uid:x.key===key})[0];if(m)openSavedSearch(m)});
     return;
   }
   h=HR[h]||h;if(h&&h!=="5"&&Object.prototype.hasOwnProperty.call(PG,h)){tab(h);afterTab(h)}else tab("7")}}
