@@ -988,7 +988,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     </div>
     <p class="info" id="wainfo">Memuat…</p>
     <div class="mlist rd" id="walist" hidden></div>
-    <p class="hint2">Tombol “Buka WhatsApp” hanya membuka chat. Ubah status prospek lewat dropdown di barisnya. </p>
+    <p class="hint2">Tombol “Buka WhatsApp” hanya membuka chat. Ubah status prospek lewat dropdown di barisnya, catatan “WA, 3 Nov” ikut tercatat otomatis.</p>
   </div>
 </section>
 <section id="p6" hidden>
@@ -2394,7 +2394,13 @@ $("walist").addEventListener("change",function(e){
   var sel=e.target.closest("select.stsel");if(!sel)return;
   var x=(WA.shown||[])[+sel.getAttribute("data-wi")];if(!x)return;
   sel.className="stsel st-"+(sel.value||"baru");
-  saveLead(x,statusPatch(x,sel.value));
+  var p=statusPatch(x,sel.value);
+  // Status diganti dari halaman WhatsApp: catatan otomatis ditambah "WA, 3 Nov" (tidak dobel di hari yang sama)
+  if(sel.value){
+    var line="WA, "+new Date().toLocaleDateString("id-ID",{day:"numeric",month:"short"}),cur=noteOf(x);
+    if(cur.indexOf(line)<0)p.n=cur?cur+"\n"+line:line;
+  }
+  saveLead(x,p);
   setTimeout(waRender,450);
 });
 ["waq"].forEach(function(id){$(id).addEventListener("input",waRender)});
