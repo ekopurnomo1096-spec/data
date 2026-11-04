@@ -1683,7 +1683,7 @@ $("svbox").addEventListener("click",function(e){
 });
 function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
 function showLogin(msg){$("boot").hidden=true;$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
-function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();var leadsP=loadLeads();loadAI();if(!FIRSTTAB){FIRSTTAB=1;var h=decodeURIComponent((location.hash||"").slice(1));
+function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{if(location.pathname!=="/")history.replaceState(null,"","/"+location.search+location.hash)}catch(e){}try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();var leadsP=loadLeads();loadAI();if(!FIRSTTAB){FIRSTTAB=1;var h=decodeURIComponent((location.hash||"").slice(1));
   if(h.indexOf("tersimpan/")===0){
     var key=h.slice("tersimpan/".length);
     tab("3");afterTab("3");

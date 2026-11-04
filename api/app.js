@@ -6,10 +6,14 @@
 // miring (contoh: masuk-x7q2). Centang Production, Preview, Development, lalu Redeploy.
 // Setelah itu alamat masuknya jadi: https://domainmu.com/masuk-x7q2
 //
+// Setelah login, alamat di browser otomatis jadi "/" (tanpa LOGIN_PATH). Kalau sudah login, "/" langsung
+// membuka aplikasi; kalau belum login atau sudah keluar, "/" tetap 404.
+//
 // Ganti LOGIN_PATH kapan saja kalau alamatnya kebagi ke orang yang salah - sesi yang sudah login
 // (cookie) tetap jalan seperti biasa, cuma alamat untuk pertama kali masuk yang berubah.
 const fs = require("fs");
 const path = require("path");
+const { isAuthed } = require("./_auth");
 
 let HTML = null;
 function appHtml() {
@@ -22,7 +26,10 @@ module.exports = (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   const want = norm(process.env.LOGIN_PATH);
   const got = norm(String(req.url || "/").split("?")[0]);
-  if (!want || got !== want) {
+  // Sudah login (cookie sesi valid): halaman dikirim di alamat mana pun, jadi setelah masuk alamatnya bisa
+  // dibersihkan jadi "/" (lihat showApp di _app.html). Belum login: hanya LOGIN_PATH yang menampilkan halaman.
+  const authed = isAuthed(req);
+  if (!authed && (!want || got !== want)) {
     // Sengaja dibuat polos: tidak membedakan "belum diisi di Vercel" dengan "alamat salah",
     // supaya tidak ada petunjuk buat orang yang cuma coba-coba alamat.
     res.status(404).send("Not found");

@@ -26,7 +26,7 @@ ISI
 2) Project > Settings > Environment Variables, tambahkan APP_PASSWORD = kata sandi untuk masuk
    ke halaman ini (pilih yang panjang dan unik). Centang Production, Preview, Development.
 3) Tambahkan juga LOGIN_PATH = teks rahasia bebas tanpa garis miring (contoh: masuk-x7q2). Ini
-   alamat satu-satunya tempat halaman login muncul: https://domainmu.com/masuk-x7q2 - domain tanpa
+   alamat satu-satunya tempat halaman login muncul (setelah login, alamat di browser otomatis jadi "/" saja): https://domainmu.com/masuk-x7q2 - domain tanpa
    alamat ini (termasuk "/" polos) sengaja memberi 404, supaya orang lain yang iseng buka domainnya
    tidak nemu form login sama sekali. Ganti LOGIN_PATH kapan saja kalau alamatnya kebagi ke orang
    yang salah (sesi yang sudah login tidak kena pengaruh, cuma alamat masuk pertama kali yang beda).
