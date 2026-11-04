@@ -442,3 +442,10 @@ CATATAN BATAS VERCEL HOBBY
 Paket Hobby maksimal 12 Serverless Function (setiap file api/*.js tanpa awalan "_" dihitung satu).
 Sekarang tepat 12. Jangan menambah file baru di api/ tanpa menggabungkan yang lain. Pencarian
 email/WhatsApp (dulu api/email.js) sekarang ada di api/usage.js lewat ?a=email.
+
+
+ALAMAT HALAMAN
+--------------
+Setelah login, aplikasi memakai alamat biasa tanpa "#": /dasbor, /cari, /balas, /riwayat, dst, dan
+/<uuid> untuk pencarian tersimpan. Link lama berbentuk #nama masih dibaca. Kalau belum login, semua
+alamat selain LOGIN_PATH dialihkan ke https://emahairshop.com/.
