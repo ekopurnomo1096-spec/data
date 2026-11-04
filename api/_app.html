@@ -1569,7 +1569,7 @@ $("findall").onclick=async function(){
     while(!stop&&idx<tot){
       var x=list[idx++];
       try{
-        var r=await fetch("/api/email?url="+encodeURIComponent(x.website));
+        var r=await fetch("/api/usage?a=email&url="+encodeURIComponent(x.website));
         if(r.status===401){stop=true;return}
         if(!r.ok)throw 0;
         var j=await r.json(),m=j.emails||[],w=(j.whatsapp||[])[0];

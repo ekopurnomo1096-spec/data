@@ -435,3 +435,10 @@ Isi
   - Draf balasan AI tidak pernah dikirim otomatis.
   - Mengganti APP_PASSWORD mematikan key tersimpan (isi ulang di Pengaturan). Link berhenti
     berlangganan baru tidak terpengaruh kalau UNSUB_SECRET sudah diisi.
+
+
+CATATAN BATAS VERCEL HOBBY
+--------------------------
+Paket Hobby maksimal 12 Serverless Function (setiap file api/*.js tanpa awalan "_" dihitung satu).
+Sekarang tepat 12. Jangan menambah file baru di api/ tanpa menggabungkan yang lain. Pencarian
+email/WhatsApp (dulu api/email.js) sekarang ada di api/usage.js lewat ?a=email.

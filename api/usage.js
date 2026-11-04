@@ -1,5 +1,8 @@
-// Sisa kuota SerpApi untuk tiap akun (Account API SerpApi, gratis dan tidak mengurangi kuota pencarian)
+// Dua fungsi digabung di satu file supaya jumlah Serverless Function tidak lewat batas 12 (paket Hobby Vercel):
+//   GET /api/usage            -> sisa kuota SerpApi untuk tiap akun (Account API SerpApi, gratis dan tidak mengurangi kuota pencarian)
+//   GET /api/usage?a=email&url=... -> cari email dan WhatsApp dari website sebuah bisnis (dulu api/email.js, logikanya di _contacts.js)
 const { isAuthed } = require("./_auth");
+const { findContacts } = require("./_contacts");
 const { getKey, getActive } = require("./_store");
 
 async function account(key, n) {
@@ -15,7 +18,19 @@ async function account(key, n) {
   } catch (e) { return null; }
 }
 
+async function emailHandler(req, res) {
+  try {
+    if (!isAuthed(req)) return res.status(401).json({ error: "Belum login" });
+    const out = await findContacts((req.query && req.query.url) || "");
+    res.setHeader("Cache-Control", "private, max-age=3600");
+    return res.status(200).json(out);
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
 module.exports = async (req, res) => {
+  if (req.query && req.query.a === "email") return emailHandler(req, res);
   try {
     res.setHeader("Cache-Control", "private, no-store");
     if (!isAuthed(req)) return res.status(401).json({ error: "Belum login" });

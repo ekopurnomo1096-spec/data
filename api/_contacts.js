@@ -1,4 +1,4 @@
-// Cari email dan WhatsApp dari website sebuah bisnis (gratis, tanpa API key). Dipakai api/email.js dan pekerjaan otomatis (_jobs.js).
+// Cari email dan WhatsApp dari website sebuah bisnis (gratis, tanpa API key). Dipakai api/usage.js (?a=email) dan pekerjaan otomatis (_jobs.js).
 const dns = require("dns").promises;
 const { isIP } = require("net");
 const BAD = /\.(png|jpe?g|gif|svg|webp|css|js|woff2?)$|sentry|wixpress|example\.|domain\.com|your(name|email)|@2x|noreply|no-reply|^(you|your|yours|name|yourname|youremail|email|user|username|test|tester|someone|johndoe|janedoe|nama|emailanda|anda)@|@(yoursite|yourdomain|mysite|mydomain|site|website|company|email|test)\.[a-z]+$/i;
