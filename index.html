@@ -1575,6 +1575,7 @@ $("tb").onclick=function(e){var z=e.target.closest(".th.zoom");if(z){openPhoto(z
 $("tb").addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches(".th.zoom")){e.preventDefault();e.stopPropagation();openPhoto(e.target)}},true);
 $("auq").addEventListener("click",function(e){var z=e.target.closest(".th.zoom");if(z){e.preventDefault();openPhoto(z)}});
 $("auq").addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches(".th.zoom")){e.preventDefault();e.stopPropagation();openPhoto(e.target)}},true);
+["elist","ehist","ausupp"].forEach(function(id){var b=$(id);b.addEventListener("click",function(e){var z=e.target.closest(".th.zoom");if(z){e.preventDefault();openPhoto(z)}});b.addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches(".th.zoom")){e.preventDefault();e.stopPropagation();openPhoto(e.target)}},true)});
 $("tb").onkeydown=function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr[data-i]")){e.preventDefault();openD(rows[+e.target.getAttribute("data-i")])}};
 $("dlg").onclick=function(e){if(e.target===this)this.close()};
 $("dlg").addEventListener("close",flushNote);
@@ -1784,6 +1785,7 @@ function mailPool(){
   Object.keys(LS).forEach(function(k){var r=LS[k];if(r&&r.lead)add(r.lead)});
   return out;
 }
+function leadByMail(e){e=String(e||"").toLowerCase();var p=mailPool();for(var i=0;i<p.length;i++)if(emailsOf(p[i]).some(function(m){return String(m).toLowerCase()===e}))return p[i];return null}
 function mailView(){
   var q=$("emq").value.trim().toLowerCase(),fs=$("emst").value,hide=$("emhide").checked,free=$("emfree").checked;
   return mailPool().filter(function(x){
@@ -1811,7 +1813,7 @@ function renderHist(){
   if(!ids.length){box.innerHTML="<p class='info'>Belum ada email terkirim lewat aplikasi ini.</p>";return}
   var h="<div class='mlist rd' style='margin-top:0'>"+ids.slice(0,15).map(function(id){
     var r=EM.sent[id],nm=nameOf(id);
-    return"<div class='mrow'><span><b>"+esc(nm||r.to)+"</b>"+(nm?"<small>"+esc(r.to)+"</small>":"")+"</span><em class='mtag'>"+esc(fmtDate(r.t))+"</em></div>";
+    var ld=(LS[id]&&LS[id].lead)||rows.filter(function(y){return y.id===id})[0];return"<div class='mrow'>"+thumb({name:nm||r.to,thumbnail:ld&&ld.thumbnail})+"<span><b>"+esc(nm||r.to)+"</b>"+(nm?"<small>"+esc(r.to)+"</small>":"")+"</span><em class='mtag'>"+esc(fmtDate(r.t))+"</em></div>";
   }).join("")+"</div>";
   h+="<div class='eacts'><span class='hint2' style='margin:0'>"+ids.length+" email terkirim"+(ids.length>15?", 15 terbaru ditampilkan":"")+".</span><span class='sp'></span><button class='ghost' id='ehclr' type='button'>Hapus riwayat</button></div>";
   box.innerHTML=h;
@@ -1842,7 +1844,7 @@ function renderMail(){
     info.textContent=v.length+" tempat dengan email.";info.hidden=false;
     list.innerHTML=v.map(function(x){
       var s=EM.sent[x.id];
-      return"<label class='mrow'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+"><span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+"</small></span><em class='mtag'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em></label>";
+      return"<label class='mrow'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+"</small></span><em class='mtag'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em></label>";
     }).join("");
     list.hidden=false;
   }
@@ -2298,7 +2300,7 @@ function auSupp(){
   var s=AU.st.supp||{n:0,list:[]};
   $("ausn").textContent=s.n?"("+s.n+")":"";
   $("ausupp").innerHTML=s.n?"<div class='mlist aulist' style='margin-top:12px'>"+s.list.map(function(x){
-    return"<div class='mrow' style='cursor:default'><span><b>"+esc(x.e)+"</b><small>"+esc(AUR[x.r]||x.r||"")+(x.t?" · "+esc(fmtDate(x.t)):"")+"</small></span><button class='ghost' type='button' data-e='"+esc(x.e)+"'>Hapus</button></div>";
+    var ld=leadByMail(x.e);return"<div class='mrow' style='cursor:default'>"+thumb({name:(ld&&ld.name)||x.e,thumbnail:ld&&ld.thumbnail})+"<span><b>"+esc((ld&&ld.name)||x.e)+"</b><small>"+(ld?esc(x.e)+" · ":"")+esc(AUR[x.r]||x.r||"")+(x.t?" · "+esc(fmtDate(x.t)):"")+"</small></span><button class='ghost' type='button' data-e='"+esc(x.e)+"'>Hapus</button></div>";
   }).join("")+"</div>"+(s.n>s.list.length?"<p class='hint2'>"+s.list.length+" terbaru dari "+s.n+".</p>":""):"<p class='info'>Belum ada.</p>";
   [].forEach.call(document.querySelectorAll("#ausupp button[data-e]"),function(b){b.onclick=function(){
     if(!confirm("Hapus "+b.getAttribute("data-e")+" dari daftar berhenti? Alamat ini bisa dikirimi lagi."))return;
@@ -2445,7 +2447,7 @@ function auCfg(){
     +"<div class='aurow' style='margin-top:10px'>"+["salon","wig","beauty"].map(function(k){return"<label class='chk'><input type='checkbox' class='au_xk' value='"+k+"'"+(ro.kinds.indexOf(k)>-1?" checked":"")+"> "+L[k]+"</label>"}).join("")+"</div>"
     +"<div class='f' style='margin-top:10px'><label for='au_xc'>Daftar kota (satu per baris, format: Kota, Negara)</label><textarea id='au_xc' rows='8' spellcheck='false'>"+esc((ro.cities||[]).join("\n"))+"</textarea></div>"
     +"<p class='hint2'>"+(rt?"Progres: <b>"+(rt.total-rt.left)+" dari "+rt.total+"</b> kombinasi kota dan jenis sudah dicari"+(rt.left&&rt.next&&rt.next.length?". Berikutnya: "+esc(rt.next.join(", ")):(rt.left?"":". Semua sudah dicari, tambahkan kota baru di daftar."))+".":"Simpan pengaturan dulu untuk melihat progres.")+"</p>"
-    +"<p class='hint2'>Tiap jalan otomatis mengambil kota berikutnya yang belum pernah dicari (kombinasi kota + jenis yang sudah ada di daftar pencarian tersimpan dilewati), lalu hanya tempat barunya yang masuk. Halaman 2 dan 3 hanya diambil kalau seluruh isi halaman sebelumnya tempat baru. Memakai kuota SerpApi (1 per halaman), dihitung terpisah dari \"Cari ulang\", dan dilewati kalau sisa kuota di bawah angka yang disisakan. Kota yang hasilnya kosong tetap dianggap sudah dicari. Daftar bawaan berisi kota besar di AS, Inggris, Kanada, Nigeria, Afrika Selatan, Ghana, dan Kenya; ubah sesukamu. Tanpa centang di atas, putaran tidak jalan walau \"Jalankan sekarang\" ditekan.</p>");
+    +"<p class='hint2'>Tiap jalan mengambil kota berikutnya yang belum dicari dan hanya menambah tempat baru. Memakai 1 kuota SerpApi per halaman (terpisah dari Cari ulang) dan dilewati jika sisa kuota di bawah batas. Halaman 2 dan 3 hanya diambil jika halaman sebelumnya semuanya tempat baru. Daftar kota bisa diubah. Tanpa centang jenis tempat, putaran tidak jalan.</p>");
   h+=auSec("Cari email",onoff(e.on),
     "<label class='chk'><input type='checkbox' id='au_eon'"+(e.on?" checked":"")+"> Cek website tempat baru untuk mencari email dan WhatsApp</label>"
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_em'>Maks website per jalan</label><input type='number' id='au_em' min='1' max='200' value='"+e.max+"'></div></div>");
