@@ -799,8 +799,8 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
 #pwa .panel+.panel{margin-top:16px}
 #walist{max-height:520px;margin-top:0}
 #walist .mrow{cursor:default}
-.mrow.go,.mlist.rd .mrow.go,#walist .mrow.go{cursor:pointer}
-.mrow.go:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
+.mrow.klk,.mlist.rd .mrow.klk,#walist .mrow.klk{cursor:pointer}
+.mrow.klk:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
 #walist .mrow .btn{flex:none;height:34px}
 #walist .mrow small{white-space:nowrap}
 @media (min-width:761px){#pwa .tools #waq{flex:1 1 240px;max-width:none}#pwa .tools #wast,#pwa .tools #wase{flex:0 1 190px}}
@@ -2053,7 +2053,7 @@ function renderHist(){
   if(!ids.length){box.innerHTML="<p class='info'>Belum ada email terkirim lewat aplikasi ini.</p>";return}
   var h="<div class='mlist rd' style='margin-top:0'>"+ids.slice(0,15).map(function(id){
     var r=EM.sent[id],nm=nameOf(id);
-    var ld=(LS[id]&&LS[id].lead)||rows.filter(function(y){return y.id===id})[0];return"<div class='mrow go' tabindex='0' data-lid='"+esc(id)+"'>"+thumb({name:nm||r.to,thumbnail:ld&&ld.thumbnail})+"<span><b>"+esc(nm||r.to)+"</b>"+(nm?"<small>"+esc(r.to)+"</small>":"")+"</span><em class='mtag'>"+esc(fmtDate(r.t))+"</em></div>";
+    var ld=(LS[id]&&LS[id].lead)||rows.filter(function(y){return y.id===id})[0];return"<div class='mrow klk' tabindex='0' data-lid='"+esc(id)+"'>"+thumb({name:nm||r.to,thumbnail:ld&&ld.thumbnail})+"<span><b>"+esc(nm||r.to)+"</b>"+(nm?"<small>"+esc(r.to)+"</small>":"")+"</span><em class='mtag'>"+esc(fmtDate(r.t))+"</em></div>";
   }).join("")+"</div>";
   h+="<div class='eacts'><span class='hint2' style='margin:0'>"+ids.length+" email terkirim"+(ids.length>15?", 15 terbaru ditampilkan":"")+".</span><span class='sp'></span><button class='ghost' id='ehclr' type='button'>Hapus riwayat</button></div>";
   box.innerHTML=h;
@@ -2084,7 +2084,7 @@ function renderMail(){
     info.textContent=v.length+" tempat dengan email.";info.hidden=false;
     list.innerHTML=v.map(function(x){
       var s=EM.sent[x.id];
-      return"<label class='mrow go' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+"</small></span><em class='mtag pl st-"+(s?"chat":(stOf(x)||"baru"))+"'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em></label>";
+      return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+"</small></span><em class='mtag pl st-"+(s?"chat":(stOf(x)||"baru"))+"'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em></label>";
     }).join("");
     list.hidden=false;
   }
@@ -2382,7 +2382,7 @@ function waRender(){
   var box=$("walist");box.hidden=!shown.length;
   box.innerHTML=shown.map(function(x,i){
     var w=waOf(x),s=stOf(x);
-    return"<div class='mrow go' tabindex='0' data-wr='"+i+"'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>+"+esc(w.n)+(w.src==="phone"?" \u00b7 dari telepon":"")+(x.address?" \u00b7 "+esc(x.address):"")+"</small></span>"+stSel(x,"","  data-wi='"+i+"'")+"<button class='btn primary' type='button' data-i='"+i+"'>Buka WhatsApp</button></div>";
+    return"<div class='mrow klk' tabindex='0' data-wr='"+i+"'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>+"+esc(w.n)+(w.src==="phone"?" \u00b7 dari telepon":"")+(x.address?" \u00b7 "+esc(x.address):"")+"</small></span>"+stSel(x,"","  data-wi='"+i+"'")+"<button class='btn primary' type='button' data-i='"+i+"'>Buka WhatsApp</button></div>";
   }).join("");
 }
 $("walist").addEventListener("click",function(e){
@@ -2418,7 +2418,7 @@ function rowLead(r){
 }
 function wireRowOpen(id,after,zone){
   var b=$(id);
-  function pick(t){var r=t.closest&&t.closest(".mrow.go");return r&&b.contains(r)?r:null}
+  function pick(t){var r=t.closest&&t.closest(".mrow.klk");return r&&b.contains(r)?r:null}
   function open(r,e){var x=rowLead(r);if(!x)return;e.preventDefault();AFTERD=after||null;openD(x)}
   b.addEventListener("click",function(e){
     var r=pick(e.target);if(!r||e.target.closest(".th.zoom,a,select,button"))return;
@@ -2638,14 +2638,14 @@ function auQueue(){
     h+="<p class='info'>"+(cfg.mail.on?"Tidak ada prospek yang menunggu persetujuan. Antrean terisi setiap kali pekerjaan otomatis berjalan.":"Kirim otomatis belum aktif. Nyalakan di Pengaturan otomatis di bawah.")+"</p>";
   }else{
     h+="<div class='mlist aulist'>"+pend.map(function(x){
-      return"<label class='mrow go' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"' checked>"+thumb({name:x.name||x.to,thumbnail:x.thumbnail})+"<span><b>"+esc(x.name||x.to)+"</b><small>"+esc(x.to)+(x.why&&x.why.length?" · "+esc(x.why.join(", ")):"")+"</small></span><em class='mtag pl sc-"+aiCls(x.sc||0)+"'>skor "+(x.sc||0)+"</em></label>";
+      return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"' checked>"+thumb({name:x.name||x.to,thumbnail:x.thumbnail})+"<span><b>"+esc(x.name||x.to)+"</b><small>"+esc(x.to)+(x.why&&x.why.length?" · "+esc(x.why.join(", ")):"")+"</small></span><em class='mtag pl sc-"+aiCls(x.sc||0)+"'>skor "+(x.sc||0)+"</em></label>";
     }).join("")+"</div>";
     h+="<div class='eacts'><button class='ghost' id='auqall' type='button'>Pilih semua</button><button class='ghost' id='auqnone' type='button'>Kosongkan</button><span class='sp'></span><button class='ghost' id='auqno' type='button'>Tolak terpilih</button><button class='btn primary' id='auqok' type='button'>Setujui terpilih</button></div>";
   }
   if(ok.length){
     h+="<p class='hint2'>"+ok.length+" prospek sudah disetujui dan menunggu giliran kirim (sesuai batas harian dan sisa kuota Resend). Urut dari skor tertinggi.</p>";
     h+="<div class='mlist aulist rd'>"+ok.map(function(x){
-      return"<div class='mrow go' tabindex='0' data-lid='"+esc(x.id)+"'>"+thumb({name:x.name||x.to,thumbnail:x.thumbnail})+"<span><b>"+esc(x.name||x.to)+"</b><small>"+esc(x.to)+(x.why&&x.why.length?" · "+esc(x.why.join(", ")):"")+"</small></span><em class='mtag pl sc-"+aiCls(x.sc||0)+"'>skor "+(x.sc||0)+"</em></div>";
+      return"<div class='mrow klk' tabindex='0' data-lid='"+esc(x.id)+"'>"+thumb({name:x.name||x.to,thumbnail:x.thumbnail})+"<span><b>"+esc(x.name||x.to)+"</b><small>"+esc(x.to)+(x.why&&x.why.length?" · "+esc(x.why.join(", ")):"")+"</small></span><em class='mtag pl sc-"+aiCls(x.sc||0)+"'>skor "+(x.sc||0)+"</em></div>";
     }).join("")+"</div>";
   }
   $("auq").innerHTML=h;$("auqn").textContent=pend.length?"("+pend.length+" menunggu)":"";
@@ -2660,7 +2660,7 @@ function auSupp(){
   var s=AU.st.supp||{n:0,list:[]};
   $("ausn").textContent=s.n?"("+s.n+")":"";
   $("ausupp").innerHTML=s.n?"<div class='mlist aulist' style='margin-top:12px'>"+s.list.map(function(x){
-    var ld=leadByMail(x.e);return"<div class='mrow"+(ld?" go' tabindex='0' data-lem='"+esc(x.e)+"'":"' style='cursor:default'")+">"+thumb({name:(ld&&ld.name)||x.e,thumbnail:ld&&ld.thumbnail})+"<span><b>"+esc((ld&&ld.name)||x.e)+"</b><small>"+(ld?esc(x.e)+" · ":"")+esc(AUR[x.r]||x.r||"")+(x.t?" · "+esc(fmtDate(x.t)):"")+"</small></span><button class='ghost' type='button' data-e='"+esc(x.e)+"'>Hapus</button></div>";
+    var ld=leadByMail(x.e);return"<div class='mrow"+(ld?" klk' tabindex='0' data-lem='"+esc(x.e)+"'":"' style='cursor:default'")+">"+thumb({name:(ld&&ld.name)||x.e,thumbnail:ld&&ld.thumbnail})+"<span><b>"+esc((ld&&ld.name)||x.e)+"</b><small>"+(ld?esc(x.e)+" · ":"")+esc(AUR[x.r]||x.r||"")+(x.t?" · "+esc(fmtDate(x.t)):"")+"</small></span><button class='ghost' type='button' data-e='"+esc(x.e)+"'>Hapus</button></div>";
   }).join("")+"</div>"+(s.n>s.list.length?"<p class='hint2'>"+s.list.length+" terbaru dari "+s.n+".</p>":""):"<p class='info'>Belum ada.</p>";
   [].forEach.call(document.querySelectorAll("#ausupp button[data-e]"),function(b){b.onclick=function(){
     if(!confirm("Hapus "+b.getAttribute("data-e")+" dari daftar berhenti? Alamat ini bisa dikirimi lagi."))return;
