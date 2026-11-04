@@ -1638,7 +1638,7 @@ $("svbox").addEventListener("click",function(e){
 });
 function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
 function showLogin(msg){$("boot").hidden=true;$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
-function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();loadLeads();loadAI();if(!FIRSTTAB){FIRSTTAB=1;tab("7")}}
+function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();loadLeads();loadAI();if(!FIRSTTAB){FIRSTTAB=1;var h=decodeURIComponent((location.hash||"").slice(1));if(h&&h!=="5"&&Object.prototype.hasOwnProperty.call(PG,h)){tab(h);afterTab(h)}else tab("7")}}
 var FIRSTTAB=0;
 var CK="<svg class='ck' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M5 12.5l4.5 4.5L19 7.5'/></svg>",CH="<svg class='ch' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M6 9l6 6 6-6'/></svg>";
 function umClose(){var m=document.querySelector(".umenu"),t=document.querySelector(".utrig");if(m)m.hidden=true;if(t)t.setAttribute("aria-expanded","false")}
@@ -2097,6 +2097,7 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape")navOpen(fals
 function tab(n){
   n=String(n===5||n==="5"?"ringkas":n);
   CUR=n;
+  try{history.replaceState(null,"","#"+n)}catch(e){}
   var page=AUV.indexOf(n)>-1?"5":n;
   [1,2,3,4,5,6,7].forEach(function(i){$("p"+i).hidden=String(i)!==page});
   [].forEach.call(document.querySelectorAll(".tab[data-v]"),function(b){
@@ -2116,9 +2117,12 @@ $("sidenav").addEventListener("click",function(e){
   var v=b.getAttribute("data-v");
   if(v==="3"&&b.getAttribute("aria-selected")==="true"){$("svres").hidden=true;$("svbox").hidden=false}
   tab(v);
+  afterTab(v);
+});
+function afterTab(v){
   if(v==="4"||v==="6"){renderMail();loadMailTab()}
   if(AUV.indexOf(v)>-1){if(!AU.st)auLoad(true)}
-});
+}
 $("segs").innerHTML=SEG.map(function(s,i){return"<div class='seg'><div class='n'>"+(i+1)+"</div><div><b>"+s[0]+"</b><span>"+s[1]+"</span>"+(s[2]?"<div><button class='ghost' data-i='"+i+"'>Cari tempat ini</button></div>":"")+"</div></div>"}).join("");
 document.querySelectorAll("#segs button").forEach(function(b){b.onclick=function(){$("kind").value=SEG[+b.getAttribute("data-i")][2];tab(1);$("city").focus()}});
 
