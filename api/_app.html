@@ -787,6 +787,12 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
  #dbody,#sbody,#mbody,#emprevbody{padding:16px}
  .airow .ghost{width:100%}
 }
+
+/* Baris isian Otomatis: kolom sejajar di bawah, label dua baris tidak menurunkan kotaknya */
+.aurow{align-items:flex-end}
+.aurow>.f{display:flex;flex-direction:column;justify-content:flex-end}
+.aurow>.f label{line-height:1.3}
+.aurow>.f input{width:100%}
 </style>
 </head>
 <body>
