@@ -1626,23 +1626,46 @@ function ruleScore(x){
   return{s:Math.max(0,Math.min(100,s)),why:why};
 }
 function emailsOf(x){return x.emails&&x.emails.length?x.emails:(x.email?[x.email]:[])}
-// Perkiraan kode negara dari data tempat itu sendiri (telepon berawalan +, format telepon/alamat AS). Kosong = tidak yakin.
+// Kode telepon internasional per negara (kode ISO dari COUNTRY_CODES). TRUNK0 = negara yang membuang angka 0 di depan nomor lokal saat dijadikan format internasional.
+var DIAL={ID:"62",MY:"60",SG:"65",TH:"66",VN:"84",PH:"63",IN:"91",CN:"86",HK:"852",TW:"886",JP:"81",KR:"82",PK:"92",BD:"880",LK:"94",NP:"977",US:"1",CA:"1",MX:"52",BR:"55",AR:"54",CL:"56",CO:"57",PE:"51",GB:"44",IE:"353",FR:"33",DE:"49",NL:"31",BE:"32",ES:"34",PT:"351",IT:"39",CH:"41",AT:"43",SE:"46",NO:"47",DK:"45",FI:"358",PL:"48",CZ:"420",GR:"30",TR:"90",RU:"7",UA:"380",AE:"971",SA:"966",QA:"974",EG:"20",ZA:"27",NG:"234",KE:"254",MA:"212",AU:"61",NZ:"64"};
+var TRUNK0={ID:1,MY:1,TH:1,VN:1,PH:1,IN:1,JP:1,KR:1,PK:1,BD:1,LK:1,NP:1,TW:1,BR:1,GB:1,IE:1,FR:1,DE:1,NL:1,BE:1,CH:1,AT:1,SE:1,FI:1,TR:1,UA:1,AE:1,SA:1,EG:1,ZA:1,NG:1,KE:1,MA:1,AU:1,NZ:1};
+var DIALSET=Object.keys(DIAL).map(function(k){return DIAL[k]}).filter(function(v,i,a){return a.indexOf(v)===i}).sort(function(a,b){return b.length-a.length});
+function ctxIso(x){var c=String(x.ctx||(lastCountry+"|"+lastQ)).split("|")[0].trim();return COUNTRY_CODES[c]||""}
+// Perkiraan kode negara tempat itu: dari telepon berawalan + > negara pencarian > format telepon/alamat AS. Kosong = tidak yakin.
 function ccOf(x){
   var raw=firstPhone(x),p=raw.replace(/[^\d+]/g,"");
   if(p.indexOf("00")===0)p="+"+p.slice(2);
-  if(p.charAt(0)==="+"){var d=p.slice(1);return d.charAt(0)==="1"||d.charAt(0)==="7"?d.charAt(0):d.slice(0,2)}
-  if(/^\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(raw)||/,\s*[A-Z]{2}\s+\d{5}(-\d{4})?\b/.test(x.address||""))return"1";
+  if(p.charAt(0)==="+"){var d=p.slice(1);for(var i=0;i<DIALSET.length;i++)if(d.indexOf(DIALSET[i])===0)return DIALSET[i];return d.slice(0,2)}
+  var iso=ctxIso(x);if(iso&&DIAL[iso])return DIAL[iso];
+  if(/^(\(\d{3}\)\s?|[2-9]\d{2}[\s.-])\d{3}[\s.-]\d{4}$/.test(raw)||/,\s*[A-Z]{2}\s+\d{5}(-\d{4})?\b/.test(x.address||""))return"1";
   return"";
 }
-// Nomor WA dari website dianggap meragukan kalau kode negaranya beda dari telepon/alamat tempat itu (mis. WA +62 untuk salon di Los Angeles).
+// Nomor WA dari website dianggap meragukan kalau kode negaranya beda dari telepon/negara tempat itu (mis. WA +62 untuk salon di Los Angeles).
 function waMismatch(x,n){var cc=ccOf(x);return !!cc&&String(n).indexOf(cc)!==0}
+// Ubah nomor lokal (tanpa +) jadi format internasional memakai kode negara tempat itu. null kalau tidak yakin.
+function localToIntl(x,p){
+  var cc=ccOf(x),iso=ctxIso(x);if(!cc||!p)return null;
+  // Argentina: HP lokal ditulis 0 + area (2-4 digit) + 15 + nomor (total 12 digit setelah 0). WhatsApp memakai 549 + area + nomor, tanpa 0 dan tanpa 15. Telepon rumah (tanpa 15) dilewati.
+  if(cc==="54"){
+    var q=p.charAt(0)==="0"?p.slice(1):p;
+    if(!/^\d{12}$/.test(q))return null;
+    var as=q.slice(0,2)==="11"?[2]:[3,4];
+    for(var i=0;i<as.length;i++)if(q.slice(as[i],as[i]+2)==="15")return"549"+q.slice(0,as[i])+q.slice(as[i]+2);
+    return null;
+  }
+  if(cc==="1"){return p.length===10&&p.charAt(0)!=="0"&&p.charAt(0)!=="1"?"1"+p:null}
+  var key=Object.keys(DIAL).filter(function(k){return DIAL[k]===cc&&(k===iso||!iso)})[0]||iso;
+  if(key==="RU"&&p.charAt(0)==="8")p=p.slice(1);
+  else if(TRUNK0[key]&&p.charAt(0)==="0")p=p.slice(1);
+  var n=cc+p;return n.length>=9&&n.length<=15?n:null;
+}
 function waOf(x){
   if(x.wa&&!waMismatch(x,x.wa))return{n:x.wa,src:"website"};
   var p=firstPhone(x).replace(/[^\d+]/g,"");
   if(p.indexOf("00")===0)p="+"+p.slice(2);
   if(p.charAt(0)==="+")return p.length>8?{n:p.slice(1),src:"phone"}:null;
-  if(p.charAt(0)==="0"&&/indonesia/i.test(x.ctx||(lastCountry+"|"+lastQ)))return{n:"62"+p.slice(1),src:"phone"};
-  return null;
+  var n=localToIntl(x,p);
+  return n?{n:n,src:"phone"}:null;
 }
 function openD(x){curX=x;
   var ph=firstPhone(x),site=x.website?href(x.website):"",wa=waOf(x),em=emailsOf(x);
