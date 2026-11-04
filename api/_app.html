@@ -726,6 +726,67 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
 .eacts:has(#ausave)>.sp{display:none}
 .eacts:has(#ausave) #ausave{width:100%;justify-content:center;height:44px}
 }
+
+/* ================= MERAPIKAN TAMPILAN (CSS saja: tidak ada elemen yang dihapus, disembunyikan, atau diubah fungsinya) ================= */
+/* Dasbor: pilihan jendela waktu + tombol Segarkan satu baris, kartu ringkasan rata */
+.dsr{gap:10px;margin-bottom:14px}
+.dsr select{width:auto;min-width:120px;height:38px}
+.dsr .ghost{height:38px}
+.dsk{gap:10px}
+.dsk div:last-child:nth-child(odd){grid-column:1/-1}
+@media (min-width:761px){.dsk div:last-child:nth-child(odd){grid-column:auto}}
+.dsf .fr{grid-template-columns:120px 1fr 96px}
+.dsf .fr>*:first-child{white-space:nowrap}
+.dsh{margin:22px 0 8px}
+@media (max-width:760px){.dsf .fr{grid-template-columns:104px 1fr 78px}}
+
+/* Cari tempat: baris filter rata dalam satu garis, chip tidak terpotong */
+@media (min-width:761px){
+ .fbar .tools{gap:10px}
+ .fbar .tools:first-child .q{flex:2 1 240px;max-width:none}
+ .fbar .tools:first-child .sortsel{flex:1 1 150px;width:auto;min-width:0}
+ .fbar .tools+.tools{gap:8px}
+ .fbar .tools .chk{padding:0 11px}
+}
+.nm b{line-height:1.35}
+.aib{vertical-align:2px}
+.stats{margin-top:20px}
+.meta{margin-bottom:10px}
+
+/* Jarak antar isian di panel (Subjek tidak lagi menempel ke petunjuk di atasnya) */
+.panel>.f~.f,.panel>.f~.sf{margin-top:16px}
+.hint2{line-height:1.5}
+#p4 .eacts{margin-top:16px}
+.emuse{margin-bottom:16px}
+
+/* Otomatis: kartu status mengisi lebar penuh, tidak ada ruang kosong di kanan */
+.aug{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.ac{padding:9px 12px}
+.ac b{display:block;margin-top:2px}
+
+/* Judul bagian dan jarak antar kartu seragam */
+.panel+.panel,.aup+.aup{margin-top:16px}
+.pagehead{margin-bottom:24px}
+.svc{padding:14px 18px}
+.mrow{padding:10px 14px}
+.rpc{padding:12px 14px}
+.rpc+.rpc{margin-top:10px}
+
+/* Dialog: judul dan tombol lebih lega */
+#dbody,#sbody,#mbody,#emprevbody{padding:22px}
+.dh{margin-bottom:2px}
+.acts{gap:10px}
+.di{padding:11px 0}
+
+/* HP */
+@media (max-width:760px){
+ .dsk{grid-template-columns:1fr 1fr}
+ .stat small{min-height:2.6em}
+ .panel+.panel,.aup+.aup{margin-top:12px}
+ .pagehead{margin-bottom:16px}
+ #dbody,#sbody,#mbody,#emprevbody{padding:16px}
+ .airow .ghost{width:100%}
+}
 </style>
 </head>
 <body>
