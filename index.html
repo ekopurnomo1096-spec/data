@@ -1853,7 +1853,7 @@ function renderMail(){
     info.textContent=v.length+" tempat dengan email.";info.hidden=false;
     list.innerHTML=v.map(function(x){
       var s=EM.sent[x.id];
-      return"<label class='mrow'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+"</small></span><em class='mtag'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em></label>";
+      return"<label class='mrow'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+"</small></span><em class='mtag pl st-"+(s?"chat":(stOf(x)||"baru"))+"'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em></label>";
     }).join("");
     list.hidden=false;
   }
