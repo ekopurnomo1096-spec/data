@@ -574,6 +574,8 @@ main.wrap{max-width:1180px;margin:0 auto}
 <aside class="side" id="side" aria-label="Menu utama">
   <div class="brand"><div class="bmark"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z'/><circle cx='12' cy='10' r='3'/></svg></div><div class="btx"><b>Pencari Prospek</b><span>Hair extension wholesale</span></div></div>
   <nav id="sidenav" aria-label="Menu utama" style="display:flex;flex-direction:column;gap:1px">
+    <div class="ngl">Ringkasan</div>
+    <button class="tab" type="button" id="t7" data-v="7" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><rect x='3' y='3' width='7' height='7' rx='1'/><rect x='14' y='3' width='7' height='7' rx='1'/><rect x='3' y='14' width='7' height='7' rx='1'/><rect x='14' y='14' width='7' height='7' rx='1'/></svg><span>Dasbor</span></button>
     <div class="ngl">Cari pembeli</div>
     <button class="tab" type="button" id="t1" data-v="1" aria-selected="true" aria-current="page"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><circle cx='11' cy='11' r='7'/><path d='M21 21l-4.3-4.3'/></svg><span>Cari tempat</span></button>
     <button class="tab" type="button" id="t2" data-v="2" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75'/></svg><span>Siapa yang membeli?</span></button>
@@ -723,13 +725,21 @@ main.wrap{max-width:1180px;margin:0 auto}
     <div id="ehist"></div>
   </div>
 </section>
+<section id="p7" hidden>
+  <div class="panel">
+    <div class="dsr"><label for="dsdays" class="hint2" style="margin:0">Jendela waktu</label>
+      <select id="dsdays"><option value="7">7 hari</option><option value="14">14 hari</option><option value="30" selected>30 hari</option><option value="90">90 hari</option></select>
+      <button class="ghost" id="dsgo" type="button">Segarkan</button><span class="hint2" id="dsmsg" style="margin:0"></span></div>
+    <div id="dsbody"><p class="info">Memuat...</p></div>
+  </div>
+</section>
 <section id="p5" hidden>
   <div class="panel aup" data-g="ringkas">
     <div class="svh">Status</div>
     <p class="aupz" id="aupz" hidden></p>
     <div class="aust" id="aust"><span>Memuat…</span></div>
     <div class="eacts"><button class="btn primary" id="aurun" type="button">Jalankan sekarang</button><button class="ghost" id="aupause" type="button">Jeda semua</button><span class="hint2" id="aurunmsg" style="margin:0"></span></div>
-    <p class="hint2">Berjalan otomatis setiap hari pukul 08.00 WIB. “Jalankan sekarang” menjalankan semua tugas sekaligus (kirim, cari ulang, putaran kota, cari email, isi antrean) dan bisa sampai 1 menit.</p>
+    <p class="hint2">Berjalan otomatis setiap hari sekitar pukul 01.00 WIB (jadwal di vercel.json, bisa bergeser sampai satu jam di paket Hobby). “Jalankan sekarang” menjalankan semua tugas sekaligus (kirim, cari ulang, putaran kota, cari email, isi antrean) dan bisa sampai 1 menit.</p>
     <details class="aud2"><summary>Riwayat jalan</summary><ul class="aulog" id="aulog"></ul></details>
   </div>
   <details class="panel aup aud" data-g="antrean" open>
@@ -746,18 +756,6 @@ main.wrap{max-width:1180px;margin:0 auto}
       <div class="eacts"><span class="hint2" id="rpmsg" style="margin:0"></span><span class="sp"></span><button class="btn primary" id="rpgo" type="button">Baca dengan AI</button></div>
     </details>
     <details class="aud2" style="margin-top:8px"><summary>Cara balasan masuk otomatis</summary><div id="rpsetup"></div></details>
-  </details>
-  <details class="panel aup aud" data-g="ringkas" id="dspanel">
-    <summary>Dasbor</summary>
-    <div class="dsr"><label for="dsdays" class="hint2" style="margin:0">Jendela waktu</label>
-      <select id="dsdays"><option value="7">7 hari</option><option value="14">14 hari</option><option value="30" selected>30 hari</option><option value="90">90 hari</option></select>
-      <button class="ghost" id="dsgo" type="button">Segarkan</button><span class="hint2" id="dsmsg" style="margin:0"></span></div>
-    <div id="dsbody"><p class="info">Buka panel ini untuk memuat data.</p></div>
-  </details>
-  <details class="panel aup aud" data-g="ringkas" open>
-    <summary>Statistik 7 hari</summary>
-    <div id="austats"></div>
-    <p class="hint2">Tanggal memakai UTC (ganti hari pukul 07.00 WIB), sama seperti kuota Resend. Bounce dan spam tercatat saat webhook Resend masuk.</p>
   </details>
   <div class="panel aup" id="aucfgwrap" data-g="kirim warm teks ulang putar cariem skor lapor bersih serp">
     <div class="svh" id="aucfgh" hidden>Pengaturan</div>
@@ -1933,7 +1931,7 @@ $("elist").addEventListener("change",function(e){
 });
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"]];
 var CUR="1";
-var PG={"1":["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],"2":["Siapa yang membeli?","Kelompok pembeli yang paling mungkin tertarik pada hair extension."],"3":["Tersimpan","Prospek yang sudah kamu tandai dan pencarian yang pernah disimpan."],"4":["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],"6":["Riwayat kirim","Semua email yang pernah dikirim lewat aplikasi ini, manual maupun otomatis."],"ringkas":["Status & statistik","Status jalan otomatis, tombol jalankan sekarang, dan statistik 7 hari."],"antrean":["Antrean persetujuan","Email yang menunggu persetujuanmu sebelum dikirim."],"balas":["Balasan","Balasan calon pembeli dibaca AI, lalu status prospek diperbarui."],"kirim":["Kirim otomatis","Aturan kirim otomatis, batas harian, dan follow-up."],"warm":["Pemanasan domain","Naikkan batas kirim bertahap untuk domain pengirim baru."],"teks":["Teks email","Isi email pertama dan follow-up yang dikirim otomatis."],"ulang":["Cari ulang","Ulangi pencarian tersimpan secara berkala, hanya tempat baru yang ditambahkan."],"putar":["Putaran kota","Cari kota baru dari daftar secara bergantian."],"cariem":["Cari email","Cek website tempat baru untuk mencari email dan WhatsApp."],"skor":["Skor prospek","Atur bobot skor yang menentukan siapa masuk antrean."],"lapor":["Laporan & peringatan","Ringkasan harian dan peringatan masalah lewat email."],"bersih":["Pembersihan data","Buang data lama otomatis supaya database tetap ringan."],"serp":["Akun SerpApi","Pindah akun otomatis saat kuota akun aktif menipis."],"berhenti":["Daftar berhenti","Alamat yang tidak akan dikirimi email lagi."]};
+var PG={"7":["Dasbor","Corong prospek, perbandingan variasi email A/B, dan performa per negara dan kota."],"1":["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],"2":["Siapa yang membeli?","Kelompok pembeli yang paling mungkin tertarik pada hair extension."],"3":["Tersimpan","Prospek yang sudah kamu tandai dan pencarian yang pernah disimpan."],"4":["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],"6":["Riwayat kirim","Semua email yang pernah dikirim lewat aplikasi ini, manual maupun otomatis."],"ringkas":["Status & statistik","Status jalan otomatis dan tombol jalankan sekarang."],"antrean":["Antrean persetujuan","Email yang menunggu persetujuanmu sebelum dikirim."],"balas":["Balasan","Balasan calon pembeli dibaca AI, lalu status prospek diperbarui."],"kirim":["Kirim otomatis","Aturan kirim otomatis, batas harian, dan follow-up."],"warm":["Pemanasan domain","Naikkan batas kirim bertahap untuk domain pengirim baru."],"teks":["Teks email","Isi email pertama dan follow-up yang dikirim otomatis."],"ulang":["Cari ulang","Ulangi pencarian tersimpan secara berkala, hanya tempat baru yang ditambahkan."],"putar":["Putaran kota","Cari kota baru dari daftar secara bergantian."],"cariem":["Cari email","Cek website tempat baru untuk mencari email dan WhatsApp."],"skor":["Skor prospek","Atur bobot skor yang menentukan siapa masuk antrean."],"lapor":["Laporan & peringatan","Ringkasan harian dan peringatan masalah lewat email."],"bersih":["Pembersihan data","Buang data lama otomatis supaya database tetap ringan."],"serp":["Akun SerpApi","Pindah akun otomatis saat kuota akun aktif menipis."],"berhenti":["Daftar berhenti","Alamat yang tidak akan dikirimi email lagi."]};
 var AUV=["ringkas","antrean","balas","kirim","warm","teks","ulang","putar","cariem","skor","lapor","bersih","serp","berhenti"];
 var ASEC={kirim:["Kirim otomatis"],warm:["Pemanasan domain"],teks:["Teks email"],ulang:["Cari ulang"],putar:["Putaran kota"],cariem:["Cari email"],skor:["Skor prospek"],lapor:["Laporan dan peringatan"],bersih:["Pembersihan data"],serp:["Akun SerpApi"]};
 function applyAuto(){
@@ -1957,7 +1955,7 @@ function tab(n){
   n=String(n===5||n==="5"?"ringkas":n);
   CUR=n;
   var page=AUV.indexOf(n)>-1?"5":n;
-  [1,2,3,4,5,6].forEach(function(i){$("p"+i).hidden=String(i)!==page});
+  [1,2,3,4,5,6,7].forEach(function(i){$("p"+i).hidden=String(i)!==page});
   [].forEach.call(document.querySelectorAll(".tab[data-v]"),function(b){
     var on=b.getAttribute("data-v")===n;
     b.setAttribute("aria-selected",on?"true":"false");
@@ -1967,6 +1965,7 @@ function tab(n){
   var meta=PG[n]||PG["1"];
   $("ptitle").textContent=meta[0];$("pdesc").textContent=meta[1];$("mtitle").textContent=meta[0];
   if(page==="5")applyAuto();
+  if(n==="7"&&!DS.loaded)dsLoad();
   navOpen(false);window.scrollTo(0,0);
 }
 $("sidenav").addEventListener("click",function(e){
@@ -1993,11 +1992,11 @@ function auLoad(full){
     AU.st=o.j;
     if(o.j.nodb){$("aust").innerHTML="<span class='bad'>Database belum terhubung. Hubungkan Upstash Redis di Vercel lalu Redeploy.</span>";return}
     if(full||!AU.cfg)AU.cfg=o.j.cfg;
-    auStatus();auQueue();auSupp();auLog();auStats();rpLoad();
+    auStatus();auQueue();auSupp();auLog();rpLoad();
     if(full)auCfg();
   }).catch(function(e){if(e!==0)$("aust").innerHTML="<span class='bad'>Tidak bisa menghubungi server.</span>"});
 }
-// ---- Dasbor: corong, variasi A/B, tren (lihat api/dash.js). Dimuat saat panel dibuka, bukan tiap auLoad (membaca seluruh data tersimpan).
+// ---- Dasbor (menu sendiri, lihat api/dash.js). Dimuat saat menu dibuka atau Segarkan ditekan, membaca seluruh data tersimpan.
 var DS={busy:false,loaded:false};
 function dsPct(a,b){return b?(a/b*100).toFixed(a/b*100<10&&a?1:0)+"%":"-"}
 function dsLoad(){
@@ -2039,15 +2038,17 @@ function dsRender(j){
     return o+"</tbody></table></div>"+(cap?"<p class='hint2'>"+cap+"</p>":"")};
   h+=tbl("Per negara",j.countries,"Negara diambil dari teks setelah koma terakhir pada nama kota pencarian.");
   h+=tbl("Per kota (teratas)",j.cities,j.cityCount>j.cities.length?"Menampilkan "+j.cities.length+" dari "+j.cityCount+" kota, diurutkan menurut balasan lalu kiriman. Satu tempat dihitung di pencarian pertama yang memuatnya.":"Satu tempat dihitung di pencarian pertama yang memuatnya.");
-  var mx=0;j.trend.forEach(function(x){if(x.sent>mx)mx=x.sent});
+  var mx=0;j.trend.forEach(function(x){var t=x.sent+x.fu;x.tot=t;if(t>mx)mx=t});
+  h+="<p class='dsh'>Statistik harian · "+j.days+" hari</p><div class='tw'><table class='austat'><thead><tr><th>Tanggal</th><th>Email</th><th>Follow-up</th><th>Bounce</th><th>Spam</th><th>Berhenti</th><th>Balasan</th><th>Tempat baru</th><th>Ada kontak</th></tr></thead><tbody>";
+  j.trend.slice().reverse().forEach(function(x){h+="<tr><td>"+esc(x.d.slice(5))+"</td><td>"+x.sent+"</td><td>"+x.fu+"</td><td>"+x.bounce+"</td><td>"+x.spam+"</td><td>"+x.unsub+"</td><td>"+x.reply+"</td><td>"+x.added+"</td><td>"+x.found+"</td></tr>"});
+  h+="</tbody></table></div><p class='hint2'>Tanggal memakai UTC (ganti hari pukul 07.00 WIB), sama seperti kuota Resend. Bounce dan spam tercatat saat webhook Resend masuk.</p>";
   if(mx){h+="<p class='dsh'>Tren harian</p><div class='dst'>"+j.trend.map(function(x){
-      return"<div title='"+esc(x.d)+": "+x.sent+" terkirim, "+x.reply+" balasan, "+x.bounce+" bounce'><u style='height:"+(x.reply/mx*100)+"%'></u><i style='height:"+(x.sent/mx*100)+"%'></i></div>"}).join("")+"</div><p class='hint2'>Hijau = terkirim (termasuk follow-up), oranye = balasan. Arahkan kursor ke batang untuk rinciannya. Tanggal memakai UTC.</p>"}
+      return"<div title='"+esc(x.d)+": "+x.tot+" terkirim, "+x.reply+" balasan, "+x.bounce+" bounce'><u style='height:"+(x.reply/mx*100)+"%'></u><i style='height:"+(x.tot/mx*100)+"%'></i></div>"}).join("")+"</div><p class='hint2'>Hijau = terkirim (termasuk follow-up), oranye = balasan. Arahkan kursor ke batang untuk rinciannya. Tanggal memakai UTC.</p>"}
   var ck=Object.keys(j.cats||{});
   if(ck.length){var L={interested:"Tertarik",question:"Bertanya",not_interested:"Menolak",unsubscribe:"Minta berhenti",auto_reply:"Balasan otomatis",other:"Lainnya"};
     h+="<p class='dsh'>Jenis balasan</p><p class='hint2' style='margin:0'>"+ck.map(function(k){return(L[k]||k)+": "+j.cats[k]}).join(" · ")+"</p>"}
   return h;
 }
-$("dspanel").addEventListener("toggle",function(){if(this.open&&!DS.loaded)dsLoad()});
 $("dsgo").onclick=dsLoad;$("dsdays").onchange=dsLoad;
 
 // ---- Balasan (AI): lihat api/_reply.js dan api/replies.js
@@ -2250,25 +2251,6 @@ function auReadSteps(){
       alts:[].map.call(r.querySelectorAll(".auv"),function(v){return{subject:v.querySelector(".vs").value,text:v.querySelector(".vx").value}})};
   });
 }
-function auStats(){
-  var st=(AU.st&&AU.st.stats||[]).slice(0,7);
-  if(!st.length){$("austats").innerHTML="<p class='info'>Belum ada data.</p>";return}
-  var h="<div class='tw'><table class='austat'><thead><tr><th>Tanggal</th><th>Email</th><th>Follow-up</th><th>Bounce</th><th>Spam</th><th>Berhenti</th><th>Balasan</th><th>Tempat baru</th><th>Ada kontak</th></tr></thead><tbody>";
-  st.forEach(function(x){h+="<tr><td>"+esc(x.d.slice(5))+"</td><td>"+x.sent+"</td><td>"+x.fu+"</td><td>"+x.bounce+"</td><td>"+x.spam+"</td><td>"+x.unsub+"</td><td>"+(x.reply||0)+"</td><td>"+x.added+"</td><td>"+x.found+"</td></tr>"});
-  h+="</tbody></table></div>";
-  var tot={},rtot={};
-  (AU.st.stats||[]).forEach(function(x){
-    Object.keys(x.v||{}).forEach(function(k){tot[k]=(tot[k]||0)+x.v[k]});
-    Object.keys(x.rv||{}).forEach(function(k){rtot[k]=(rtot[k]||0)+x.rv[k]});
-  });
-  var ks=Object.keys(tot).sort();
-  if(ks.length)h+="<p class='hint2'>Variasi terkirim (14 hari): "+ks.map(function(k){
-    var m=/^s(\d+)v(\d+)$/.exec(k),label=(m[1]==="0"?"Email pertama":"Follow-up "+m[1])+" "+String.fromCharCode(65+ +m[2]);
-    var sent=tot[k],rep=rtot["r"+m[1]+"v"+m[2]]||0,rate=sent?" ("+(rep/sent*100).toFixed(0)+"% dibalas)":"";
-    return label+": "+sent+" terkirim, "+rep+" dibalas"+rate;
-  }).join(" · ")+"</p>";
-  $("austats").innerHTML=h;
-}
 function auSec(title,badge,body,open){
   return"<details class='aus' data-sec='"+title+"'"+(open?" open":"")+"><summary>"+title+(badge?" <em class='tn'>"+badge+"</em>":"")+"</summary><div class='aub'>"+body+"</div></details>";
 }
@@ -2314,7 +2296,7 @@ function auCfg(){
     +"<div class='f' style='margin-top:10px'><label for='au_nto'>Kirim ke email</label><input type='text' id='au_nto' maxlength='120' autocomplete='off' placeholder='Kosongkan untuk memakai Reply-To' value='"+esc(nt.to||"")+"'></div>"
     +"<p class='hint2'>"+(to?"Saat ini dikirim ke <b>"+esc(to)+"</b>.":"Belum ada penerima. Isi email di atas, atau isi Reply-To di tab Email.")+"</p>"
     +"<div class='eacts' style='margin-top:10px'><button class='ghost' id='au_ntest' type='button'>Kirim tes ringkasan</button><span class='hint2' id='au_ntm' style='margin:0'></span></div>"
-    +"<p class='hint2'>Ringkasan berisi prospek baru, email terkirim, bounce, serta sisa kuota SerpApi dan Resend. Terkirim setelah jalan otomatis pagi. Peringatan dikirim untuk jadwal yang gagal atau terlewat, kuota habis, dan jeda otomatis karena bounce atau spam. Tiap jenis peringatan maksimal sekali sehari, kecuali jeda otomatis yang selalu dikirim. Simpan pengaturan dulu sebelum kirim tes.</p>");
+    +"<p class='hint2'>Ringkasan berisi prospek baru, email terkirim, bounce, serta sisa kuota SerpApi dan Resend. Terkirim setelah jalan otomatis harian. Peringatan dikirim untuk jadwal yang gagal atau terlewat, kuota habis, dan jeda otomatis karena bounce atau spam. Tiap jenis peringatan maksimal sekali sehari, kecuali jeda otomatis yang selalu dikirim. Simpan pengaturan dulu sebelum kirim tes.</p>");
   h+=auSec("Pembersihan data",onoff(cl.on),
     "<label class='chk'><input type='checkbox' id='au_con'"+(cl.on?" checked":"")+"> Bersihkan data lama otomatis</label>"
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_cd'>Umur data (hari)</label><input type='number' id='au_cd' min='7' max='365' value='"+cl.days+"'></div></div>"

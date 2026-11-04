@@ -596,7 +596,7 @@ async function buildDigest(cfg, base) {
   L.push(row("Prospek baru", t.added, y.added), row("Punya kontak (hasil cek)", t.found, y.found));
   L.push(row("Email pertama terkirim", t.sent, y.sent), row("Follow-up terkirim", t.fu, y.fu));
   L.push(row("Bounce", t.bounce, y.bounce), row("Lapor spam", t.spam, y.spam), row("Berhenti langganan", t.unsub, y.unsub));
-  L.push("", "Hari ini = sejak pukul 07.00 WIB, termasuk jalan otomatis pagi ini.", "");
+  L.push("", "Hari ini = sejak pukul 07.00 WIB (awal hari UTC), termasuk jalan otomatis ini.", "");
   L.push("Status");
   L.push("- Kirim otomatis: " + (cfg.mail.on ? "aktif" : "mati") + (pz ? " (DIJEDA: " + pz.why + ")" : ""));
   L.push("- Menunggu persetujuan: " + pending + " prospek", "- Follow-up berjalan: " + active, "");

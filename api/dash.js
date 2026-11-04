@@ -102,7 +102,7 @@ async function build(days) {
   const rank = o => Object.keys(o).map(k => ({ name: k, ...o[k] }))
     .sort((a, b) => (b.replied - a.replied) || (b.emailed - a.emailed) || (b.found - a.found));
 
-  const trend = stats.slice().reverse().map(x => ({ d: x.d, sent: x.sent + x.fu, reply: x.reply, bounce: x.bounce }));
+  const trend = stats.slice().reverse().map(x => ({ d: x.d, sent: x.sent, fu: x.fu, reply: x.reply, bounce: x.bounce, spam: x.spam, unsub: x.unsub, added: x.added, found: x.found }));
   const win = stats.reduce((a, x) => ({ sent: a.sent + x.sent + x.fu, reply: a.reply + x.reply, bounce: a.bounce + x.bounce, spam: a.spam + x.spam, unsub: a.unsub + x.unsub }), { sent: 0, reply: 0, bounce: 0, spam: 0, unsub: 0 });
 
   return {
