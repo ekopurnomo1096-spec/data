@@ -669,6 +669,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
  tbody tr:hover{background:color-mix(in srgb,var(--accsoft) 45%,transparent)}
 }
 @media (min-width:901px){main.wrap{padding:36px 40px 80px}}
+.rpc .rh .th{width:36px;height:36px;font-size:.9rem}
 </style>
 </head>
 <body>
@@ -1575,7 +1576,7 @@ $("tb").onclick=function(e){var z=e.target.closest(".th.zoom");if(z){openPhoto(z
 $("tb").addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches(".th.zoom")){e.preventDefault();e.stopPropagation();openPhoto(e.target)}},true);
 $("auq").addEventListener("click",function(e){var z=e.target.closest(".th.zoom");if(z){e.preventDefault();openPhoto(z)}});
 $("auq").addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches(".th.zoom")){e.preventDefault();e.stopPropagation();openPhoto(e.target)}},true);
-["elist","ehist","ausupp"].forEach(function(id){var b=$(id);b.addEventListener("click",function(e){var z=e.target.closest(".th.zoom");if(z){e.preventDefault();openPhoto(z)}});b.addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches(".th.zoom")){e.preventDefault();e.stopPropagation();openPhoto(e.target)}},true)});
+["elist","ehist","ausupp","rplist"].forEach(function(id){var b=$(id);b.addEventListener("click",function(e){var z=e.target.closest(".th.zoom");if(z){e.preventDefault();openPhoto(z)}});b.addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches(".th.zoom")){e.preventDefault();e.stopPropagation();openPhoto(e.target)}},true)});
 $("tb").onkeydown=function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr[data-i]")){e.preventDefault();openD(rows[+e.target.getAttribute("data-i")])}};
 $("dlg").onclick=function(e){if(e.target===this)this.close()};
 $("dlg").addEventListener("close",flushNote);
@@ -2184,7 +2185,7 @@ function rpRender(){
   var it=RP.items,open=it.filter(function(x){return!x.done}).length;
   $("rpn").textContent=it.length?"("+(open?open+" baru":it.length)+")":"";if($("rpnav"))$("rpnav").textContent=open?String(open):"";
   $("rplist").innerHTML=it.length?it.map(function(x,i){
-    return"<div class='rpc"+(x.done?" done":"")+"'><div class='rh'><span class='rpt "+esc(x.cat)+"'>"+esc(RPL[x.cat]||x.cat)+"</span><b>"+esc(x.name||x.fn||x.from)+"</b><small class='hint2' style='margin:0'>"+esc(x.from)+" · "+esc(fmtDate(x.t))+"</small></div>"+
+    return"<div class='rpc"+(x.done?" done":"")+"'><div class='rh'>"+thumb({name:x.name||x.fn||x.from,thumbnail:(function(){var l=x.id&&((LS[x.id]&&LS[x.id].lead)||rows.filter(function(y){return y.id===x.id})[0]);return l&&l.thumbnail})()})+"<span class='rpt "+esc(x.cat)+"'>"+esc(RPL[x.cat]||x.cat)+"</span><b>"+esc(x.name||x.fn||x.from)+"</b><small class='hint2' style='margin:0'>"+esc(x.from)+" · "+esc(fmtDate(x.t))+"</small></div>"+
       (x.sub?"<p><b>"+esc(x.sub)+"</b></p>":"")+
       "<p>"+esc(x.sum||"")+(x.why?" <small class='hint2'>("+esc(x.why)+(x.ai?"":", tanpa AI")+")</small>":"")+"</p>"+
       (x.id?(x.st!==x.sf?"<p class='hint2'>Status: "+esc(RPS[x.sf]||"Belum dihubungi")+" → <b>"+esc(RPS[x.st]||"")+"</b></p>":"<p class='hint2'>Status tetap: "+esc(RPS[x.st]||"")+"</p>"):"<p class='hint2'>Pengirim tidak cocok dengan prospek mana pun, status tidak diubah.</p>")+
