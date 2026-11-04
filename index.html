@@ -676,6 +676,8 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
 .pl.st-balas{border-color:var(--warm);color:var(--warm);background:color-mix(in srgb,var(--warm) 9%,var(--surf))}
 .pl.st-deal{border-color:var(--acc);color:var(--acc);background:var(--accsoft);font-weight:600}
 .pl.st-tidak{opacity:.75}
+.pl.sc-hi{border-color:var(--acc);color:var(--acc);background:var(--accsoft);font-weight:600}
+.pl.sc-mid{border-color:var(--star);color:var(--star);background:color-mix(in srgb,var(--star) 10%,var(--surf))}
 </style>
 </head>
 <body>
@@ -2285,14 +2287,14 @@ function auQueue(){
     h+="<p class='info'>"+(cfg.mail.on?"Tidak ada prospek yang menunggu persetujuan. Antrean terisi setiap kali pekerjaan otomatis berjalan.":"Kirim otomatis belum aktif. Nyalakan di Pengaturan otomatis di bawah.")+"</p>";
   }else{
     h+="<div class='mlist aulist'>"+pend.map(function(x){
-      return"<label class='mrow'><input type='checkbox' data-id='"+esc(x.id)+"' checked>"+thumb({name:x.name||x.to,thumbnail:x.thumbnail})+"<span><b>"+esc(x.name||x.to)+"</b><small>"+esc(x.to)+(x.why&&x.why.length?" · "+esc(x.why.join(", ")):"")+"</small></span><em class='mtag'>skor "+(x.sc||0)+"</em></label>";
+      return"<label class='mrow'><input type='checkbox' data-id='"+esc(x.id)+"' checked>"+thumb({name:x.name||x.to,thumbnail:x.thumbnail})+"<span><b>"+esc(x.name||x.to)+"</b><small>"+esc(x.to)+(x.why&&x.why.length?" · "+esc(x.why.join(", ")):"")+"</small></span><em class='mtag pl sc-"+aiCls(x.sc||0)+"'>skor "+(x.sc||0)+"</em></label>";
     }).join("")+"</div>";
     h+="<div class='eacts'><button class='ghost' id='auqall' type='button'>Pilih semua</button><button class='ghost' id='auqnone' type='button'>Kosongkan</button><span class='sp'></span><button class='ghost' id='auqno' type='button'>Tolak terpilih</button><button class='btn primary' id='auqok' type='button'>Setujui terpilih</button></div>";
   }
   if(ok.length){
     h+="<p class='hint2'>"+ok.length+" prospek sudah disetujui dan menunggu giliran kirim (sesuai batas harian dan sisa kuota Resend). Urut dari skor tertinggi.</p>";
     h+="<div class='mlist aulist rd'>"+ok.map(function(x){
-      return"<div class='mrow'>"+thumb({name:x.name||x.to,thumbnail:x.thumbnail})+"<span><b>"+esc(x.name||x.to)+"</b><small>"+esc(x.to)+(x.why&&x.why.length?" · "+esc(x.why.join(", ")):"")+"</small></span><em class='mtag'>skor "+(x.sc||0)+"</em></div>";
+      return"<div class='mrow'>"+thumb({name:x.name||x.to,thumbnail:x.thumbnail})+"<span><b>"+esc(x.name||x.to)+"</b><small>"+esc(x.to)+(x.why&&x.why.length?" · "+esc(x.why.join(", ")):"")+"</small></span><em class='mtag pl sc-"+aiCls(x.sc||0)+"'>skor "+(x.sc||0)+"</em></div>";
     }).join("")+"</div>";
   }
   $("auq").innerHTML=h;$("auqn").textContent=pend.length?"("+pend.length+" menunggu)":"";
