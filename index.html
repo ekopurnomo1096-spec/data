@@ -433,10 +433,8 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .aust{display:flex;flex-direction:column;gap:14px;margin-bottom:2px}
 .aug{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .augt{margin:0 0 6px;color:var(--mute);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
-.ac.ok{display:flex;align-items:center;gap:10px;border-color:var(--okln);background:var(--okbg)}
-.ac.ok svg{flex:none;width:22px;height:22px;color:var(--ok)}
-.ac.ok div{min-width:0}
-.ac.ok b{display:block;color:var(--ok)}
+.ac.ok b{display:flex;align-items:center;gap:8px}
+.ac.ok i{flex:none;width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--okbg)}
 .ac{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:var(--bg);min-width:0}
 .ac small{display:block;color:var(--mute);font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 .ac b{font-size:.95rem;font-weight:600}
@@ -2131,7 +2129,7 @@ $("rpgo").onclick=function(){
   }).catch(function(){b.disabled=false});
 };
 function acT(l,v){return"<div class='ac'><small>"+l+"</small><b>"+v+"</b></div>"}
-function acOk(l){return"<div class='ac ok'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><circle cx='12' cy='12' r='10' fill='currentColor' fill-opacity='.15'/><path d='M7.5 12.5l3 3 6-6.5'/></svg><div><small>"+l+"</small><b>Aktif</b></div></div>"}
+function acOk(l){return"<div class='ac ok'><small>"+l+"</small><b><i aria-hidden='true'></i>Aktif</b></div>"}
 function acB(t){return"<div class='ac bad'>"+t+"</div>"}
 function auStatus(){
   var s=AU.st,f=s.flags||{},m=s.mail||{},c=s.counts||{},q=s.seq||{},w=s.warm||{},t=[],b=[];
