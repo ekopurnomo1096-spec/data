@@ -502,6 +502,12 @@ main.wrap{max-width:1180px;margin:0 auto}
 .tab .tn{margin-left:auto}
 .tab .tn:empty:not(.tsk){display:none}
 .tab .tn:not(.tsk):not(:empty){display:inline-grid;place-items:center;min-width:22px;height:20px;padding:0 7px;border-radius:99px;background:var(--acc);color:var(--onacc);font-size:.72rem;font-weight:700}
+.tab .tn.tm:not(.tsk):not(:empty),.ng>summary .tn.tm:not(:empty){background:var(--soft);color:var(--mute)}
+.ng>summary .tn{font-style:normal}
+.ng>summary .tn:empty{display:none}
+.ng>summary .tn:not(:empty){display:inline-grid;place-items:center;min-width:22px;height:20px;padding:0 7px;border-radius:99px;background:var(--acc);color:var(--onacc);font-size:.72rem;font-weight:700;margin-left:auto;margin-right:8px}
+.ng[open]>summary .tn{display:none}
+.ng:not([open])>summary:has(.tn:not(:empty))::after{margin-left:0}
 .sidefoot{margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:12px;border-top:1px solid var(--line)}
 .sidequota{padding:2px 10px 12px}
 .sidequota:has(#usage[hidden]){display:none}
@@ -748,7 +754,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <button class="tab" type="button" id="tbalas" data-v="balas" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg><span>Balasan</span><em class="tn" id="rpnav"></em></button>
     <button class="tab" type="button" id="t6" data-v="6" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M3 3v18h18'/><path d='M7 15l4-6 4 3 4-7'/></svg><span>Riwayat kirim</span></button>
     <div class="ngl">Otomatis</div>
-    <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M9 11l3 3L22 4'/><path d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/></svg><span>Status & antrean</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="ringkas" aria-selected="false"><span>Status</span></button><button class="tab tsub" type="button" data-v="antrean" aria-selected="false"><span>Antrean persetujuan</span><em class="tn" id="t5n"></em></button></div></details>
+    <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M9 11l3 3L22 4'/><path d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/></svg><span>Status & antrean</span><em class="tn" id="t5g"></em></summary><div class="ngi"><button class="tab tsub" type="button" data-v="ringkas" aria-selected="false"><span>Status</span></button><button class="tab tsub" type="button" data-v="antrean" aria-selected="false"><span>Antrean persetujuan</span><em class="tn" id="t5n"></em></button></div></details>
     <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z'/></svg><span>Kirim email</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="kirim" aria-selected="false"><span>Kirim otomatis</span></button><button class="tab tsub" type="button" data-v="warm" aria-selected="false"><span>Pemanasan domain</span></button><button class="tab tsub" type="button" data-v="teks" aria-selected="false"><span>Teks email</span></button></div></details>
     <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2'/></svg><span>Cari prospek</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="ulang" aria-selected="false"><span>Cari ulang</span></button><button class="tab tsub" type="button" data-v="putar" aria-selected="false"><span>Putaran kota</span></button><button class="tab tsub" type="button" data-v="cariem" aria-selected="false"><span>Cari email</span></button></div></details>
     <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><ellipse cx='12' cy='5' rx='9' ry='3'/><path d='M3 5v14a9 3 0 0 0 18 0V5M3 12a9 3 0 0 0 18 0'/></svg><span>Sistem</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="skor" aria-selected="false"><span>Skor prospek</span></button><button class="tab tsub" type="button" data-v="lapor" aria-selected="false"><span>Laporan & peringatan</span></button><button class="tab tsub" type="button" data-v="bersih" aria-selected="false"><span>Pembersihan data</span></button><button class="tab tsub" type="button" data-v="serp" aria-selected="false"><span>Akun SerpApi</span></button><button class="tab tsub" type="button" data-v="berhenti" aria-selected="false"><span>Daftar berhenti</span></button></div></details>
@@ -1244,6 +1250,7 @@ function loadSearches(){
   fetch("/api/leads?part=searches").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){SAVED=j.searches||[];renderSaved()}).catch(function(){});
 }
 function showMine(){
+  SVKEY=null;
   var t=trackedList();
   if(!t.length){$("res").hidden=true;say("info","Belum ada prospek yang diberi status atau catatan.");return}
   rows=t.map(function(r){return r.lead});
@@ -1383,9 +1390,13 @@ function sid(key){
   x=x.slice(0,12)+"4"+x.slice(13,16)+"89ab"[parseInt(x.charAt(16),16)&3]+x.slice(17);
   return x.slice(0,8)+"-"+x.slice(8,12)+"-"+x.slice(12,16)+"-"+x.slice(16,20)+"-"+x.slice(20);
 }
+// Pencarian tersimpan yang sedang terbuka di tab Tersimpan (kosong kalau yang tampil daftar atau "Prospek saya").
+// Dipakai supaya alamat tetap /<uuid> saat pindah menu lalu kembali ke Tersimpan.
+var SVKEY=null;
+function tabPath(n){return"/"+((String(n)==="3"&&SVKEY&&!$("svres").hidden)?sid(SVKEY):(HN[n]||n))}
 function openSavedSearch(m){
   $("city").value=m.city;$("kind").value=m.kind;$("source").value=m.source;
-  placeRes(3);run(false);
+  placeRes(3);run(false);SVKEY=m.key;
   try{history.replaceState(null,"","/"+sid(m.key))}catch(e){}
 }
 var resHome=1;
@@ -1394,7 +1405,7 @@ function placeRes(n){
   (n===3?$("svslot"):$("slot1")).appendChild($("resbox"));
   $("svres").hidden=n!==3;$("svbox").hidden=n===3;
 }
-$("svback").onclick=function(){$("svres").hidden=true;$("svbox").hidden=false;try{history.replaceState(null,"","/tersimpan")}catch(e){}};
+$("svback").onclick=function(){SVKEY=null;$("svres").hidden=true;$("svbox").hidden=false;try{history.replaceState(null,"","/tersimpan")}catch(e){}};
 $("run").onclick=function(){placeRes(1);run(false)};
 ["fst","frt","frv","fph","fwa","fem","fwb","fnt"].forEach(function(id){$(id).addEventListener("change",render)});
 $("q").addEventListener("input",render);
@@ -1696,7 +1707,7 @@ $("svbox").addEventListener("click",function(e){
 });
 function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
 function showLogin(msg){$("boot").hidden=true;$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
-function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();var leadsP=loadLeads();loadAI();if(!FIRSTTAB){FIRSTTAB=1;var dc=function(s){try{return decodeURIComponent(s)}catch(e){return s}},rp=dc((location.pathname||"").replace(/^\/+|\/+$/g,"")),h=(UUIDRE.test(rp)||HR[rp]||Object.prototype.hasOwnProperty.call(PG,rp))?rp:dc((location.hash||"").slice(1));
+function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();var leadsP=loadLeads();loadAI();if(!AU.st)auLoad(true);if(!FIRSTTAB){FIRSTTAB=1;var dc=function(s){try{return decodeURIComponent(s)}catch(e){return s}},rp=dc((location.pathname||"").replace(/^\/+|\/+$/g,"")),h=(UUIDRE.test(rp)||HR[rp]||Object.prototype.hasOwnProperty.call(PG,rp))?rp:dc((location.hash||"").slice(1));
   var key=h.indexOf("tersimpan/")===0?h.slice("tersimpan/".length):(h.indexOf("|")>0?h:""),uid=UUIDRE.test(h)?h:"";
   if(key||uid){
     tab("3");afterTab("3");
@@ -2163,7 +2174,7 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape")navOpen(fals
 function tab(n){
   n=String(n===5||n==="5"?"ringkas":n);
   CUR=n;
-  try{history.replaceState(null,"","/"+(HN[n]||n))}catch(e){}
+  try{history.replaceState(null,"",tabPath(n))}catch(e){}
   var page=AUV.indexOf(n)>-1?"5":n;
   [1,2,3,4,5,6,7].forEach(function(i){$("p"+i).hidden=String(i)!==page});
   [].forEach.call(document.querySelectorAll(".tab[data-v]"),function(b){
@@ -2181,7 +2192,7 @@ function tab(n){
 $("sidenav").addEventListener("click",function(e){
   var b=e.target.closest(".tab[data-v]");if(!b)return;
   var v=b.getAttribute("data-v");
-  if(v==="3"&&b.getAttribute("aria-selected")==="true"){$("svres").hidden=true;$("svbox").hidden=false}
+  if(v==="3"&&b.getAttribute("aria-selected")==="true"){SVKEY=null;$("svres").hidden=true;$("svbox").hidden=false}
   tab(v);
   afterTab(v);
 });
@@ -2344,7 +2355,15 @@ function auStatus(){
   var pz=s.pause,pb=$("aupz");
   pb.hidden=!pz;if(pz)pb.textContent=(pz.auto?"Dijeda otomatis: ":"Dijeda: ")+pz.why+" ("+fmtDate(pz.t)+"). Semua kirim dan tugas otomatis berhenti sampai kamu klik Lanjutkan.";
   $("aupause").textContent=pz?"Lanjutkan":"Jeda semua";
-  var n=c.pending||0,bn=$("t5n");bn.textContent=n?String(n):"";
+  auBadge();
+}
+// Badge antrean di menu: jumlah yang menunggu persetujuan (warna aksen); kalau tidak ada, jumlah yang sudah disetujui
+// dan menunggu giliran kirim (warna redup). Tampil juga di grup "Status & antrean" saat menunya dilipat.
+function auBadge(){
+  var s=AU.st;if(!s||s.nodb)return;
+  var q=s.queue||[],p=0,k=0;q.forEach(function(x){if(x.st==="pending")p++;else if(x.st==="ok")k++});
+  var n=p||k,tx=p?p+" menunggu persetujuan":k+" sudah disetujui, menunggu giliran kirim";
+  ["t5n","t5g"].forEach(function(id){var b=$(id);if(!b)return;b.textContent=n?String(n):"";b.classList.toggle("tm",!p&&!!k);if(n)b.title=tx;else b.removeAttribute("title")});
 }
 function auJobText(k,j){
   if(!j)return"";
