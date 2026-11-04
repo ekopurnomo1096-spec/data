@@ -376,6 +376,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
  .emprevframe{height:min(50vh,420px)}
  .di{grid-template-columns:92px 1fr;gap:8px}
  .svc{padding:12px}
+ .svc .sm{flex:1 1 100%}
  .segs{gap:10px}
 }
 /* Pesan hasil AI: selalu di baris sendiri di bawah tombol */
@@ -675,6 +676,22 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
 }
 @media (min-width:901px){main.wrap{padding:36px 40px 80px}}
 .rpc .rh .th{width:36px;height:36px;font-size:.9rem}
+/* Pencarian tersimpan: desktop satu baris (judul, jumlah tempat, jenis, tanggal). HP: jenis dan tanggal di bawah judul */
+@media (min-width:761px){
+ .svc .sm:has(.svt){display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px}
+ .svc .sm:has(.svt) .svt{display:contents}
+ .svc .sm:has(.svt) .svt b{flex:none}
+ .svc .sm:has(.svt) .svd{margin-top:0}
+}
+@media (max-width:760px){
+ .svc .sm:has(.svt){display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px 10px}
+ .svc .sm:has(.svt) .svt,.svc .sm:has(.svt) .svd{display:contents}
+ .svc .sm:has(.svt) .svt b{grid-column:1;grid-row:1}
+ .svc .sm:has(.svt) .svt .pl{grid-column:2;grid-row:1;justify-self:end}
+ .svc .sm:has(.svt) .svd em{grid-column:2;grid-row:2;justify-self:end}
+ .svc .sm:has(.svt) .svd em+em{grid-row:3}
+ .svc .sm:has(.svt) .svd i{grid-column:1;grid-row:2}
+}
 .svc .sm .pls{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .pl{font-style:normal;font-size:.76rem;font-weight:500;line-height:1.5;padding:2px 10px;border-radius:99px;border:1px solid var(--line);background:var(--bg);color:var(--mute)}
 .pl.st-chat{border-color:var(--star);color:var(--star);background:color-mix(in srgb,var(--star) 10%,var(--surf))}
