@@ -79,7 +79,17 @@ async function findLead(email) {
   if (!rec) rec = M.parse(await cmd(["HGET", LEADS, id]));
   const sq = M.parse(await cmd(["HGET", SEQ, id]));
   const name = (rec && rec.lead && rec.lead.name) || (sq && sq.name) || "";
-  return { id, rec, name };
+  return { id, rec, name, sq };
+}
+
+// Tahap dan variasi terakhir yang DIKIRIM ke lead ini (dari hairleads:seq, hanya terisi untuk kirim lewat jalur Otomatis).
+// sq.n = jumlah tahap yang sudah terkirim (1 setelah email pertama), sq.vs[tahap] = variasi yang dipakai di tahap itu.
+// Mengembalikan null kalau lead ini tidak pernah dikirimi lewat jalur Otomatis (mis. kirim manual), karena variasinya tidak diketahui.
+function lastSentVariant(sq) {
+  if (!sq || !(sq.n > 0)) return null;
+  const stage = sq.n - 1;
+  const v = Array.isArray(sq.vs) && sq.vs[stage] != null ? sq.vs[stage] : 0;
+  return { stage, v };
 }
 
 // ---- Klasifikasi -----------------------------------------------------------------------------------------------
@@ -182,6 +192,13 @@ async function processReply(inb) {
   let change = null;
   if (found && c.cat !== "auto_reply") change = await applyToLead(found, f.email, c.cat, c.sum);
   if (c.cat === "unsubscribe") { await M.suppress(f.email, "unsub"); }
+
+  // Catat variasi mana yang dibalas (sejajar dengan "s{tahap}v{variasi}" yang mencatat jumlah terkirim), supaya
+  // reply rate per variasi bisa dibandingkan di tab Otomatis. Hanya untuk lead yang dikirimi lewat jalur Otomatis.
+  if (found) {
+    const lv = lastSentVariant(found.sq);
+    if (lv) { try { await M.stat("r" + lv.stage + "v" + lv.v, 1); } catch (e) { /* statistik gagal tidak boleh menggagalkan pencatatan balasan */ } }
+  }
 
   const rec = {
     t: Date.now(), from: f.email, fn: f.name, sub, body: body.slice(0, 1500), id: found ? found.id : "", name: found ? found.name : "",

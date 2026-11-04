@@ -203,7 +203,9 @@ async function stat(metric, n) {
   if (!dbConfigured() || !n) return;
   try { await cmd(["HINCRBY", STATK, today() + ":" + metric, Math.round(n)]); } catch (e) { /* abaikan */ }
 }
-// Mengembalikan [{d:"YYYY-MM-DD", sent, fu, bounce, spam, unsub, added, found, queued, v:{s0v0:n,...}}], terbaru dulu
+// Mengembalikan [{d:"YYYY-MM-DD", sent, fu, bounce, spam, unsub, added, found, queued, v:{s0v0:n,...}, rv:{r0v0:n,...}}], terbaru dulu
+// v = jumlah TERKIRIM per tahap+variasi (metrik "s{tahap}v{variasi}"); rv = jumlah DIBALAS per tahap+variasi (metrik "r{tahap}v{variasi}"),
+// supaya reply rate per variasi bisa dibandingkan (bukan cuma jumlah kirim).
 async function getStats(days) {
   if (!dbConfigured()) return [];
   const raw = (await cmd(["HGETALL", STATK])) || [], by = {};
@@ -211,12 +213,14 @@ async function getStats(days) {
   for (let i = 0; i + 1 < raw.length; i += 2) {
     const [d, m] = String(raw[i]).split(":");
     if (!m || d < from) continue;
-    const o = by[d] || (by[d] = { d, sent: 0, fu: 0, bounce: 0, spam: 0, unsub: 0, added: 0, found: 0, queued: 0, reply: 0, v: {} });
+    const o = by[d] || (by[d] = { d, sent: 0, fu: 0, bounce: 0, spam: 0, unsub: 0, added: 0, found: 0, queued: 0, reply: 0, v: {}, rv: {} });
     const n = parseInt(raw[i + 1], 10) || 0;
-    if (/^s\d+v\d+$/.test(m)) o.v[m] = n; else if (m in o) o[m] = n;
+    if (/^s\d+v\d+$/.test(m)) o.v[m] = n;
+    else if (/^r\d+v\d+$/.test(m)) o.rv[m] = n;
+    else if (m in o) o[m] = n;
   }
   const out = [];
-  for (let k = 0; k < days; k++) { const d = new Date(Date.now() - k * 864e5).toISOString().slice(0, 10); out.push(by[d] || { d, sent: 0, fu: 0, bounce: 0, spam: 0, unsub: 0, added: 0, found: 0, queued: 0, reply: 0, v: {} }); }
+  for (let k = 0; k < days; k++) { const d = new Date(Date.now() - k * 864e5).toISOString().slice(0, 10); out.push(by[d] || { d, sent: 0, fu: 0, bounce: 0, spam: 0, unsub: 0, added: 0, found: 0, queued: 0, reply: 0, v: {}, rv: {} }); }
   return out;
 }
 async function getPause() {

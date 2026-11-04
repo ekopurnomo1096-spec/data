@@ -1,11 +1,48 @@
 // Cari email dan WhatsApp dari website sebuah bisnis (gratis, tanpa API key). Dipakai api/email.js dan pekerjaan otomatis (_jobs.js).
+const dns = require("dns").promises;
+const { isIP } = require("net");
 const BAD = /\.(png|jpe?g|gif|svg|webp|css|js|woff2?)$|sentry|wixpress|example\.|domain\.com|your(name|email)|@2x|noreply|no-reply/i;
 const WA = /(?:wa\.me\/|(?:api|web)\.whatsapp\.com\/send\/?\?(?:[^"'\s>]*?&(?:amp;)?)?phone=)\+?(\d{8,15})/gi;
 const PATHS = ["/contact", "/contact-us", "/pages/contact", "/pages/contact-us", "/kontak", "/contacts", "/about", "/about-us"];
 const MAXPAGES = 6; // paling banyak halaman yang dicek per website
+const MAXHOPS = 6;  // paling banyak loncatan redirect yang diikuti per halaman
 
 function blocked(host) {
   return /^(localhost|.*\.local|.*\.internal)$/i.test(host) || /^\d+\.\d+\.\d+\.\d+$/.test(host) || host.includes(":");
+}
+// true kalau alamat IP ini privat/loopback/link-local/tidak boleh dijangkau dari luar (cegah SSRF ke jaringan internal).
+function ipBlocked(ip) {
+  const fam = isIP(ip);
+  if (fam === 4) {
+    const p = ip.split(".").map(Number);
+    if (p[0] === 10 || p[0] === 127 || p[0] === 0 || p[0] >= 224) return true;
+    if (p[0] === 169 && p[1] === 254) return true;
+    if (p[0] === 172 && p[1] >= 16 && p[1] <= 31) return true;
+    if (p[0] === 192 && p[1] === 168) return true;
+    return false;
+  }
+  if (fam === 6) {
+    const low = ip.toLowerCase();
+    if (low === "::1" || low === "::") return true;
+    if (low.startsWith("fe80:") || low.startsWith("fc") || low.startsWith("fd")) return true; // link-local & unique local
+    const m = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(low); // IPv4 yang dibungkus IPv6
+    if (m) return ipBlocked(m[1]);
+    return false;
+  }
+  return true; // bukan IP yang dikenali: lebih aman dianggap diblokir
+}
+// Cek nama host sebelum DIHUBUNGI (bukan cuma sebelum dipakai di URL): resolve DNS-nya dan pastikan semua alamat
+// hasil resolve itu bukan IP privat. Mencegah situs yang domainnya sengaja/kebetulan diarahkan ke jaringan internal
+// (DNS rebinding) ikut lolos cuma karena nama hostnya terlihat normal.
+async function hostBlocked(host) {
+  if (blocked(host)) return true;
+  try {
+    const addrs = await Promise.race([
+      dns.lookup(host, { all: true }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 3000))
+    ]);
+    return !addrs.length || addrs.some(a => ipBlocked(a.address));
+  } catch (e) { return true; } // gagal resolve: lebih aman dianggap diblokir daripada diizinkan
 }
 
 // Bersihkan alamat hasil tangkap dari halaman web: sisa penulisan URL (mis. "%20" di depan), spasi, dan tanda baca di ujung dibuang.
@@ -16,15 +53,28 @@ function tidyEmail(e) {
 }
 
 // Mengembalikan {html, err}. err = true kalau situs gagal dijangkau (timeout, jaringan, 5xx, 429). 404 dan sejenisnya bukan kegagalan.
+// Redirect DIIKUTI MANUAL (bukan redirect:"follow"), supaya tiap loncatan dicek dulu hostname DAN hasil resolve DNS-nya:
+// situs awal yang aman tetap bisa dipakai menyelinap ke jaringan internal lewat redirect kalau ini tidak dicek ulang tiap hop.
 async function grab(url) {
-  const c = new AbortController();
-  const t = setTimeout(() => c.abort(), 6000);
-  try {
-    const r = await fetch(url, { signal: c.signal, redirect: "follow",
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; hair-leads-demo/1.0)", "Accept": "text/html" } });
-    if (!r.ok) return { html: "", err: r.status >= 500 || r.status === 429 };
-    return { html: (await r.text()).slice(0, 600000), err: false };
-  } catch (e) { return { html: "", err: true }; } finally { clearTimeout(t); }
+  let cur = url;
+  for (let hop = 0; hop < MAXHOPS; hop++) {
+    let u;
+    try { u = new URL(cur); } catch (e) { return { html: "", err: false }; }
+    if (!/^https?:$/.test(u.protocol)) return { html: "", err: false };
+    if (await hostBlocked(u.hostname)) return { html: "", err: false };
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), 6000);
+    try {
+      const r = await fetch(u.href, { signal: c.signal, redirect: "manual",
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; hair-leads-demo/1.0)", "Accept": "text/html" } });
+      if (r.status >= 300 && r.status < 400 && r.headers.get("location")) {
+        try { cur = new URL(r.headers.get("location"), u).href; continue; } catch (e) { return { html: "", err: false }; }
+      }
+      if (!r.ok) return { html: "", err: r.status >= 500 || r.status === 429 };
+      return { html: (await r.text()).slice(0, 600000), err: false };
+    } catch (e) { return { html: "", err: true }; } finally { clearTimeout(t); }
+  }
+  return { html: "", err: false }; // terlalu banyak loncatan redirect
 }
 
 // Cari tautan "contact/kontak" di halaman utama (satu host yang sama), maksimal 2
