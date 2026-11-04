@@ -1373,7 +1373,7 @@ $("sortsel").onchange=function(){var v=this.value;if(v==="namez"){sKey="name";sD
 function openSavedSearch(m){
   $("city").value=m.city;$("kind").value=m.kind;$("source").value=m.source;
   placeRes(3);run(false);
-  try{history.replaceState(null,"","#tersimpan/"+encodeURIComponent(m.key))}catch(e){}
+  try{history.replaceState(null,"","#"+encodeURIComponent(m.key))}catch(e){}
 }
 var resHome=1;
 function placeRes(n){
@@ -1684,8 +1684,8 @@ $("svbox").addEventListener("click",function(e){
 function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
 function showLogin(msg){$("boot").hidden=true;$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
 function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{if(location.pathname!=="/")history.replaceState(null,"","/"+location.search+location.hash)}catch(e){}try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();var leadsP=loadLeads();loadAI();if(!FIRSTTAB){FIRSTTAB=1;var h=decodeURIComponent((location.hash||"").slice(1));
-  if(h.indexOf("tersimpan/")===0){
-    var key=h.slice("tersimpan/".length);
+  var key=h.indexOf("tersimpan/")===0?h.slice("tersimpan/".length):(h.indexOf("|")>0?h:"");
+  if(key){
     tab("3");afterTab("3");
     leadsP.then(function(){var m=SAVED.filter(function(x){return x.key===key})[0];if(m)openSavedSearch(m)});
     return;
