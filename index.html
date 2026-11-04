@@ -11,7 +11,10 @@ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:en
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141916;--surf:#1b221e;--ink:#e8e5da;--mute:#9aa397;--line:#2f3a33;--soft:#252e28;--acc:#7fc4a8;--onacc:#10201a;--accsoft:#22362d;--warm:#e58f62;--star:#e0a93a;--err:#ff9d8f;--errbg:#3a2220}}
 :root[data-theme="dark"]{--bg:#141916;--surf:#1b221e;--ink:#e8e5da;--mute:#9aa397;--line:#2f3a33;--soft:#252e28;--acc:#7fc4a8;--onacc:#10201a;--accsoft:#22362d;--warm:#e58f62;--star:#e0a93a;--err:#ff9d8f;--errbg:#3a2220}
 html{scroll-padding-top:env(safe-area-inset-top,0px);overflow-y:scroll;scrollbar-gutter:stable}
-*{box-sizing:border-box}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--ok:#1a8a4a;--okbg:#e3f2e8;--okln:#bfe0cb}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ok:#5fd68c;--okbg:#1c3226;--okln:#27432f}}
+:root[data-theme="dark"]{--ok:#5fd68c;--okbg:#1c3226;--okln:#27432f}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
 .wrap{max-width:1240px;margin:0 auto;padding:0 20px}
 .usage{position:relative;display:flex;flex-direction:column;gap:7px;min-width:150px;margin-right:6px;font-size:.8rem;color:var(--mute)}
@@ -427,7 +430,13 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .aupz{margin:0 0 12px;padding:10px 12px;border-radius:8px;background:var(--errbg);color:var(--err);font-size:.9rem}.austat{width:100%;border-collapse:collapse;font-size:.84rem;margin-top:8px}.austat th,.austat td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--line)}.austat th:first-child,.austat td:first-child{text-align:left}.austat th{color:var(--mute);font-weight:600}
 .aup{padding:14px 16px}
 .aup+.aup{margin-top:12px}
-.aust{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:2px}
+.aust{display:flex;flex-direction:column;gap:14px;margin-bottom:2px}
+.aug{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.augt{margin:0 0 6px;color:var(--mute);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.ac.ok{display:flex;align-items:center;gap:10px;border-color:var(--okln);background:var(--okbg)}
+.ac.ok svg{flex:none;width:22px;height:22px;color:var(--ok)}
+.ac.ok div{min-width:0}
+.ac.ok b{display:block;color:var(--ok)}
 .ac{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:var(--bg);min-width:0}
 .ac small{display:block;color:var(--mute);font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 .ac b{font-size:.95rem;font-weight:600}
@@ -450,8 +459,18 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .austep .f,.auv .f{margin-top:8px}
 .austep .eacts{margin-top:10px}
 .aulog{margin:12px 0 0;padding:0;list-style:none;font-size:.84rem;color:var(--mute)}
-.aulog li{padding:6px 0;border-bottom:1px solid var(--soft)}
-.aulog li:last-child{border-bottom:0}
+.aulog li{padding:12px 0;border-bottom:1px solid var(--line);color:var(--ink)}
+.aulog li:first-child{padding-top:4px}
+.aulog li:last-child{border-bottom:0;padding-bottom:2px}
+.aulog .lh{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.aulog .lh b{font-size:.88rem}
+.aulog .lt{font-size:.68rem;font-weight:600;padding:1px 8px;border-radius:99px;background:var(--soft);color:var(--mute)}
+.aulog .lt.a{background:var(--okbg);color:var(--ok)}
+.aulog .lr{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:3px 0;line-height:1.45}
+.aulog .lk{color:var(--mute);font-weight:600;font-size:.8rem}
+.aulog .lv{min-width:0;overflow-wrap:anywhere}
+.aulog .lr.er .lk,.aulog .lr.er .lv{color:var(--err)}
+@media (max-width:560px){.aulog .lr{grid-template-columns:1fr;gap:0}}
 .aulist{max-height:360px}
 .aulist.big{max-height:none}
 .ausub{margin:22px 0 4px;font-weight:600;font-size:.95rem}
@@ -596,7 +615,7 @@ main.wrap{max-width:1180px;margin:0 auto}
     <button class="tab" type="button" id="tbalas" data-v="balas" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg><span>Balasan</span><em class="tn" id="rpnav"></em></button>
     <button class="tab" type="button" id="t6" data-v="6" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M3 3v18h18'/><path d='M7 15l4-6 4 3 4-7'/></svg><span>Riwayat kirim</span></button>
     <div class="ngl">Otomatis</div>
-    <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><rect x='3' y='3' width='7' height='9' rx='1'/><rect x='14' y='3' width='7' height='5' rx='1'/><rect x='14' y='12' width='7' height='9' rx='1'/><rect x='3' y='16' width='7' height='5' rx='1'/></svg><span>Status & antrean</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="ringkas" aria-selected="false"><span>Status</span></button><button class="tab tsub" type="button" data-v="antrean" aria-selected="false"><span>Antrean persetujuan</span><em class="tn" id="t5n"></em></button></div></details>
+    <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M9 11l3 3L22 4'/><path d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/></svg><span>Status & antrean</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="ringkas" aria-selected="false"><span>Status</span></button><button class="tab tsub" type="button" data-v="antrean" aria-selected="false"><span>Antrean persetujuan</span><em class="tn" id="t5n"></em></button></div></details>
     <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z'/></svg><span>Kirim email</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="kirim" aria-selected="false"><span>Kirim otomatis</span></button><button class="tab tsub" type="button" data-v="warm" aria-selected="false"><span>Pemanasan domain</span></button><button class="tab tsub" type="button" data-v="teks" aria-selected="false"><span>Teks email</span></button></div></details>
     <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2'/></svg><span>Cari prospek</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="ulang" aria-selected="false"><span>Cari ulang</span></button><button class="tab tsub" type="button" data-v="putar" aria-selected="false"><span>Putaran kota</span></button><button class="tab tsub" type="button" data-v="cariem" aria-selected="false"><span>Cari email</span></button></div></details>
     <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><ellipse cx='12' cy='5' rx='9' ry='3'/><path d='M3 5v14a9 3 0 0 0 18 0V5M3 12a9 3 0 0 0 18 0'/></svg><span>Sistem</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="skor" aria-selected="false"><span>Skor prospek</span></button><button class="tab tsub" type="button" data-v="lapor" aria-selected="false"><span>Laporan & peringatan</span></button><button class="tab tsub" type="button" data-v="bersih" aria-selected="false"><span>Pembersihan data</span></button><button class="tab tsub" type="button" data-v="serp" aria-selected="false"><span>Akun SerpApi</span></button><button class="tab tsub" type="button" data-v="berhenti" aria-selected="false"><span>Daftar berhenti</span></button></div></details>
@@ -2112,22 +2131,25 @@ $("rpgo").onclick=function(){
   }).catch(function(){b.disabled=false});
 };
 function acT(l,v){return"<div class='ac'><small>"+l+"</small><b>"+v+"</b></div>"}
+function acOk(l){return"<div class='ac ok'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><circle cx='12' cy='12' r='10' fill='currentColor' fill-opacity='.15'/><path d='M7.5 12.5l3 3 6-6.5'/></svg><div><small>"+l+"</small><b>Aktif</b></div></div>"}
 function acB(t){return"<div class='ac bad'>"+t+"</div>"}
 function auStatus(){
   var s=AU.st,f=s.flags||{},m=s.mail||{},c=s.counts||{},q=s.seq||{},w=s.warm||{},t=[],b=[];
   var lim=w.on?w.eff:(w.target||0),warming=w.on&&w.eff<w.target;
-  t.push(m.ready?acT("Resend","Siap"):"");
-  t.push(acT("Email hari ini",(m.used||0)+(m.limit?" / "+m.limit:"")));
-  t.push(acT("Batas hari ini"+(warming?" · pemanasan hari ke-"+(w.day+1):""),warming?lim+" dari "+w.target:lim));
-  t.push(acT("Menunggu persetujuan",c.pending||0));
-  t.push(acT("Follow-up berjalan",q.active||0));
-  t.push(f.cron?acT("Jadwal harian","Aktif"):"");
-  t.push(f.webhook?acT("Webhook bounce","Aktif"):"");
+  var sv=[],cn=[];
+  sv.push(m.ready?acOk("Resend"):"");
+  sv.push(f.cron?acOk("Jadwal harian"):"");
+  sv.push(f.webhook?acOk("Webhook bounce"):"");
+  cn.push(acT("Email hari ini",(m.used||0)+(m.limit?" / "+m.limit:"")));
+  cn.push(acT("Batas hari ini"+(warming?" · pemanasan hari ke-"+(w.day+1):""),warming?lim+" dari "+w.target:lim));
+  cn.push(acT("Menunggu persetujuan",c.pending||0));
+  cn.push(acT("Follow-up berjalan",q.active||0));
+  sv=sv.filter(Boolean);
   if(!m.ready)b.push(acB("Resend belum diisi. Buka tab Email &gt; Pengaturan email."));
   if(!f.cron)b.push(acB("Jadwal harian belum aktif. Isi CRON_SECRET di Vercel lalu Redeploy."));
   if(!f.webhook)b.push(acB("Webhook bounce belum aktif. Isi RESEND_WEBHOOK_SECRET di Vercel."));
   if(m.ready&&!m.addr)b.push(acB("Alamat fisik belum diisi. Isi di tab Email &gt; Pengaturan email sebelum kirim sungguhan."));
-  $("aust").innerHTML=t.filter(Boolean).concat(b).join("");
+  $("aust").innerHTML=(sv.length?"<div><p class='augt'>Layanan</p><div class='aug'>"+sv.join("")+"</div></div>":"")+"<div><p class='augt'>Hari ini</p><div class='aug'>"+cn.join("")+"</div></div>"+(b.length?"<div class='aug'>"+b.join("")+"</div>":"");
   var pz=s.pause,pb=$("aupz");
   pb.hidden=!pz;if(pz)pb.textContent=(pz.auto?"Dijeda otomatis: ":"Dijeda: ")+pz.why+" ("+fmtDate(pz.t)+"). Semua kirim dan tugas otomatis berhenti sampai kamu klik Lanjutkan.";
   $("aupause").textContent=pz?"Lanjutkan":"Jeda semua";
@@ -2157,7 +2179,9 @@ function auLogLine(e){
     if(np.length)parts.push("Laporan: "+np.join(", "))}
   if(e.error)parts.push("gagal: "+e.error);
   if(e.paused)parts.push("dihentikan: "+e.paused);
-  return"<li><b>"+esc(fmtDate(e.t))+"</b> · "+(e.src==="cron"?"otomatis":"manual")+(parts.length?"<br>"+parts.map(esc).join("<br>"):"")+"</li>";
+  var rows=parts.map(function(p){var i=p.indexOf(": "),k=i>0?p.slice(0,i):"",v=i>0?p.slice(i+2):p,er=/^(gagal|dihentikan)$/i.test(k);
+    return"<div class='lr"+(er?" er":"")+"'><span class='lk'>"+esc(k?k.charAt(0).toUpperCase()+k.slice(1):"")+"</span><span class='lv'>"+esc(v)+"</span></div>"}).join("");
+  return"<li><div class='lh'><b>"+esc(fmtDate(e.t))+"</b><span class='lt"+(e.src==="cron"?" a":"")+"'>"+(e.src==="cron"?"Otomatis":"Manual")+"</span></div>"+rows+"</li>";
 }
 function auLog(){
   var l=(AU.st&&AU.st.log)||[];
