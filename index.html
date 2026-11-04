@@ -436,9 +436,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .augt{margin:0 0 6px;color:var(--mute);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
 .ac.ok b{display:flex;align-items:center;gap:8px}
 .ac.ok i{position:relative;flex:none;width:9px;height:9px;border-radius:50%;background:var(--ok)}
-.ac.ok i::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--ok);animation:aupulse 1.8s ease-out infinite}
-@keyframes aupulse{0%{transform:scale(1);opacity:.55}100%{transform:scale(3);opacity:0}}
-@media (prefers-reduced-motion:reduce){.ac.ok i::after{animation:none}}
+
 .ac{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:var(--bg);min-width:0}
 .ac small{display:block;color:var(--mute);font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 .ac b{font-size:.95rem;font-weight:600}
@@ -1529,7 +1527,8 @@ $("svbox").addEventListener("click",function(e){
 });
 function lmsg(t){$("lerr").textContent=t;$("lerr").hidden=false}
 function showLogin(msg){$("boot").hidden=true;$("app").hidden=true;$("login").hidden=false;if(msg)lmsg(msg);$("pw").focus()}
-function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();loadLeads();loadAI()}
+function showApp(){$("boot").hidden=true;$("login").hidden=true;$("app").hidden=false;try{var c=JSON.parse(localStorage.getItem("hl_usage")||"null");if(c&&c.accounts&&c.accounts.length){lastU=c;renderUsage(c)}}catch(e){}loadUsage();loadLeads();loadAI();if(!FIRSTTAB){FIRSTTAB=1;tab("7")}}
+var FIRSTTAB=0;
 var CK="<svg class='ck' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M5 12.5l4.5 4.5L19 7.5'/></svg>",CH="<svg class='ch' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M6 9l6 6 6-6'/></svg>";
 function umClose(){var m=document.querySelector(".umenu"),t=document.querySelector(".utrig");if(m)m.hidden=true;if(t)t.setAttribute("aria-expanded","false")}
 document.addEventListener("click",function(e){if(!e.target.closest("#usage"))umClose()});
