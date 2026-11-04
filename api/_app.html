@@ -1344,7 +1344,7 @@ function renderSaved(){
   h+="<div class='svh'>Pencarian tersimpan</div>";
   if(SAVED.length)h+="<div class='tools' style='margin-bottom:10px'><input type='search' class='q' id='svq' placeholder='Cari nama tempat atau kota' aria-label='Cari nama tempat atau kota di pencarian tersimpan' autocomplete='off' value='"+esc(SVQ)+"'></div>";
   h+="<div id='svp'>"+placeList()+"</div><div id='svl'>"+savedList()+"</div>";
-  box.innerHTML=h;
+  keepScroll(function(){box.innerHTML=h});
 }
 var SVQ="";
 // Daftar pencarian tersimpan, disaring oleh kotak cari. data-i tetap indeks asli di SAVED supaya tombol Buka/Hapus tidak salah sasaran.
@@ -1377,7 +1377,14 @@ function placeList(){
     return"<div class='mrow klk' tabindex='0' data-sp='"+i+"'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+(x.address?esc(x.address):"Alamat belum diisi")+"</small></span>"+(s?"<em class='pl st-"+s+"'>"+esc(stLabel(s).toLowerCase())+"</em>":"")+"</div>";
   }).join("")+"</div>"+(all.length>SV.found.length?"<p class='hint2'>"+SV.found.length+" teratas dari "+all.length+". Ketik lebih spesifik untuk mempersempit.</p>":"")+"<div class='svh'>Pencarian tersimpan</div>";
 }
-function svSearch(){var a=$("svp"),b=$("svl");if(!a||!b)return;a.innerHTML=placeList();b.innerHTML=savedList()}
+// Bangun ulang daftar tanpa menggeser posisi scroll halaman maupun scroll di dalam daftar tempat
+function keepScroll(fn){
+  var y=window.scrollY,ml=document.querySelector("#svp .mlist"),mt=ml?ml.scrollTop:0;
+  fn();
+  var ml2=document.querySelector("#svp .mlist");if(ml2)ml2.scrollTop=mt;
+  window.scrollTo(0,y);
+}
+function svSearch(){var a=$("svp"),b=$("svl");if(!a||!b)return;keepScroll(function(){a.innerHTML=placeList();b.innerHTML=savedList()})}
 $("svbox").addEventListener("input",function(e){if(e.target.id!=="svq")return;SVQ=e.target.value;svSearch()});
 function loadLeads(){
   return fetch("/api/leads").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){LS=j.items||{};SAVED=j.searches||[];renderSaved()}).catch(function(e){if(e===0)return;$("t3n").classList.remove("tsk");$("svbox").innerHTML="<p class='info'>Gagal memuat data tersimpan. Muat ulang halaman.</p>"});
