@@ -64,7 +64,7 @@ Opsional
 
 3. PETA MENU
 ------------
-Ringkasan
+Analisis
   Dasbor                   Corong, variasi A/B, statistik harian, per negara/kota (bagian 10).
 Cari pembeli
   Cari tempat              Cari salon/toko di kota mana pun.
@@ -75,10 +75,11 @@ Hubungi
   Balasan                  Balasan calon pembeli yang dibaca AI.
   Riwayat kirim            Semua email yang pernah dikirim.
 Otomatis
-  Status & statistik       Status jalan otomatis, tombol "Jalankan sekarang", jeda.
-  Antrean persetujuan, Kirim otomatis, Pemanasan domain, Teks email, Cari ulang,
-  Putaran kota, Cari email, Skor prospek, Laporan & peringatan, Pembersihan data,
-  Akun SerpApi, Daftar berhenti.
+  Status & antrean         Status (jalan otomatis, "Jalankan sekarang", jeda) dan Antrean persetujuan.
+  Kirim email              Kirim otomatis, Pemanasan domain, Teks email.
+  Cari prospek             Cari ulang, Putaran kota, Cari email.
+  Sistem                   Skor prospek, Laporan & peringatan, Pembersihan data, Akun SerpApi,
+                           Daftar berhenti.
 
 
 4. CARI DAN SIMPAN PROSPEK
@@ -381,7 +382,7 @@ Pembersihan data
     diarsipkan, tapi pencarian yang sama bisa diulang kapan saja (memakai kuota SerpApi).
 
 
-10. DASBOR (menu Ringkasan > Dasbor)
+10. DASBOR (menu Analisis > Dasbor)
 ------------------------------------
 Menu sendiri, hanya baca (api/dash.js). Dimuat saat menu dibuka atau tombol Segarkan ditekan,
 karena membaca seluruh pencarian tersimpan. Tidak memakai kuota SerpApi maupun Resend.
