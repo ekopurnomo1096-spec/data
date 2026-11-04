@@ -27,7 +27,7 @@ ISI
    ke halaman ini (pilih yang panjang dan unik). Centang Production, Preview, Development.
 3) Tambahkan juga LOGIN_PATH = teks rahasia bebas tanpa garis miring (contoh: masuk-x7q2). Ini
    alamat satu-satunya tempat halaman login muncul (setelah login, alamat di browser otomatis jadi "/" saja): https://domainmu.com/masuk-x7q2 - domain tanpa
-   alamat ini (termasuk "/" polos) sengaja dialihkan (302) ke https://emahairshop.com/, supaya orang lain yang iseng buka domainnya
+   alamat ini (termasuk "/" polos) sengaja menampilkan halaman 404 (api/_404.html), supaya orang lain yang iseng buka domainnya
    tidak nemu form login sama sekali. Ganti LOGIN_PATH kapan saja kalau alamatnya kebagi ke orang
    yang salah (sesi yang sudah login tidak kena pengaruh, cuma alamat masuk pertama kali yang beda).
    Lalu Deployments > titik tiga di deploy terbaru > Redeploy.
@@ -48,7 +48,7 @@ Setelah mengubah variabel, selalu Redeploy.
 Wajib
   APP_PASSWORD            Kata sandi masuk.
   LOGIN_PATH              Alamat rahasia tempat halaman login muncul (lihat bagian 1, langkah 3).
-                          Tanpa ini seluruh situs dialihkan ke emahairshop.com, termasuk "/" - tidak ada yang bisa
+                          Tanpa ini seluruh situs menampilkan halaman 404, termasuk "/" - tidak ada yang bisa
                           masuk sama sekali, jadi wajib diisi.
 
 Untuk fitur Otomatis (disarankan semua)
@@ -448,4 +448,4 @@ ALAMAT HALAMAN
 --------------
 Setelah login, aplikasi memakai alamat biasa tanpa "#": /dasbor, /cari, /balas, /riwayat, dst, dan
 /<uuid> untuk pencarian tersimpan. Link lama berbentuk #nama masih dibaca. Kalau belum login, semua
-alamat selain LOGIN_PATH dialihkan ke https://emahairshop.com/.
+alamat selain LOGIN_PATH menampilkan halaman 404.

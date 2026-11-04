@@ -1197,14 +1197,15 @@ function saveLead(x,patch,quiet){
   var old=LS[x.id]||{},rec={s:old.s||"",n:old.n||"",t:Date.now(),lead:leadSnap(x)};
   if(patch.s!==undefined)rec.s=patch.s;
   if(patch.n!==undefined)rec.n=patch.n;
-  LS[x.id]=rec;if(!quiet)flash("Menyimpan…");
+  var had=LS[x.id];LS[x.id]=rec;if(!quiet)flash("Menyimpan…");
+  function undo(){if(had)LS[x.id]=had;else delete LS[x.id];render();renderSaved()}
   fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"save",id:x.id,s:rec.s,n:rec.n,lead:rec.lead})})
     .then(function(r){return r.json().then(function(j){return{ok:r.ok,st:r.status,j:j}})})
     .then(function(o){
       if(o.st===401){showLogin("Sesi habis, silakan masuk lagi.");return}
-      if(!o.ok){flash("Gagal menyimpan: "+(o.j.error||"coba lagi"));return}
+      if(!o.ok){undo();flash("Gagal menyimpan: "+(o.j.error||"coba lagi"));return}
       if(!quiet)flash("Tersimpan");renderSaved();
-    }).catch(function(){flash("Tidak bisa menghubungi server")});
+    }).catch(function(){undo();flash("Tidak bisa menghubungi server")});
 }
 function flushNote(){
   clearTimeout(ntm);
@@ -1689,7 +1690,7 @@ $("svbox").addEventListener("click",function(e){
   if(cx){var d=SAVED[+cx.getAttribute("data-i")];
     if(!d||!confirm("Hapus hasil tersimpan untuk "+d.city+"? Skor AI dan email yang sudah ditemukan untuk tempat-tempat ini ikut terhapus, kecuali yang sudah punya status atau catatan. Pencarian berikutnya memakai kuota lagi."))return;
     fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"delsearch",key:d.key})}).then(function(r){return r.json().catch(function(){return{}})}).then(function(j){(j.aiRemoved||[]).forEach(function(id){delete AI[id]});
-      var gone={};(j.leadsRemoved||[]).forEach(function(id){gone[id]=1;delete LS[id]});
+      var gone={};(j.leadsRemoved||[]).forEach(function(id){gone[id]=1;delete LS[id]});SAVED=SAVED.filter(function(s){return s.key!==d.key});
       rows.forEach(function(x){if(gone[x.id]){delete x.emails;delete x.email;delete x.wa;x.looked=false;x.found=false}});
       loadSearches();renderSaved();render();if($("emq"))renderMail()}).catch(function(){})}
 });
@@ -2211,6 +2212,14 @@ function auLoad(full){
 // ---- Dasbor (menu sendiri, lihat api/dash.js). Dimuat saat menu dibuka atau Segarkan ditekan, membaca seluruh data tersimpan.
 var DS={busy:false,loaded:false};
 function dsPct(a,b){return b?(a/b*100).toFixed(a/b*100<10&&a?1:0)+"%":"-"}
+// Setelah ada perubahan data (simpan, kirim, hapus, balasan, otomatis), Dasbor ditandai kedaluwarsa: kalau sedang
+// terbuka langsung dimuat ulang, kalau tidak dimuat ulang saat menunya dibuka lagi.
+var DST=0;
+function dsDirty(){DS.loaded=false;clearTimeout(DST);DST=setTimeout(function(){if(CUR==="7"&&!$("p7").hidden){if(DS.busy)DS.again=true;else dsLoad()}},500)}
+(function(){var f=window.fetch;window.fetch=function(u,o){var p=f.apply(this,arguments);
+  try{if(o&&o.method&&o.method!=="GET"&&/^\/api\/(leads|send|auto|replies|ai)(\?|$)/.test(String(u)))p.then(function(r){if(r&&r.ok)dsDirty()},function(){})}catch(e){}
+  return p}})();
+function refreshAll(){loadLeads().then(function(){render();renderSaved();if($("emq"))renderMail()});try{if(!$("p4").hidden||!$("p6").hidden)loadMailTab()}catch(e){}}
 function dsLoad(){
   if(DS.busy)return;DS.busy=true;
   var days=$("dsdays").value;$("dsmsg").textContent="Memuat...";
@@ -2223,7 +2232,7 @@ function dsLoad(){
     DS.loaded=true;$("dsmsg").textContent="";
     $("dsbody").innerHTML=j.nodb?"<p class='info'>Database belum terhubung.</p>":dsRender(j);
   }).catch(function(e){if(e!==0){$("dsmsg").textContent="";$("dsbody").innerHTML="<p class='aiwarn'>"+esc(e&&e.message||"Tidak bisa menghubungi server")+"</p>"}})
-  .then(function(){DS.busy=false});
+  .then(function(){DS.busy=false;if(DS.again){DS.again=false;dsLoad()}});
 }
 function dsRender(j){
   var f=j.funnel,w=j.window,h="";
@@ -2309,7 +2318,7 @@ $("rpgo").onclick=function(){
     if(!o.ok){$("rpmsg").textContent=o.j.error||"Gagal";return}
     $("rpmsg").textContent=o.j.dup?"Balasan ini sudah pernah dibaca.":"Selesai: "+(RPL[o.j.reply.cat]||"");
     if(!o.j.dup){$("rptx").value="";$("rpsub").value=""}
-    rpLoad();auLoad(false);
+    rpLoad();auLoad(false);if(!o.j.dup)refreshAll();
   }).catch(function(){b.disabled=false});
 };
 function acT(l,v){return"<div class='ac'><small>"+l+"</small><b>"+v+"</b></div>"}
@@ -2405,7 +2414,7 @@ function auSupp(){
 }
 $("ausab").onclick=function(){
   var v=$("ausa").value.trim();if(!v)return;
-  auApi({action:"suppadd",email:v}).then(function(o){if(!o.ok){flash(o.j.error||"Gagal");return}$("ausa").value="";flash("Ditambahkan");auLoad(false)}).catch(function(){});
+  auApi({action:"suppadd",email:v}).then(function(o){if(!o.ok){flash(o.j.error||"Gagal");return}$("ausa").value="";flash("Ditambahkan");auLoad(false);refreshAll()}).catch(function(){});
 };
 $("ausa").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();$("ausab").click()}};
 
@@ -2615,7 +2624,7 @@ $("aurun").onclick=function(){
     AU.busy=false;b.disabled=false;b.setAttribute("aria-busy","false");
     if(!o.ok&&!o.j.jobs){$("aurunmsg").textContent=o.j.error||"Gagal menjalankan";return}
     $("aurunmsg").textContent=o.j.paused?"Tidak berjalan: "+o.j.paused:"Selesai dalam "+Math.round((o.j.ms||0)/1000)+" detik.";
-    auLoad(false);
+    auLoad(false);refreshAll();
   }).catch(function(e){AU.busy=false;b.disabled=false;b.setAttribute("aria-busy","false");if(e!==0)$("aurunmsg").textContent="Tidak bisa menghubungi server. Cek lagi riwayat sebentar lagi."});
 };
 $("aupause").onclick=function(){
