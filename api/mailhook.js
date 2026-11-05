@@ -27,7 +27,7 @@ const page = (title, body) => '<!doctype html><html lang="en"><head><meta charse
   "@media (prefers-color-scheme:dark){:root{--bg:#141414;--card:#1e1e1e;--text:#f2f2f2;--muted:#a3a3a3;--line:#2c2c2c;--btn:#f2f2f2;--btn-text:#111;--ok:#5cd18a;--ok-bg:#16301f;--warn:#ff8a80;--warn-bg:#3a1b19;--mail-bg:#2a2a2a;--mail:#bdbdbd}}" +
   "*{box-sizing:border-box}html,body{min-height:100%}" +
   "body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:36px 24px 24px;-webkit-font-smoothing:antialiased}" +
-  ".main{flex:1;width:100%;display:flex;align-items:center;justify-content:center;padding:24px 0 10vh}.wrap{width:100%;max-width:440px}" +
+  ".main{flex:1;width:100%;display:flex;align-items:flex-start;justify-content:center;padding:clamp(28px,6vh,56px) 0 24px}.wrap{width:100%;max-width:440px}" +
   ".brand{display:flex;justify-content:center}.logo{display:inline-block;text-align:center;color:var(--text);line-height:1}" +
   ".logo .top{display:flex;align-items:center;gap:8px;margin-bottom:5px}.logo .top i{flex:1;height:2px;background:currentColor}" +
   ".logo .top span{font-size:8px;font-weight:700;letter-spacing:.32em;margin-right:-.32em}" +
@@ -43,7 +43,7 @@ const page = (title, body) => '<!doctype html><html lang="en"><head><meta charse
   "button{width:100%;font:inherit;font-weight:600;background:var(--btn);color:var(--btn-text);border:0;border-radius:10px;padding:13px 18px;cursor:pointer;transition:opacity .15s,transform .05s}" +
   "button:hover{opacity:.88}button:active{transform:scale(.99)}button:focus-visible{outline:2px solid var(--text);outline-offset:3px}" +
   ".note{margin:18px 0 0;font-size:13px;color:var(--muted)}" +
-  "@media (max-width:480px){body{padding:28px 16px 16px}.main{padding-bottom:6vh}.c{padding:28px 22px 24px}}" +
+  "@media (max-width:480px){body{padding:28px 16px 16px}.main{padding-top:24px}.c{padding:28px 22px 24px}}" +
   '</style></head><body><div class="brand"><div class="logo" role="img" aria-label="EMAHAIRSHOP Extension 2019"><div class="top"><i></i><span>EXTENSION</span></div><span class="name">EMAHAIRSHOP</span><span class="yr">2019</span></div></div><div class="main"><div class="wrap"><div class="c">' + body + "</div></div></div></body></html>";
 
 function html(res, code, title, body) {
