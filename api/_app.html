@@ -439,6 +439,19 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .aup{padding:14px 16px}
 .aup+.aup{margin-top:12px}
 .aust{display:flex;flex-direction:column;gap:14px;margin-bottom:2px}
+.auctl{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.swt{flex:none;position:relative;width:44px;height:26px;border-radius:99px;border:1px solid var(--line);background:var(--line);cursor:pointer;padding:0;transition:background .15s}
+.swt span{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.swt[aria-checked="true"]{background:var(--acc);border-color:var(--acc)}
+.swt[aria-checked="true"] span{transform:translateX(18px)}
+.swt:disabled{opacity:.6;cursor:wait}
+.swt:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.auctl b{display:flex;align-items:center;gap:7px;font-size:.95rem}
+.auctl small{display:block;color:var(--mute);font-size:.82rem}
+.audot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--acc)}
+.audot.off{background:var(--star)}
+.audot.run{animation:aupl .9s infinite alternate}
+@keyframes aupl{from{opacity:.25}to{opacity:1}}
 .aug{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .augt{margin:0 0 6px;color:var(--mute);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
 
@@ -1014,9 +1027,10 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
 <section id="p5" hidden>
   <div class="panel aup" data-g="ringkas">
     <div class="svh">Status</div>
+    <div class="auctl"><button type="button" class="swt" id="aupause" role="switch" aria-checked="true" aria-label="Otomatis aktif"><span></span></button><div><b><i class="audot" id="audot"></i><span id="austt">Memuat…</span></b><small id="ausub"></small></div></div>
     <p class="aupz" id="aupz" hidden></p>
     <div class="aust" id="aust"><span>Memuat…</span></div>
-    <div class="eacts"><button class="btn primary" id="aurun" type="button">Jalankan sekarang</button><button class="ghost" id="aupause" type="button">Jeda semua</button><span class="hint2" id="aurunmsg" style="margin:0"></span></div>
+    <div class="eacts"><button class="btn primary" id="aurun" type="button">Jalankan sekarang</button><span class="hint2" id="aurunmsg" style="margin:0"></span></div>
     <p class="hint2">Berjalan otomatis setiap hari sekitar pukul 01.00 WIB. “Jalankan sekarang” menjalankan semua tugas sekaligus (kirim, cari ulang, putaran kota, cari email, isi antrean) dan bisa sampai 1 menit.</p>
     <details class="aud2"><summary>Riwayat jalan</summary><ul class="aulog" id="aulog"></ul></details>
   </div>
@@ -2639,6 +2653,13 @@ $("rpgo").onclick=function(){
 function acT(l,v){return"<div class='ac'><small>"+l+"</small><b>"+v+"</b></div>"}
 function acOk(l){return"<div class='ac ok'><small>"+l+"</small><b>Aktif</b></div>"}
 function acB(t){return"<div class='ac bad'>"+t+"</div>"}
+function auSwitch(){
+  var s=AU.st||{},pz=!!s.pause,run=!!(AU.busy||s.running),sw=$("aupause");
+  sw.setAttribute("aria-checked",pz?"false":"true");sw.setAttribute("aria-label",pz?"Otomatis dijeda":"Otomatis aktif");
+  $("austt").textContent=run?"Sedang berjalan…":(pz?"Dijeda":"Aktif");
+  $("audot").className="audot"+(run?" run":(pz?" off":""));
+  $("ausub").textContent=run?"Tugas otomatis sedang diproses, bisa sampai 1 menit.":(pz?"Kirim, follow-up, dan tugas otomatis berhenti. Geser ke kanan untuk melanjutkan.":"Jalan otomatis tiap hari sekitar pukul 01.00 WIB. Geser ke kiri untuk menjeda semuanya.");
+}
 function auStatus(){
   var s=AU.st,f=s.flags||{},m=s.mail||{},c=s.counts||{},q=s.seq||{},w=s.warm||{},t=[],b=[];
   var lim=w.on?w.eff:(w.target||0),warming=w.on&&w.eff<w.target;
@@ -2657,8 +2678,9 @@ function auStatus(){
   if(m.ready&&!m.addr)b.push(acB("Alamat fisik belum diisi. Isi di tab Email &gt; Pengaturan email sebelum kirim sungguhan."));
   $("aust").innerHTML=(sv.length?"<div><p class='augt'>Layanan</p><div class='aug'>"+sv.join("")+"</div></div>":"")+"<div><p class='augt'>Hari ini</p><div class='aug'>"+cn.join("")+"</div></div>"+(b.length?"<div class='aug'>"+b.join("")+"</div>":"");
   var pz=s.pause,pb=$("aupz");
-  pb.hidden=!pz;if(pz)pb.textContent=(pz.auto?"Dijeda otomatis: ":"Dijeda: ")+pz.why+" ("+fmtDate(pz.t)+"). Semua kirim dan tugas otomatis berhenti sampai kamu klik Lanjutkan.";
-  $("aupause").textContent=pz?"Lanjutkan":"Jeda semua";
+  pb.hidden=!pz;if(pz)pb.textContent=(pz.auto?"Dijeda otomatis: ":"Dijeda: ")+pz.why+" ("+fmtDate(pz.t)+"). Semua kirim dan tugas otomatis berhenti sampai kamu melanjutkannya.";
+  auSwitch();
+  clearTimeout(AU._rt);if(s.running)AU._rt=setTimeout(function(){auLoad(false)},5000); // pantau sampai selesai
   auBadge();
 }
 // Badge antrean di menu: jumlah yang menunggu persetujuan (warna aksen); kalau tidak ada, jumlah yang sudah disetujui
@@ -2943,17 +2965,16 @@ $("ausave").onclick=function(){
 $("aurun").onclick=function(){
   if(AU.busy)return;
   if(!confirm("Jalankan sekarang? Ini bisa mengirim email yang sudah disetujui dan memakai kuota SerpApi untuk cari ulang sesuai pengaturan."))return;
-  AU.busy=true;var b=this;b.disabled=true;b.setAttribute("aria-busy","true");$("aurunmsg").textContent="Berjalan… tunggu sampai 1 menit.";
+  AU.busy=true;auSwitch();var b=this;b.disabled=true;b.setAttribute("aria-busy","true");$("aurunmsg").textContent="Berjalan… tunggu sampai 1 menit.";
   auApi({action:"run",job:"all"}).then(function(o){
-    AU.busy=false;b.disabled=false;b.setAttribute("aria-busy","false");
+    AU.busy=false;auSwitch();b.disabled=false;b.setAttribute("aria-busy","false");
     if(!o.ok&&!o.j.jobs){$("aurunmsg").textContent=o.j.error||"Gagal menjalankan";return}
     $("aurunmsg").textContent=o.j.paused?"Tidak berjalan: "+o.j.paused:"Selesai dalam "+Math.round((o.j.ms||0)/1000)+" detik.";
     auLoad(false);refreshAll();
-  }).catch(function(e){AU.busy=false;b.disabled=false;b.setAttribute("aria-busy","false");if(e!==0)$("aurunmsg").textContent="Tidak bisa menghubungi server. Cek lagi riwayat sebentar lagi."});
+  }).catch(function(e){AU.busy=false;auSwitch();b.disabled=false;b.setAttribute("aria-busy","false");if(e!==0)$("aurunmsg").textContent="Tidak bisa menghubungi server. Cek lagi riwayat sebentar lagi."});
 };
 $("aupause").onclick=function(){
   var on=!(AU.st&&AU.st.pause),b=this;
-  if(on&&!confirm("Jeda semua? Kirim otomatis, follow-up, dan kirim manual berhenti sampai kamu klik Lanjutkan."))return;
   b.disabled=true;
   auApi({action:"pause",on:on}).then(function(o){b.disabled=false;if(!o.ok){flash(o.j.error||"Gagal");return}flash(on?"Semua kirim dijeda":"Dilanjutkan");auLoad(false)}).catch(function(){b.disabled=false});
 };

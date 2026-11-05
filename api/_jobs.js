@@ -695,4 +695,4 @@ async function runAuto(opts) {
   return out;
 }
 
-module.exports = { scorePreview, rotInfo, QUEUE, SEQ, AUTO, warmInfo, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, notifyAfter };
+module.exports = { scorePreview, rotInfo, QUEUE, SEQ, AUTO, LOCK, warmInfo, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, notifyAfter };
