@@ -1680,7 +1680,8 @@ function ruleScore(x){
   else if(SCWEAK.test(name))add("weak","nama cocok (salon/kecantikan)");
   return{s:Math.max(0,Math.min(100,s)),why:why,neg:neg};
 }
-function emailsOf(x){return x.emails&&x.emails.length?x.emails:(x.email?[x.email]:[])}
+var JUNKMAIL=/^x{2,}@|@x{2,}\.|\.x{3,}$/i; // email contoh/placeholder (xxx@xxx.xxx) dari website, tidak dianggap email
+function emailsOf(x){return(x.emails&&x.emails.length?x.emails:(x.email?[x.email]:[])).filter(function(e){return!JUNKMAIL.test(String(e).trim())})}
 // Kode telepon internasional per negara (kode ISO dari COUNTRY_CODES). TRUNK0 = negara yang membuang angka 0 di depan nomor lokal saat dijadikan format internasional.
 var DIAL={ID:"62",MY:"60",SG:"65",TH:"66",VN:"84",PH:"63",IN:"91",CN:"86",HK:"852",TW:"886",JP:"81",KR:"82",PK:"92",BD:"880",LK:"94",NP:"977",US:"1",CA:"1",MX:"52",BR:"55",AR:"54",CL:"56",CO:"57",PE:"51",GB:"44",IE:"353",FR:"33",DE:"49",NL:"31",BE:"32",ES:"34",PT:"351",IT:"39",CH:"41",AT:"43",SE:"46",NO:"47",DK:"45",FI:"358",PL:"48",CZ:"420",GR:"30",TR:"90",RU:"7",UA:"380",AE:"971",SA:"966",QA:"974",EG:"20",ZA:"27",NG:"234",KE:"254",MA:"212",AU:"61",NZ:"64"};
 var TRUNK0={ID:1,MY:1,TH:1,VN:1,PH:1,IN:1,JP:1,KR:1,PK:1,BD:1,LK:1,NP:1,TW:1,BR:1,GB:1,IE:1,FR:1,DE:1,NL:1,BE:1,CH:1,AT:1,SE:1,FI:1,TR:1,UA:1,AE:1,SA:1,EG:1,ZA:1,NG:1,KE:1,MA:1,AU:1,NZ:1};
