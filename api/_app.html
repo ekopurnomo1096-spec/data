@@ -539,6 +539,8 @@ main.wrap{max-width:1180px;margin:0 auto}
 .panel>.svh{text-transform:none;letter-spacing:0;font-size:1rem;font-weight:600;color:var(--ink);margin:0 0 14px}
 .aud>summary{text-transform:none;letter-spacing:0;font-size:1rem;color:var(--ink)}
 .aup+.aup{margin-top:14px}
+.emd[open]>summary{margin-bottom:14px}
+.emd>summary:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:6px}
 #p2,#p4,#p5{max-width:960px}
 .fbar{padding:14px 16px;margin-bottom:14px}
 .fbar .tools{margin:0}
@@ -951,8 +953,8 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <div class="eacts"><button class="btn primary" id="emksave" type="button">Simpan</button><button class="btn" id="emkclear" type="button" hidden>Hapus pengaturan email</button></div>
     </details>
   </div>
-  <div class="panel">
-    <div class="svh">Tulis email</div>
+  <details class="panel aud emd" id="emwrite" open>
+    <summary>Tulis email</summary>
     <div class="f"><label for="emai">Minta AI menulis</label>
       <div class="airow"><input type="text" id="emai" maxlength="500" placeholder="Mis. nada santai, tawarkan sampel gratis, maksimal 80 kata"><button class="ghost" id="emaibtn" type="button">Tulis dengan AI</button></div>
       <p class="hint2">Tulis permintaan kata-katanya, lalu AI mengisi Subjek dan Isi email. Kalau Isi email sudah ada, AI merevisinya sesuai permintaan.</p></div>
@@ -962,15 +964,15 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <p class="hint2" id="emfrom"></p>
     <p class="aiwarn" id="emerr" hidden></p>
     <div class="eacts"><span class="sp"></span><button class="ghost" id="emprevbtn" type="button">Pratinjau email</button></div>
-  </div>
-  <div class="panel">
-    <div class="svh">Kirim manual</div>
+  </details>
+  <details class="panel aud emd" id="emmanual">
+    <summary>Kirim manual</summary>
     <div class="f"><label for="emmt">Alamat email tujuan</label><input type="text" id="emmt" autocomplete="off" placeholder="nama@contoh.com (koma untuk beberapa)"></div>
     <div class="sf f"><label for="emmn">Nama tempat (opsional)</label><input type="text" id="emmn" autocomplete="off" maxlength="80" placeholder="Untuk sapaan, misalnya Salon Ayu"></div>
     <p class="hint2">Memakai subjek dan isi email di atas. Nama dipakai kalau hanya ada satu alamat. Cocok juga untuk tes kirim ke emailmu sendiri.</p>
     <p class="aiwarn" id="emmerr" hidden></p>
     <div class="eacts"><span class="sp"></span><button class="btn primary" id="emmsend" type="button">Kirim email</button></div>
-  </div>
+  </details>
   <div class="panel">
     <div class="svh">Penerima</div>
     <div class="tools">
@@ -2069,7 +2071,7 @@ function mailView(){
   });
 }
 function selIds(){return Object.keys(EM.sel).filter(function(k){return EM.sel[k]})}
-function emErr(t){var e=$("emerr");e.textContent=t||"";e.hidden=!t}
+function emErr(t){var e=$("emerr");e.textContent=t||"";e.hidden=!t;if(t)$("emwrite").open=true}
 function emCount(){
   var n=selIds().length,b=$("emsend"),cap=emCap();
   var mine=EM.busy&&EM.who==="list";
@@ -2260,7 +2262,7 @@ $("emsend").onclick=function(){emSend(false)};
 
 // Kirim manual ke alamat yang diketik
 var EMRE=/^[^\s@<>"]+@[^\s@<>"]+\.[A-Za-z]{2,}$/;
-function emmErr(t){var e=$("emmerr");e.textContent=t||"";e.hidden=!t}
+function emmErr(t){var e=$("emmerr");e.textContent=t||"";e.hidden=!t;if(t)$("emmanual").open=true}
 function emManual(force){
   if(EM.busy)return;
   var seen={},list=[];
