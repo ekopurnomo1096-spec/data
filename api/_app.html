@@ -823,6 +823,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
  #walist .mrow{display:grid;grid-template-columns:44px minmax(0,1fr);gap:6px 12px;align-items:center;padding:12px 14px}
  #walist .mrow .th{grid-row:1/3}
  #walist .mrow>span:not(.th){grid-column:2}
+ #walist .mrow .mtag{grid-column:2;justify-self:start}
  #walist .mrow .stsel{grid-column:2;justify-self:start}
  #walist .mrow .btn{grid-column:1/-1;justify-content:center;height:40px;margin-top:4px}
 }
@@ -2420,8 +2421,8 @@ function waRender(){
   $("wainfo").textContent=all.length?("Menampilkan "+shown.length+" dari "+all.length+" prospek dengan WhatsApp."):"Tidak ada prospek yang cocok. Cari tempat lalu cari email/WhatsApp-nya, atau longgarkan filter.";
   var box=$("walist");box.hidden=!shown.length;
   box.innerHTML=shown.map(function(x,i){
-    var w=waOf(x),s=stOf(x);
-    return"<div class='mrow klk' tabindex='0' data-wr='"+i+"'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>+"+esc(w.n)+(w.src==="phone"?" \u00b7 dari telepon":"")+(x.address?" \u00b7 "+esc(x.address):"")+"</small></span>"+stSel(x,"","  data-wi='"+i+"'")+"<button class='btn primary' type='button' data-i='"+i+"'>Buka WhatsApp</button></div>";
+    var w=waOf(x),s=stOf(x),sc=ruleScore(x);
+    return"<div class='mrow klk' tabindex='0' data-wr='"+i+"'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>+"+esc(w.n)+(w.src==="phone"?" \u00b7 dari telepon":"")+(x.address?" \u00b7 "+esc(x.address):"")+"</small></span><em class='mtag pl sc-"+aiCls(sc.s)+"'>skor "+sc.s+"</em>"+stSel(x,"","  data-wi='"+i+"'")+"<button class='btn primary' type='button' data-i='"+i+"'>Buka WhatsApp</button></div>";
   }).join("");
 }
 $("walist").addEventListener("click",function(e){
