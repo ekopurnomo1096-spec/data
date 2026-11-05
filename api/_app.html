@@ -820,11 +820,11 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
  #pwa .tools .tbtns,#pwa .tools .chk{grid-column:1/-1}
  #pwa .tools .tbtns{margin-left:0}
  #pwa .tools .tbtns .ghost{width:100%}
- #walist .mrow{display:grid;grid-template-columns:44px minmax(0,1fr);gap:6px 12px;align-items:center;padding:12px 14px}
- #walist .mrow .th{grid-row:1/3}
- #walist .mrow>span:not(.th){grid-column:2}
+ #walist .mrow{display:grid;grid-template-columns:44px auto minmax(0,1fr);gap:6px 12px;align-items:center;padding:12px 14px}
+ #walist .mrow .th{grid-row:1/3;align-self:start}
+ #walist .mrow>span:not(.th){grid-column:2/-1}
  #walist .mrow .mtag{grid-column:2;justify-self:start}
- #walist .mrow .stsel{grid-column:2;justify-self:start}
+ #walist .mrow .stsel{grid-column:3;justify-self:start}
  #walist .mrow .btn{grid-column:1/-1;justify-content:center;height:40px;margin-top:4px}
 }
 </style>
