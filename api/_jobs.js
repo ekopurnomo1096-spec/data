@@ -667,7 +667,8 @@ async function runAuto(opts) {
     const budget = opts.budgetMs || (isCron ? 40000 : 44000); // cron menyisakan waktu untuk email laporan
     cfg = await getCfg();
     const why = await M.checkHealth(); // sudah dijeda manual, atau bounce/spam melewati batas: semua pekerjaan berhenti
-    if (why) out.paused = why;
+    const fillOnly = opts.jobs === "intake" || opts.jobs === "queue"; // mengisi antrean setelah cari manual tetap jalan saat dijeda (tidak mengirim apa pun)
+    if (why && !fillOnly) out.paused = why;
     else {
       const ctx = { softEnd: t0 + budget, hardEnd: t0 + budget + 6000, base: opts.base || "", force: opts.src === "manual", data: await loadData() };
       const want = j => opts.jobs === "all" || opts.jobs === j || (opts.jobs === "intake" && (j === "enrich" || j === "queue")); // intake = cari email lalu isi antrean (dipakai setelah cari manual)

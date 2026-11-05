@@ -2665,7 +2665,7 @@ function auSwitch(){
   var rb=$("aurun"),PZMSG="Dijeda. Lanjutkan dulu dengan tombol geser di atas.";
   rb.disabled=pz||!!AU.busy;rb.title=pz?"Sedang dijeda":"";
   var rm=$("aurunmsg");if(pz&&!AU.busy)rm.textContent=PZMSG;else if(rm.textContent===PZMSG)rm.textContent="";
-  $("ausub").textContent=run?"Tugas otomatis sedang diproses, bisa sampai 1 menit.":(pz?"Kirim, follow-up, dan tugas otomatis berhenti. Geser ke kanan untuk melanjutkan.":"Jalan otomatis tiap hari sekitar pukul 01.00 WIB. Geser ke kiri untuk menjeda semuanya.");
+  $("ausub").textContent=run?"Tugas otomatis sedang diproses, bisa sampai 1 menit.":(pz?"Kirim, follow-up, dan tugas otomatis berhenti, tapi antrean tetap terisi dari cari manual. Geser ke kanan untuk melanjutkan.":"Jalan otomatis tiap hari sekitar pukul 01.00 WIB. Geser ke kiri untuk menjeda semuanya.");
 }
 function auStatus(){
   var s=AU.st,f=s.flags||{},m=s.mail||{},c=s.counts||{},q=s.seq||{},w=s.warm||{},t=[],b=[];
@@ -2685,7 +2685,7 @@ function auStatus(){
   if(m.ready&&!m.addr)b.push(acB("Alamat fisik belum diisi. Isi di tab Email &gt; Pengaturan email sebelum kirim sungguhan."));
   $("aust").innerHTML=(sv.length?"<div><p class='augt'>Layanan</p><div class='aug'>"+sv.join("")+"</div></div>":"")+"<div><p class='augt'>Hari ini</p><div class='aug'>"+cn.join("")+"</div></div>"+(b.length?"<div class='aug'>"+b.join("")+"</div>":"");
   var pz=s.pause,pb=$("aupz");
-  pb.hidden=!pz;if(pz)pb.textContent=(pz.auto?"Dijeda otomatis: ":"Dijeda: ")+pz.why+" ("+fmtDate(pz.t)+"). Semua kirim dan tugas otomatis berhenti sampai kamu melanjutkannya.";
+  pb.hidden=!pz;if(pz)pb.textContent=(pz.auto?"Dijeda otomatis: ":"Dijeda: ")+pz.why+" ("+fmtDate(pz.t)+"). Semua kirim dan tugas otomatis berhenti sampai kamu melanjutkannya. Antrean persetujuan tetap terisi dari cari manual.";
   auSwitch();
   clearTimeout(AU._rt);if(s.running)AU._rt=setTimeout(function(){auLoad(false)},5000); // pantau sampai selesai
   auBadge();
