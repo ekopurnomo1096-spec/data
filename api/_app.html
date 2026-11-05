@@ -998,7 +998,6 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     </div>
     <p class="info" id="wainfo">Memuat…</p>
     <div class="mlist rd" id="walist" hidden></div>
-    <p class="hint2">Tombol “Buka WhatsApp” hanya membuka chat. Ubah status prospek lewat dropdown di barisnya, catatan “WA, 3 Nov” ikut tercatat otomatis. Filter “Belum/Sudah dihubungi” di sini khusus soal WA: prospek yang baru di-email (belum pernah di-WA) tetap dihitung “Belum dihubungi” di tab ini, walau status umumnya sudah berubah.</p>
   </div>
 </section>
 <section id="p6" hidden>
@@ -2841,7 +2840,7 @@ function auCfg(){
   h+=auSec("Pembersihan data",onoff(cl.on),
     "<label class='chk'><input type='checkbox' id='au_con'"+(cl.on?" checked":"")+"> Bersihkan data lama otomatis</label>"
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_cd'>Umur data (hari)</label><input type='number' id='au_cd' min='7' max='365' value='"+cl.days+"'></div></div>"
-    +"<p class='hint2'>Menjaga ukuran database Upstash gratis. Pada pencarian yang lebih tua dari angka di atas (dan tidak dicentang untuk cari ulang), yang dibuang hanya tempat tanpa telepon, email, dan WhatsApp setelah websitenya dicek. Tempat yang punya status atau catatan, pernah dikirimi email, atau ada di antrean tidak pernah dibuang. Cache domain email dan statistik lebih dari 90 hari ikut dibersihkan. Berjalan paling banyak sekali sehari.</p>"
+    +"<p class='hint2'>Jaga ukuran database tetap kecil. Dari pencarian lama (yang tidak dicentang cari ulang), cuma tempat tanpa kontak sama sekali yang dibuang; yang punya status, catatan, pernah dikirimi email, atau ada di antrean aman. Cache dan statistik lama ikut dibersihkan. Jalan sekali sehari.</p>"
     +(pr&&pr.t?"<p class='hint2'>Terakhir: "+esc(fmtDate(pr.t))+" · "+(pr.places||0)+" tempat, "+(pr.searches||0)+" pencarian, "+(pr.mx||0)+" cache domain, "+(pr.stats||0)+" statistik.</p>":""));
   var sp=c.serp||{auto:true,below:20};
   h+=auSec("Akun SerpApi",onoff(sp.auto),
