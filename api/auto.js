@@ -114,7 +114,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, n });
     }
     if (b.action === "run") {
-      const job = ["all", "mail", "refresh", "rotate", "enrich"].includes(b.job) ? b.job : "all";
+      const job = ["all", "mail", "refresh", "rotate", "enrich", "queue"].includes(b.job) ? b.job : "all";
       const r = await J.runAuto({ jobs: job, src: "manual", base: M.baseUrl(req) });
       return res.status(r.error && !r.jobs && !r.paused ? 409 : 200).json(r);
     }

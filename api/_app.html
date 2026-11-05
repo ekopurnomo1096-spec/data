@@ -1302,6 +1302,13 @@ function statusPatch(x,v){
 }
 function stLabel(k){for(var i=0;i<STAT.length;i++)if(STAT[i][0]===k)return STAT[i][1];return STAT[0][1]}
 function stSel(x,id,extra){var s=stOf(x);return"<select"+(id?" id='"+id+"'":"")+" class='stsel st-"+(s||"baru")+"'"+(extra||"")+" aria-label='Status prospek'>"+STAT.map(function(p){return"<option value='"+p[0]+"'"+(p[0]===s?" selected":"")+">"+p[1]+"</option>"}).join("")+"</select>"}
+// Hasil cari manual langsung diperiksa untuk Antrean persetujuan (syarat sama dengan jalan otomatis, tanpa kirim email atau cari ulang)
+function fillQueue(){
+  return auApi({action:"run",job:"queue"}).then(function(o){
+    var q=o.j&&o.j.jobs&&o.j.jobs.queue;
+    if(q&&q.added)flash(q.added+" prospek masuk Antrean persetujuan");
+  }).catch(function(){});
+}
 function stCell(x){return"<td data-l='Status'>"+IC.st+stSel(x,"","  data-ri='"+rows.indexOf(x)+"'")+"</td>"}
 function noteLine(x){var n=noteOf(x);return n?"<small class='nt'>Catatan: "+esc(n.length>80?n.slice(0,80)+"…":n)+"</small>":""}
 function flash(t){var el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true},2400);var d=$("dsv");if(d)d.textContent=t}
@@ -1315,7 +1322,7 @@ function saveLead(x,patch,quiet){
   if(patch.n!==undefined)rec.n=patch.n;
   var had=LS[x.id];LS[x.id]=rec;if(!quiet)flash("Menyimpan…");
   function undo(){if(had)LS[x.id]=had;else delete LS[x.id];render();renderSaved()}
-  fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"save",id:x.id,s:rec.s,n:rec.n,lead:rec.lead})})
+  return fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"save",id:x.id,s:rec.s,n:rec.n,lead:rec.lead})})
     .then(function(r){return r.json().then(function(j){return{ok:r.ok,st:r.status,j:j}})})
     .then(function(o){
       if(o.st===401){showLogin("Sesi habis, silakan masuk lagi.");return}
@@ -1504,6 +1511,7 @@ async function run(force){
     lastQ=LABEL[kind]+" di "+city;lastCountry=$("country").value;sKey="";sDir=1;
     MORE=!!j.more&&$("source").value!=="osm";NEXT=j.next||20;mCity=city;mKind=kind;
     setCinfo(j);render();if(!j.cached)loadSearches();
+    if(rows.some(function(x){return emailsOf(x).length}))fillQueue();
   }catch(e){loading(false);var m=e.message.replace(/\.$/,"");
     if(/Pengaturan/.test(m)){say("err",esc(m)+". <button class='ghost' id='goset' type='button'>Buka Pengaturan</button>");$("goset").onclick=openSet}
     else say("err","Pencarian gagal: "+esc(m)+". Server peta gratis kadang sibuk, jadi coba lagi beberapa saat.")}
@@ -1520,6 +1528,7 @@ $("more").onclick=async function(){
     rows=j.results;hydrate(rows);lastDupes=j.dupes||0;serpSwitched(j);usageAfterSearch();
     MORE=!!j.more;NEXT=j.next||NEXT+20;
     render();
+    if(j.added>0&&rows.some(function(x){return emailsOf(x).length}))fillQueue();
     flash(j.added>0?"Ditambah "+j.added+" tempat baru.":"Tidak ada tempat tambahan lagi.");
     if(!j.added)MORE=false,$("morebox").hidden=true;
   }catch(e){h.textContent="Gagal: "+e.message.replace(/\.$/,"")+". Coba lagi."}
@@ -1766,7 +1775,7 @@ $("findall").onclick=async function(){
   var T="Cari email semua";
   if(!list.length){aidShow("info",T,all.length?"Semua tempat di tampilan ini sudah dicek emailnya, atau tidak punya website.":"Tidak ada tempat untuk dicek.",0);return}
   b.disabled=true;b.setAttribute("aria-busy","true");
-  var tot=list.length,done=0,got=0,idx=0,stop=false;
+  var tot=list.length,done=0,got=0,idx=0,stop=false,pend=[];
   function upd(){aidShow("run",T,"Mengecek "+done+" dari "+tot+" website…",done/tot*100)}
   upd();
   async function worker(){
@@ -1782,12 +1791,14 @@ $("findall").onclick=async function(){
         if(w)x.wa=w;
         x.found=!!(m.length||w);
         if(x.found)got++;
-        saveLead(x,{},true); // semua yang sudah dicek disimpan (juga yang kosong atau website yang tidak bisa dibuka), supaya tidak dicek ulang setelah reload
+        pend.push(saveLead(x,{},true)); // semua yang sudah dicek disimpan (juga yang kosong atau website yang tidak bisa dibuka), supaya tidak dicek ulang setelah reload
       }catch(e){}
       done++;if(!stop)upd();
     }
   }
   await Promise.all([worker(),worker(),worker(),worker()]);
+  await Promise.all(pend);
+  if(got&&!stop)fillQueue();
   b.disabled=false;b.setAttribute("aria-busy","false");
   render();if($("emq"))renderMail();
   if(stop){$("aid").close();showLogin("Sesi habis, silakan masuk lagi.");return}
@@ -2131,7 +2142,7 @@ function renderMail(){
     info.textContent=v.length+" tempat dengan email.";info.hidden=false;
     list.innerHTML=v.map(function(x){
       var s=EM.sent[x.id];
-      return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+"</small></span><em class='mtag pl st-"+(s?"chat":(stOf(x)||"baru"))+"'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em></label>";
+      return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+"</small></span><em class='mtag pl sc-"+aiCls(ruleScore(x).s)+"' title='"+esc(ruleScore(x).why.join(", "))+"'>skor "+ruleScore(x).s+"</em><em class='mtag pl st-"+(s?"chat":(stOf(x)||"baru"))+"'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em></label>";
     }).join("");
     list.hidden=false;
   }

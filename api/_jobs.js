@@ -678,7 +678,7 @@ async function runAuto(opts) {
         if (out.jobs.rotate && out.jobs.rotate.added) ctx.data = await loadData();
       }
       if (want("enrich")) await guard("enrich", () => jobEnrich(cfg, ctx));
-      if (want("mail")) await guard("queue", () => jobQueue(cfg, ctx));
+      if (want("mail") || want("queue")) await guard("queue", () => jobQueue(cfg, ctx));
       if (opts.jobs === "all") await guard("clean", () => pruneData(cfg, ctx));
     }
   } catch (e) {
@@ -691,7 +691,7 @@ async function runAuto(opts) {
   if (isCron && cfg && Date.now() - t0 < 50000) {
     try { out.notify = await notifyAfter(cfg, out, { prevCronT, base: opts.base }); } catch (e) { out.notify = { err: e.message }; }
   }
-  try { await pushLog(out); } catch (e) { /* log gagal tidak penting */ }
+  if (opts.jobs !== "queue") { try { await pushLog(out); } catch (e) { /* log gagal tidak penting */ } } // isi antrean otomatis setelah cari manual tidak dicatat, supaya riwayat jalan tidak penuh
   return out;
 }
 
