@@ -1651,8 +1651,8 @@ var SCROLEMAIL=/^(no-?reply|do-?not-?reply|donotreply|mailer-daemon|postmaster|a
 var SCSOCIAL=/(^|\.)(facebook|instagram|linktr|linktree|tiktok|youtube|twitter|x|wa|whatsapp|yelp|google|business\.site)\.[a-z.]+$/i;
 function scHost(u){try{return new URL(/^https?:\/\//i.test(u)?u:"https://"+u).hostname.replace(/^www\./,"").toLowerCase()}catch(e){return""}}
 function ruleScore(x){
-  var why=[],s=0;
-  function add(k,text){var p=SCW[k];if(!p)return;s+=p;why.push(text)}
+  var why=[],neg=[],s=0;
+  function add(k,text){var p=SCW[k];if(!p)return;s+=p;why.push(text);if(p<0)neg.push(text)}
   var em=(emailsOf(x)[0]||"").trim().toLowerCase();
   if(em){
     add("email","ada email");
@@ -1678,7 +1678,7 @@ function ruleScore(x){
   if(SCSTRONG.test(name))add("strong","nama cocok (wig/extension)");
   else if(SCOFFTOPIC.test(name))add("offtopic","bukan bisnis rambut");
   else if(SCWEAK.test(name))add("weak","nama cocok (salon/kecantikan)");
-  return{s:Math.max(0,Math.min(100,s)),why:why};
+  return{s:Math.max(0,Math.min(100,s)),why:why,neg:neg};
 }
 function emailsOf(x){return x.emails&&x.emails.length?x.emails:(x.email?[x.email]:[])}
 // Kode telepon internasional per negara (kode ISO dari COUNTRY_CODES). TRUNK0 = negara yang membuang angka 0 di depan nomor lokal saat dijadikan format internasional.
@@ -2141,8 +2141,8 @@ function renderMail(){
   }else{
     info.textContent=v.length+" tempat dengan email.";info.hidden=false;
     list.innerHTML=v.map(function(x){
-      var s=EM.sent[x.id];
-      return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+"</small></span><em class='mtag pl sc-"+aiCls(ruleScore(x).s)+"' title='"+esc(ruleScore(x).why.join(", "))+"'>skor "+ruleScore(x).s+"</em><em class='mtag pl st-"+(s?"chat":(stOf(x)||"baru"))+"'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em></label>";
+      var s=EM.sent[x.id],sc=ruleScore(x),why=sc.neg.concat(sc.why).slice(0,4),stt=s?"chat":(stOf(x)||"baru");
+      return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+(why.length?" · "+esc(why.join(", ")):"")+"</small></span><em class='mtag pl sc-"+aiCls(sc.s)+"'>skor "+sc.s+"</em>"+(stt==="baru"?"":"<em class='mtag pl st-"+stt+"'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em>")+"</label>";
     }).join("");
     list.hidden=false;
   }
