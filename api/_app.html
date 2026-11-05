@@ -2658,6 +2658,9 @@ function auSwitch(){
   sw.setAttribute("aria-checked",pz?"false":"true");sw.setAttribute("aria-label",pz?"Otomatis dijeda":"Otomatis aktif");
   $("austt").textContent=run?"Sedang berjalan…":(pz?"Dijeda":"Aktif");
   $("audot").className="audot"+(run?" run":(pz?" off":""));
+  var rb=$("aurun"),PZMSG="Dijeda. Lanjutkan dulu dengan tombol geser di atas.";
+  rb.disabled=pz||!!AU.busy;rb.title=pz?"Sedang dijeda":"";
+  var rm=$("aurunmsg");if(pz&&!AU.busy)rm.textContent=PZMSG;else if(rm.textContent===PZMSG)rm.textContent="";
   $("ausub").textContent=run?"Tugas otomatis sedang diproses, bisa sampai 1 menit.":(pz?"Kirim, follow-up, dan tugas otomatis berhenti. Geser ke kanan untuk melanjutkan.":"Jalan otomatis tiap hari sekitar pukul 01.00 WIB. Geser ke kiri untuk menjeda semuanya.");
 }
 function auStatus(){
@@ -2967,11 +2970,11 @@ $("aurun").onclick=function(){
   if(!confirm("Jalankan sekarang? Ini bisa mengirim email yang sudah disetujui dan memakai kuota SerpApi untuk cari ulang sesuai pengaturan."))return;
   AU.busy=true;auSwitch();var b=this;b.disabled=true;b.setAttribute("aria-busy","true");$("aurunmsg").textContent="Berjalan… tunggu sampai 1 menit.";
   auApi({action:"run",job:"all"}).then(function(o){
-    AU.busy=false;auSwitch();b.disabled=false;b.setAttribute("aria-busy","false");
+    AU.busy=false;b.disabled=false;auSwitch();b.setAttribute("aria-busy","false");
     if(!o.ok&&!o.j.jobs){$("aurunmsg").textContent=o.j.error||"Gagal menjalankan";return}
     $("aurunmsg").textContent=o.j.paused?"Tidak berjalan: "+o.j.paused:"Selesai dalam "+Math.round((o.j.ms||0)/1000)+" detik.";
     auLoad(false);refreshAll();
-  }).catch(function(e){AU.busy=false;auSwitch();b.disabled=false;b.setAttribute("aria-busy","false");if(e!==0)$("aurunmsg").textContent="Tidak bisa menghubungi server. Cek lagi riwayat sebentar lagi."});
+  }).catch(function(e){AU.busy=false;b.disabled=false;auSwitch();b.setAttribute("aria-busy","false");if(e!==0)$("aurunmsg").textContent="Tidak bisa menghubungi server. Cek lagi riwayat sebentar lagi."});
 };
 $("aupause").onclick=function(){
   var on=!(AU.st&&AU.st.pause),b=this;
