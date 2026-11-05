@@ -1410,7 +1410,7 @@ function keepScroll(fn){
 function svSearch(){var a=$("svp"),b=$("svl");if(!a||!b)return;keepScroll(function(){a.innerHTML=placeList();b.innerHTML=savedList()})}
 $("svbox").addEventListener("input",function(e){if(e.target.id!=="svq")return;SVQ=e.target.value;svSearch()});
 function loadLeads(){
-  return fetch("/api/leads").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){LS=j.items||{};SAVED=j.searches||[];renderSaved()}).catch(function(e){if(e===0)return;$("t3n").classList.remove("tsk");$("svbox").innerHTML="<p class='info'>Gagal memuat data tersimpan. Muat ulang halaman.</p>"});
+  return fetch("/api/leads").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){LS=j.items||{};SAVED=j.searches||[];renderSaved();try{if(CUR==="4"||CUR==="6")renderMail()}catch(_){}}).catch(function(e){if(e===0)return;$("t3n").classList.remove("tsk");$("svbox").innerHTML="<p class='info'>Gagal memuat data tersimpan. Muat ulang halaman.</p>"});
 }
 function loadSearches(){
   fetch("/api/leads?part=searches").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){SAVED=j.searches||[];renderSaved()}).catch(function(){});
