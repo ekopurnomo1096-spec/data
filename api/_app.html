@@ -998,7 +998,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     </div>
     <p class="info" id="wainfo">Memuat…</p>
     <div class="mlist rd" id="walist" hidden></div>
-    <p class="hint2">Tombol “Buka WhatsApp” hanya membuka chat. Ubah status prospek lewat dropdown di barisnya, catatan “WA, 3 Nov” ikut tercatat otomatis.</p>
+    <p class="hint2">Tombol “Buka WhatsApp” hanya membuka chat. Ubah status prospek lewat dropdown di barisnya, catatan “WA, 3 Nov” ikut tercatat otomatis. Filter “Belum/Sudah dihubungi” di sini khusus soal WA: prospek yang baru di-email (belum pernah di-WA) tetap dihitung “Belum dihubungi” di tab ini, walau status umumnya sudah berubah.</p>
   </div>
 </section>
 <section id="p6" hidden>
@@ -1301,6 +1301,10 @@ var STORD={"":0,chat:1,balas:2,deal:3,tidak:4};
 function stOf(x){var r=LS[x.id];return r&&r.s||""}
 function noteOf(x){var r=LS[x.id];return r&&r.n||""}
 var AUTONOTE=/^(WA|Telepon|Email), \d{1,2} [A-Za-z]{3,5}\.?$/;
+var WANOTE=/^WA, \d{1,2} [A-Za-z]{3,5}\.?$/;
+// Khusus tab WhatsApp: "sudah/belum dihubungi" dilihat dari catatan "WA, ..." sendiri, bukan status global
+// (status global bisa saja sudah "Sudah dihubungi" gara-gara email terkirim duluan, padahal WA-nya belum).
+function waContacted(x){return noteOf(x).split("\n").some(function(l){return WANOTE.test(l.trim())})}
 function statusPatch(x,v){
   var p={s:v};
   if(!v){var cur=noteOf(x),n=cur.split("\n").filter(function(l){return!AUTONOTE.test(l.trim())}).join("\n").trim();if(n!==cur)p.n=n}
@@ -2404,7 +2408,10 @@ function waRender(){
   var all=WA.rows.filter(function(x){
     var w=waOf(x);if(!w||(!ph&&w.src==="phone"))return false;
     if(se&&x.sk!==se)return false;
-    var s=stOf(x);if(st!=="all"&&(st==="baru"?s!=="":s!==st))return false;
+    var s=stOf(x),wac=waContacted(x);
+    if(st==="baru"){if(wac)return false}
+    else if(st==="chat"){if(!(wac&&s==="chat"))return false}
+    else if(st!=="all"){if(s!==st)return false}
     if(q&&(x.name+" "+(x.address||"")).toLowerCase().indexOf(q)<0)return false;
     return true;
   }).sort(function(a,b){return(b.rating||0)-(a.rating||0)||(b.reviews||0)-(a.reviews||0)});
