@@ -1028,6 +1028,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
   <div class="panel aup" data-g="ringkas">
     <div class="svh">Status</div>
     <div class="auctl"><button type="button" class="swt" id="aupause" role="switch" aria-checked="true" aria-label="Otomatis aktif"><span></span></button><div><b><i class="audot" id="audot"></i><span id="austt">Memuat…</span></b><small id="ausub"></small></div></div>
+    <div class="auctl"><button type="button" class="swt" id="ausearch" role="switch" aria-checked="true" aria-label="Cari tempat otomatis"><span></span></button><div><b>Cari tempat otomatis</b><small id="aussub"></small></div></div>
     <p class="aupz" id="aupz" hidden></p>
     <div class="aust" id="aust"><span>Memuat…</span></div>
     <div class="eacts"><button class="btn primary" id="aurun" type="button">Jalankan sekarang</button><span class="hint2" id="aurunmsg" style="margin:0"></span></div>
@@ -1317,8 +1318,8 @@ function statusPatch(x,v){
 function stLabel(k){for(var i=0;i<STAT.length;i++)if(STAT[i][0]===k)return STAT[i][1];return STAT[0][1]}
 function stSel(x,id,extra){var s=stOf(x);return"<select"+(id?" id='"+id+"'":"")+" class='stsel st-"+(s||"baru")+"'"+(extra||"")+" aria-label='Status prospek'>"+STAT.map(function(p){return"<option value='"+p[0]+"'"+(p[0]===s?" selected":"")+">"+p[1]+"</option>"}).join("")+"</select>"}
 // Hasil cari manual langsung diperiksa untuk Antrean persetujuan (syarat sama dengan jalan otomatis, tanpa kirim email atau cari ulang)
-function fillQueue(){
-  return auApi({action:"run",job:"queue"}).then(function(o){
+function fillQueue(job){
+  return auApi({action:"run",job:job||"queue"}).then(function(o){
     var q=o.j&&o.j.jobs&&o.j.jobs.queue;
     if(q&&q.added)flash(q.added+" prospek masuk Antrean persetujuan");
   }).catch(function(){});
@@ -1525,7 +1526,7 @@ async function run(force){
     lastQ=LABEL[kind]+" di "+city;lastCountry=$("country").value;sKey="";sDir=1;
     MORE=!!j.more&&$("source").value!=="osm";NEXT=j.next||20;mCity=city;mKind=kind;
     setCinfo(j);render();if(!j.cached)loadSearches();
-    if(rows.some(function(x){return emailsOf(x).length}))fillQueue();
+    fillQueue("intake"); // cek email website tempat baru, lalu isi Antrean persetujuan
   }catch(e){loading(false);var m=e.message.replace(/\.$/,"");
     if(/Pengaturan/.test(m)){say("err",esc(m)+". <button class='ghost' id='goset' type='button'>Buka Pengaturan</button>");$("goset").onclick=openSet}
     else say("err","Pencarian gagal: "+esc(m)+". Server peta gratis kadang sibuk, jadi coba lagi beberapa saat.")}
@@ -1542,7 +1543,7 @@ $("more").onclick=async function(){
     rows=j.results;hydrate(rows);lastDupes=j.dupes||0;serpSwitched(j);usageAfterSearch();
     MORE=!!j.more;NEXT=j.next||NEXT+20;
     render();
-    if(j.added>0&&rows.some(function(x){return emailsOf(x).length}))fillQueue();
+    if(j.added>0)fillQueue("intake");
     flash(j.added>0?"Ditambah "+j.added+" tempat baru.":"Tidak ada tempat tambahan lagi.");
     if(!j.added)MORE=false,$("morebox").hidden=true;
   }catch(e){h.textContent="Gagal: "+e.message.replace(/\.$/,"")+". Coba lagi."}
@@ -2658,6 +2659,9 @@ function auSwitch(){
   sw.setAttribute("aria-checked",pz?"false":"true");sw.setAttribute("aria-label",pz?"Otomatis dijeda":"Otomatis aktif");
   $("austt").textContent=run?"Sedang berjalan…":(pz?"Dijeda":"Aktif");
   $("audot").className="audot"+(run?" run":(pz?" off":""));
+  var sa=(AU.cfg||s.cfg||{}).autosearch!==false,ss=$("ausearch");
+  ss.setAttribute("aria-checked",sa?"true":"false");
+  $("aussub").textContent=sa?"Cari ulang dan putaran kota jalan sendiri tiap hari dan memakai kuota SerpApi.":"Mati. Kamu cari manual saja: tempat yang ketemu dicek emailnya lalu langsung masuk Antrean persetujuan.";
   var rb=$("aurun"),PZMSG="Dijeda. Lanjutkan dulu dengan tombol geser di atas.";
   rb.disabled=pz||!!AU.busy;rb.title=pz?"Sedang dijeda":"";
   var rm=$("aurunmsg");if(pz&&!AU.busy)rm.textContent=PZMSG;else if(rm.textContent===PZMSG)rm.textContent="";
@@ -2943,6 +2947,7 @@ function auScRes(r,box){
 }
 function auCollect(){
   return{
+    autosearch:(AU.cfg||{}).autosearch!==false,
     notify:{digest:$("au_ndg").checked,alerts:$("au_nal").checked,to:$("au_nto").value.trim()},
     clean:{on:$("au_con").checked,days:+$("au_cd").value},
     enrich:{on:$("au_eon").checked,max:+$("au_em").value},
@@ -2975,6 +2980,15 @@ $("aurun").onclick=function(){
     $("aurunmsg").textContent=o.j.paused?"Tidak berjalan: "+o.j.paused:"Selesai dalam "+Math.round((o.j.ms||0)/1000)+" detik.";
     auLoad(false);refreshAll();
   }).catch(function(e){AU.busy=false;b.disabled=false;auSwitch();b.setAttribute("aria-busy","false");if(e!==0)$("aurunmsg").textContent="Tidak bisa menghubungi server. Cek lagi riwayat sebentar lagi."});
+};
+$("ausearch").onclick=function(){
+  if(!AU.cfg)return;
+  var next=AU.cfg.autosearch===false,b=this;b.disabled=true;
+  auApi({action:"cfg",cfg:Object.assign({},AU.cfg,{autosearch:next})}).then(function(o){
+    b.disabled=false;
+    if(!o.ok){flash(o.j.error||"Gagal");return}
+    AU.cfg=o.j.cfg;auSwitch();flash(next?"Cari tempat otomatis dinyalakan":"Cari tempat otomatis dimatikan");
+  }).catch(function(){b.disabled=false});
 };
 $("aupause").onclick=function(){
   var on=!(AU.st&&AU.st.pause),b=this;

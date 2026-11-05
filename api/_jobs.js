@@ -36,6 +36,7 @@ const FU2B = "Hi!\n\nI will not keep filling your inbox. If you ever need a depe
 
 function defaultCfg() {
   return {
+    autosearch: true, // saklar utama cari tempat otomatis (cari ulang + putaran kota); mati = cari manual saja
     enrich: { on: true, max: 60 },
     refresh: { on: false, everyDays: 7, maxSearches: 3, reserve: 30, pages: 3, dryMax: 3, keys: [] }, // dryMax: nonaktifkan pencarian yang sekian kali berturut-turut tanpa tempat baru (0 = jangan)
     rotate: { on: false, maxSearches: 2, reserve: 30, pages: 1, kinds: ["salon"], cities: DEFAULT_CITIES.slice() }, // putaran kota baru
@@ -64,6 +65,7 @@ function sanitizeCfg(c) {
   c = c && typeof c === "object" ? c : {};
   const e = c.enrich || {}, r = c.refresh || {}, m = c.mail || {};
   const out = {
+    autosearch: bool(c.autosearch, true),
     enrich: { on: bool(e.on, d.enrich.on), max: num(e.max, 1, 200, d.enrich.max) },
     refresh: {
       on: bool(r.on, false), everyDays: num(r.everyDays, 1, 60, 7), maxSearches: num(r.maxSearches, 1, 30, 3), reserve: num(r.reserve, 0, 1000, 30), pages: num(r.pages, 1, 3, 3), dryMax: num(r.dryMax, 0, 10, 3),
@@ -218,6 +220,7 @@ async function jobEnrich(cfg, ctx) {
 // ---- Refresh ----------------------------------------------------------------------------------------------
 async function jobRefresh(cfg, ctx) {
   const rc = cfg.refresh;
+  if (cfg.autosearch === false) return { skip: "cari tempat otomatis dimatikan" };
   if (!rc.on && !ctx.force) return { skip: "mati" };
   if (!rc.keys.length) return { skip: "belum ada pencarian yang dicentang" };
   const meta = await hgetall(META), now = Date.now(), due = [];
@@ -319,6 +322,7 @@ async function rotInfo(cfg) {
 }
 async function jobRotate(cfg, ctx) {
   const rc = cfg.rotate;
+  if (cfg.autosearch === false) return { skip: "cari tempat otomatis dimatikan" };
   if (!rc.on) return { skip: "mati" };
   if (!rc.cities.length) return { skip: "daftar kota kosong" };
   const day = M.today();
@@ -666,7 +670,7 @@ async function runAuto(opts) {
     if (why) out.paused = why;
     else {
       const ctx = { softEnd: t0 + budget, hardEnd: t0 + budget + 6000, base: opts.base || "", force: opts.src === "manual", data: await loadData() };
-      const want = j => opts.jobs === "all" || opts.jobs === j;
+      const want = j => opts.jobs === "all" || opts.jobs === j || (opts.jobs === "intake" && (j === "enrich" || j === "queue")); // intake = cari email lalu isi antrean (dipakai setelah cari manual)
       const guard = async (name, fn) => { try { out.jobs[name] = await fn(); } catch (e) { out.jobs[name] = { err: e.message }; } };
       if (want("mail")) await guard("mail", () => jobMailSend(cfg, ctx));
       if (want("refresh")) {
@@ -691,7 +695,7 @@ async function runAuto(opts) {
   if (isCron && cfg && Date.now() - t0 < 50000) {
     try { out.notify = await notifyAfter(cfg, out, { prevCronT, base: opts.base }); } catch (e) { out.notify = { err: e.message }; }
   }
-  if (opts.jobs !== "queue") { try { await pushLog(out); } catch (e) { /* log gagal tidak penting */ } } // isi antrean otomatis setelah cari manual tidak dicatat, supaya riwayat jalan tidak penuh
+  if (opts.jobs !== "queue" && opts.jobs !== "intake") { try { await pushLog(out); } catch (e) { /* log gagal tidak penting */ } } // isi antrean otomatis setelah cari manual tidak dicatat, supaya riwayat jalan tidak penuh
   return out;
 }
 
