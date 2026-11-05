@@ -119,12 +119,15 @@ function buildHtml(text, unsub, foot) {
     '<div style="background:#000000;padding:22px 28px">' +
     '<span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:.02em">' + escHtml(BRAND.name) + "</span></div>" +
     '<div style="padding:28px;color:#2a2a2a;font-size:15px;line-height:1.55">' + textToHtmlBody(text) + "</div>" +
-    '<div style="padding:18px 28px;background:#f6f3ec;border-top:1px solid #e7e1d4;font-size:12.5px;color:#4a4a4a">' +
-    "<div style=\"margin-bottom:6px\"><b>" + escHtml(BRAND.name) + "</b> — " + escHtml(BRAND.tagline) + "</div>" +
-    "<div>Website: <a href=\"" + escHtml(BRAND.website) + "\" style=\"color:#000000;text-decoration:underline\">" + siteLabel + "</a></div>" +
-    (foot.addr ? "<div style=\"margin-top:8px\">" + escHtml(foot.addr) + "</div>" : "") +
-    (foot.srcn ? "<div style=\"margin-top:8px;color:#6a6a6a\">" + escHtml(foot.srcn) + "</div>" : "") +
-    (unsub ? "<div style=\"margin-top:10px;color:#6a6a6a\">Don’t want to hear from us? <a href=\"" + escHtml(unsub) + "\" style=\"color:#6a6a6a;text-decoration:underline\">Unsubscribe</a></div>" : "") +
+    '<div style="padding:22px 28px;background:#f6f3ec;border-top:1px solid #e7e1d4;font-size:12.5px;line-height:1.6;color:#4a4a4a">' +
+    '<div style="font-size:14px;font-weight:700;color:#000000;letter-spacing:.02em">' + escHtml(BRAND.name) + "</div>" +
+    '<div style="color:#5a5a5a;padding-bottom:10px">' + escHtml(BRAND.tagline) + "</div>" +
+    '<div><a href="' + escHtml(BRAND.website) + '" style="color:#000000;text-decoration:underline">' + siteLabel + "</a></div>" +
+    (foot.addr ? '<div style="padding-top:4px;color:#5a5a5a">' + escHtml(foot.addr) + "</div>" : "") +
+    ((foot.srcn || unsub) ? '<div style="margin-top:16px;padding-top:14px;border-top:1px solid #e7e1d4;font-size:12px;color:#6a6a6a">' +
+      (foot.srcn ? "<div>" + escHtml(foot.srcn) + "</div>" : "") +
+      (unsub ? '<div style="padding-top:' + (foot.srcn ? "8" : "0") + 'px">Don’t want to hear from us? <a href="' + escHtml(unsub) + '" style="color:#444444;text-decoration:underline">Unsubscribe</a></div>' : "") +
+      "</div>" : "") +
     "</div></td></tr></table></td></tr></table></body></html>";
 }
 
