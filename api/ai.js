@@ -1,15 +1,14 @@
 // AI prospek (Gemini 3.5 Flash-Lite): skor prospek, ringkasan catatan, langkah berikutnya, dan draf pesan.
 // GET  = skor yang sudah tersimpan ({items: {id: {s, w, t}}})
-// POST = {action:"score", leads:[...]}, {action:"assist", lead:{...}}, atau {action:"email", brief, subject?, text?} (draf email sesuai permintaan)
+// POST = {action:"score", leads:[...]} atau {action:"email", brief, subject?, text?} (draf email sesuai permintaan)
 // Key Gemini disimpan terenkripsi di Redis (nama "gem"); GEMINI_API_KEY di Vercel dipakai sebagai cadangan.
 const { isAuthed } = require("./_auth");
 const { dbConfigured, getKey, cmd, hgetall } = require("./_store");
 
 const AI = "hairleads:ai";
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
-const STATUS_CODES = ["", "chat", "balas", "deal", "tidak"];
-// Template pesan pertama ada di _template.js (nomor, website, daftar produk).
-const { TEMPLATE, BRAND } = require("./_template");
+// Nama brand dan daftar produk ada di _template.js.
+const { BRAND } = require("./_template");
 const parse = v => { try { return JSON.parse(v); } catch (e) { return null; } };
 const str = (v, n) => (typeof v === "string" ? v.slice(0, n) : "");
 const clamp = (v, a, b) => Math.max(a, Math.min(b, Math.round(Number(v)) || 0));
@@ -110,41 +109,6 @@ module.exports = async (req, res) => {
       const allowed = new Set(leads.map(l => l.id));
       const items = await saveScores(arr.filter(o => o && allowed.has(String(o.id))));
       return res.status(200).json({ items });
-    }
-
-    if (b.action === "assist") {
-      const lead = cleanLead(b.lead);
-      if (!validId(lead.id)) return res.status(400).json({ error: "ID tempat tidak valid" });
-      const ctx = str(b.ctx, 200);
-      const prompt =
-        "Bantu menindaklanjuti satu prospek. Isi JSON dengan field persis berikut:\n" +
-        "- score (0-100) dan why: skor peluang jadi pembeli grosir + alasan singkat (maks 14 kata, bahasa Indonesia).\n" +
-        "- status: salah satu dari \"\", \"chat\", \"balas\", \"deal\", \"tidak\" (kosong = Belum dihubungi, chat = Sudah dihubungi tanpa balasan, balas = sudah dibalas atau tertarik, deal = jelas sepakat atau order, tidak = menolak, tutup, atau tidak relevan). " +
-        "Tentukan dari catatan. Kalau catatan kosong, pakai status sekarang. Pakai \"deal\" hanya jika catatan jelas menyebut sepakat atau order.\n" +
-        "- status_why: alasan status itu, 1 kalimat Indonesia.\n" +
-        "- note_summary: ringkasan catatan dalam 1 kalimat Indonesia. String kosong kalau catatan kosong.\n" +
-        "- next_step: langkah berikutnya yang paling masuk akal, 1-2 kalimat Indonesia, konkret.\n" +
-        "- followup_days: bilangan bulat 1-30, berapa hari lagi sebaiknya follow-up.\n" +
-        "- wa_message: pesan WhatsApp.\n" +
-        "Aturan pesan PERTAMA (catatan kosong atau belum pernah dihubungi): pakai TEMPLATE di bawah sebagai dasar. " +
-        "Pertahankan persis daftar produk, nomor WhatsApp, alamat website, dan inti kalimatnya. " +
-        "Yang boleh diubah hanya sapaan pembuka: ganti \"Hi!\" dengan sapaan yang menyebut nama tempat (mis. \"Hi Glamour Locks team!\"). " +
-        "Boleh menambah paling banyak SATU kalimat personal singkat yang benar-benar berdasar data tempat (mis. mereka salon extension). Jangan menambah klaim lain. " +
-        "Kalau negara tempat itu bukan berbahasa Inggris, terjemahkan template ke bahasa setempat, nama produk tetap bahasa Inggris. " +
-        "Aturan FOLLOW-UP (catatan menunjukkan sudah pernah dihubungi): jangan kirim ulang template penuh. Tulis pesan singkat maksimal 60 kata yang menyapa dengan nama tempat, " +
-        "merujuk kontak sebelumnya, menanyakan apakah sempat melihat, menawarkan katalog atau sampel, dan mencantumkan nomor WhatsApp serta website dari template. " +
-        "Pesan memakai bahasa yang sama dengan aturan di atas. Jangan memakai placeholder seperti [nama].\n\n" +
-        "TEMPLATE:\n" + TEMPLATE + "\n\n" +
-        "DATA TEMPAT:\n" + JSON.stringify(lead) + (ctx ? "\nKonteks pencarian: " + ctx : "");
-      const o = await gemini(key, prompt, 4096);
-      const status = STATUS_CODES.includes(o.status) ? o.status : "";
-      const assist = {
-        status, status_why: str(o.status_why, 300), note_summary: str(o.note_summary, 300),
-        next_step: str(o.next_step, 500), followup_days: clamp(o.followup_days, 1, 30) || 3,
-        wa_message: str(o.wa_message, 1500)
-      };
-      const items = await saveScores([{ id: lead.id, score: o.score, why: o.why }]);
-      return res.status(200).json({ assist, ai: items[lead.id] });
     }
 
     if (b.action === "email") {

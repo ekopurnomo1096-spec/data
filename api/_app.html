@@ -291,15 +291,6 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .aib{display:inline-block;vertical-align:1px;margin-left:6px;padding:0 7px;border-radius:99px;font-size:.72rem;font-weight:700;line-height:1.55;border:1px solid var(--line);color:var(--mute);cursor:help}
 .aib.hi{background:var(--accsoft);border-color:var(--acc);color:var(--acc)}
 .aib.mid{border-color:var(--star);color:var(--star)}
-.aibox{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
-.aibox .aih{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.aibox .aih b{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
-.aibox .aih .aib{margin-left:0}
-.air{margin:10px 0;font-size:.9rem}
-.air .ail{display:block;color:var(--mute);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
-.aibox textarea,.aibox input[type=text]{width:100%;font:inherit;font-size:.88rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;resize:vertical}
-.aibox input[type=text]{height:36px;margin-bottom:6px}
-.aibox .acts{margin-top:8px}
 .aiwarn{color:var(--err);font-size:.86rem;margin:8px 0 0}
 .morebox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
 @media (min-width:761px){
@@ -660,7 +651,7 @@ h1{font-weight:650;letter-spacing:-.02em}
 .dsk b{font-weight:650;letter-spacing:-.02em}
 
 /* Kolom isian dan pilihan */
-input[type=text],input[type=search],input[type=password],select,.aup input[type=number],.aup textarea,#mtx,#emtx,.di textarea,.aibox textarea,.aibox input[type=text]{background-color:var(--inp);border:1px solid var(--line);border-radius:var(--r);transition:border-color .15s,box-shadow .15s}
+input[type=text],input[type=search],input[type=password],select,.aup input[type=number],.aup textarea,#mtx,#emtx,.di textarea{background-color:var(--inp);border:1px solid var(--line);border-radius:var(--r);transition:border-color .15s,box-shadow .15s}
 input:not([type=checkbox]):focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
 select,select.stsel,.stsel.st-deal{appearance:none;-webkit-appearance:none;background-image:var(--chev);background-repeat:no-repeat;background-position:right 10px center;background-size:14px;padding-right:30px}
 .f label{letter-spacing:.05em}
@@ -1762,7 +1753,7 @@ function openD(x){curX=x;
   if(!$("dlg").open)$("dlg").showModal();
   $("dx").focus({preventScroll:true}); // biar foto (elemen fokus-able pertama) tidak otomatis kena cincin fokus hijau saat modal dibuka
 }
-var AI={},AIA={};
+var AI={};
 function aiCls(n){return n>=70?"hi":n>=40?"mid":"lo"}
 function aiBadge(x){var a=ruleScore(x);return"<span class='aib "+aiCls(a.s)+"' title='"+esc(a.why.join(", "))+"'>"+a.s+"</span>"}
 function loadAI(){fetch("/api/ai").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){AI=j.items||{};if(!$("res").hidden)render()}).catch(function(){})}
@@ -1772,7 +1763,6 @@ function aiPost(body){
     return r.text().then(function(tx){var j;try{j=JSON.parse(tx)}catch(e){throw new Error("server membalas error ("+r.status+"). Cek Logs di dashboard Vercel.")}if(!r.ok)throw new Error(j.error||"Gagal");return j});
   });
 }
-function aiLead(x){return{id:x.id,name:x.name,address:x.address,rating:x.rating,reviews:x.reviews,phone:!!x.phone,email:!!emailsOf(x).length,website:!!x.website,status:stLabel(stOf(x)),note:noteOf(x)}}
 var AIW='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>';
 var AIOK='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.5l3.5 3.5L17 9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function aidShow(st,title,msg,pct){
@@ -1829,43 +1819,6 @@ function copyTxt(t,ok){
   function fb(){var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");flash(ok)}catch(e){flash("Gagal menyalin")}a.remove()}
   try{navigator.clipboard.writeText(t).then(function(){flash(ok)},fb)}catch(e){fb()}
 }
-function renderAiBox(x,err){
-  var box=$("aibox");
-  if(!box){$("dbody").insertAdjacentHTML("beforeend","<div class='aibox' id='aibox'></div>");box=$("aibox")}
-  var a=AIA[x.id],sc=AI[x.id],em=emailsOf(x),wa=waOf(x),h="";
-  h+="<div class='aih'><b>Saran AI</b>"+(sc?"<span class='aib "+aiCls(sc.s)+"'>Skor "+sc.s+"</span>":"")+"</div>";
-  if(sc&&sc.w)h+="<p class='dr' style='margin:0 0 6px'>"+esc(sc.w)+"</p>";
-  if(a){
-    if(a.note_summary)h+="<div class='air'><span class='ail'>Ringkasan catatan</span>"+esc(a.note_summary)+"</div>";
-    h+="<div class='air'><span class='ail'>Status yang disarankan</span><b>"+esc(stLabel(a.status))+"</b>"+(a.status_why?" · "+esc(a.status_why):"")+
-      (a.status!==stOf(x)?" <button class='btn' type='button' data-ai='apply' style='margin-left:6px'>Terapkan status</button>":" <span class='hint'>sudah sesuai</span>")+"</div>";
-    var fd=new Date(Date.now()+a.followup_days*864e5).toLocaleDateString("id-ID",{day:"numeric",month:"short"});
-    h+="<div class='air'><span class='ail'>Langkah berikutnya</span>"+esc(a.next_step)+"<br><span class='hint'>Follow-up sekitar "+a.followup_days+" hari lagi ("+esc(fd)+")</span></div>";
-    h+="<div class='air'><span class='ail'>Draf pesan WhatsApp</span><textarea id='aiwa' rows='5'>"+esc(a.wa_message)+"</textarea><div class='acts'><button class='btn ic' type='button' data-ai='cwa' title='Salin' aria-label='Salin pesan'>"+IC.copy+"</button>"+(wa?"<button class='btn' type='button' data-ai='owa'>"+IC.wa+"Buka di WhatsApp</button>":"")+"</div></div>";
-  }
-  h+="<div class='acts'><button class='btn' id='dai' type='button'>"+(a?"Buat ulang saran":"Minta saran AI")+"</button></div>";
-  if(err)h+="<p class='aiwarn'>"+esc(err)+"</p>";
-  h+="<p class='hint2' style='margin-top:10px'>Draf dibuat AI dari data di atas. Baca dan sesuaikan dulu sebelum dikirim.</p>";
-  box.innerHTML=h;
-  $("dai").onclick=function(){
-    var b=this;b.disabled=true;b.textContent="Memproses…";
-    aiPost({action:"assist",lead:aiLead(x),ctx:x.ctx||""}).then(function(j){
-      AIA[x.id]=j.assist;if(j.ai)AI[x.id]=j.ai;
-      if(curX===x){renderAiBox(x);render()}
-    }).catch(function(e){
-      var m=String(e.message||e);if(m==="401")return;
-      if(curX===x)renderAiBox(x,m);
-      if(/Pengaturan/.test(m)){$("dlg").close();openSet()}
-    });
-  };
-}
-$("dbody").addEventListener("click",function(e){
-  var t=e.target.closest("[data-ai]");if(!t||!curX)return;
-  var x=curX,a=AIA[x.id],k=t.getAttribute("data-ai");
-  if(k==="apply"&&a){saveLead(x,{s:a.status});var sel=$("dst");if(sel){sel.value=a.status;sel.className="stsel st-"+(a.status||"baru")}render();renderAiBox(x)}
-  else if(k==="cwa"){copyTxt($("aiwa").value,"Pesan WhatsApp tersalin");tickBtn(t)}
-  else if(k==="owa"){var w=waOf(x);if(w){window.open("https://wa.me/"+w.n+"?text="+encodeURIComponent($("aiwa").value),"_blank","noopener");markContacted(x,"WA")}}
-});
 function bigSrc(u){return u.replace(/=w\d+-h\d+/,"=w900-h900").replace(/=s\d+(?=$|-)/,"=s900")}
 function openPhoto(el){
   var u=el.getAttribute("data-src"),b=bigSrc(u),im=$("pimg");
@@ -1884,7 +1837,7 @@ $("auq").addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" "
 $("tb").onkeydown=function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr[data-i]")){e.preventDefault();openD(rows[+e.target.getAttribute("data-i")])}};
 $("dlg").onclick=function(e){if(e.target===this)this.close()};
 $("dlg").addEventListener("close",flushNote);
-// Klik Chat WhatsApp / Telepon: status "Belum dihubungi" otomatis jadi "Sudah dihubungi", dan catatan ditambah "WA, 3 Nov"
+// Klik Telepon: status "Belum dihubungi" otomatis jadi "Sudah dihubungi", dan catatan ditambah "Telepon, 3 Nov"
 function markContacted(x,how){
   var el=$("dnt"),line=how+", "+new Date().toLocaleDateString("id-ID",{day:"numeric",month:"short"});
   var cur=el?el.value.trim():noteOf(x);
@@ -1899,7 +1852,8 @@ function markContacted(x,how){
 }
 $("dbody").addEventListener("click",function(e){
   var a=e.target.closest("a[data-act]");
-  if(a&&curX)markContacted(curX,a.getAttribute("data-act")==="wa"?"WA":"Telepon");
+  // Chat WhatsApp di modal: sama kayak tab WhatsApp, cuma buka chat-nya, status/catatan tidak diubah otomatis
+  if(a&&curX&&a.getAttribute("data-act")==="tel")markContacted(curX,"Telepon");
 });
 $("tb").addEventListener("change",function(e){var sel=e.target.closest("select.stsel");if(!sel)return;var x=rows[+sel.getAttribute("data-ri")];if(!x)return;sel.className="stsel st-"+(sel.value||"baru");var p=statusPatch(x,sel.value);saveLead(x,p);if(p.n!==undefined)render()});
 $("svbox").addEventListener("click",function(e){
