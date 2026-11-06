@@ -394,7 +394,7 @@ async function jobRotate(cfg, ctx) {
 
 // ---- Mail: antrean ----------------------------------------------------------------------------------------
 async function jobQueue(cfg, ctx) {
-  if (!cfg.mail.on) return { skip: "mati" };
+  if (!cfg.mail.on && !ctx.force) return { skip: "mati" };
   const qraw = await hgetall(QUEUE), queue = {};
   Object.keys(qraw).forEach(k => { const v = parse(qraw[k]); if (v) queue[k] = v; });
   const mraw = await hgetall(M.MAIL), mailed = new Set(Object.keys(mraw)), mailedTo = new Set();
