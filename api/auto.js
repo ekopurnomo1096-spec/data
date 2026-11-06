@@ -98,6 +98,9 @@ module.exports = async (req, res) => {
       const cfg = await J.setCfg(b.cfg);
       return res.status(200).json({ ok: true, cfg });
     }
+    if (b.action === "why") { // alasan tiap tempat ber-email belum masuk antrean (hanya baca)
+      return res.status(200).json({ ok: true, why: await J.queueWhy(ids.length ? ids : null) });
+    }
     if (b.action === "scoretest") { // uji bobot skor tanpa menyimpan
       return res.status(200).json({ ok: true, ...(await J.scorePreview(b.cfg)) });
     }

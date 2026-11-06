@@ -452,6 +452,67 @@ async function jobQueue(cfg, ctx) {
   return res;
 }
 
+// Diagnosa: kenapa tempat yang punya email tidak masuk antrean? Memakai syarat yang sama dengan jobQueue, tapi hanya membaca (tidak mengubah data).
+// Hasil: { id: "alasan singkat" } untuk tempat Gmail/Yahoo dkk yang belum ada di antrean.
+async function queueWhy(ids) {
+  const cfg = await getCfg(), data = await loadData();
+  const qraw = await hgetall(QUEUE), queue = {};
+  Object.keys(qraw).forEach(k => { const v = parse(qraw[k]); if (v) queue[k] = v; });
+  const mraw = await hgetall(M.MAIL), mailed = new Set(Object.keys(mraw)), mailedTo = new Map();
+  Object.keys(mraw).forEach(k => { const v = parse(mraw[k]); if (v && v.to) mailedTo.set(String(v.to).toLowerCase(), "sudah pernah dikirimi"); });
+  Object.keys(queue).forEach(k => { const t = String(queue[k].to || "").toLowerCase(); if (t && !mailedTo.has(t)) mailedTo.set(t, "sudah ada di antrean (" + (queue[k].name || "tempat lain") + ")"); });
+  const pending = Object.keys(queue).filter(k => queue[k].st === "pending").length;
+  const room = Math.max(QUEUE_ROOM - pending, 0);
+
+  const SOCIAL = /(^|\.)(facebook|instagram|linktr|linktree|tiktok|youtube|twitter|x|wa|whatsapp|yelp|google|business\.site|wixsite|squarespace|godaddysites|shopify|etsy|ebay|amazon)\.[a-z.]+$/i;
+  const siteHost = w => { try { const h = new URL(/^https?:\/\//i.test(w) ? w : "https://" + w).hostname.replace(/^www\./, "").toLowerCase(); return SOCIAL.test(h) ? "" : h; } catch (e) { return ""; } };
+  const ownDom = e => { const d = M.domainOf(e); return d && !FREE.test("@" + d) ? d : ""; };
+  const used = new Map(); // kunci domain/website -> nama tempat yang sudah memakainya
+  const addUsed = (to, id, nm) => {
+    const d = ownDom(to); if (d && !used.has("d:" + d)) used.set("d:" + d, nm || d);
+    const x = id && data.map.get(id), h = x && x.website ? siteHost(x.website) : "";
+    if (h && !used.has("s:" + h)) used.set("s:" + h, nm || h);
+  };
+  Object.keys(mraw).forEach(k => { const v = parse(mraw[k]); if (v) addUsed(v.to, k, (data.map.get(k) || {}).name || v.to); });
+  Object.keys(queue).forEach(k => addUsed(queue[k].to, k, queue[k].name));
+
+  const want = ids && ids.length ? new Set(ids) : null, out = {}, cand = [], seenTo = new Map(), seenDom = new Map();
+  const ordered = [...data.map.values()].filter(x => x.id && (!want || want.has(x.id)));
+  for (const x of ordered) {
+    if (queue[x.id]) continue;
+    const rec = data.leads[x.id];
+    if (mailed.has(x.id)) { out[x.id] = "sudah pernah dikirimi email"; continue; }
+    if (rec && rec.s) { out[x.id] = "status sudah bukan Belum dihubungi"; continue; }
+    const to = freeEmail(x);
+    if (!to) { const any = (x.emails && x.emails.length ? x.emails : [x.email]).filter(Boolean); out[x.id] = any.length ? "email tidak terbaca valid oleh server (" + any.slice(0, 2).join(", ") + ")" : "server belum punya email tempat ini (cek email belum tersimpan)"; continue; }
+    if (mailedTo.has(to)) { out[x.id] = "email " + to + " " + mailedTo.get(to); continue; }
+    const sc = scoreLead(x, cfg.mail.weights);
+    if (sc.s < cfg.mail.minScore) { out[x.id] = "skor server " + sc.s + " di bawah batas " + cfg.mail.minScore; continue; }
+    cand.push({ x, to, sc, dk: [ownDom(to) && "d:" + ownDom(to), x.website && siteHost(x.website) && "s:" + siteHost(x.website)].filter(Boolean) });
+  }
+  const sup = await M.suppressedSet(cand.map(c => c.to));
+  const pool0 = cand.filter(c => { if (sup.has(c.to)) { out[c.x.id] = "ada di Daftar berhenti"; return false; } return true; }).sort((a, b) => b.sc.s - a.sc.s);
+  const mx = await M.mxCheck(pool0.map(c => M.domainOf(c.to)), Date.now() + 8000);
+  const pool = pool0.filter(c => {
+    const r = mx.get(M.domainOf(c.to));
+    if (r === false) { out[c.x.id] = "domain email tidak valid (tanpa MX)"; return false; }
+    if (r === undefined) { out[c.x.id] = "cek domain email belum selesai, coba lagi"; return false; }
+    return true;
+  });
+  let slot = 0;
+  for (const c of pool) {
+    const hit = c.dk.find(k => used.has(k) || seenDom.has(k));
+    if (hit) { out[c.x.id] = "bisnis sama dengan " + (used.get(hit) || seenDom.get(hit)) + " (" + hit.slice(2) + ")"; continue; }
+    c.dk.forEach(k => seenDom.set(k, c.x.name || c.to));
+    if (seenTo.has(c.to)) { out[c.x.id] = "email sama dengan " + seenTo.get(c.to); continue; }
+    seenTo.set(c.to, c.x.name || c.to);
+    if (cfg.mail.approve && slot >= room) out[c.x.id] = "antrean penuh (maks " + QUEUE_ROOM + " menunggu persetujuan)";
+    else out[c.x.id] = "lolos syarat, akan masuk saat Jalankan sekarang atau cari berikutnya";
+    slot++;
+  }
+  return out;
+}
+
 // Uji bobot: hitung ulang skor prospek yang memenuhi syarat antrean (Belum dihubungi, punya email, belum pernah dikirimi)
 // dengan bobot dan batas dari halaman (belum perlu disimpan). Tidak mengubah data apa pun.
 async function scorePreview(cfgIn) {
@@ -709,4 +770,4 @@ async function runAuto(opts) {
   return out;
 }
 
-module.exports = { scorePreview, rotInfo, nextCity, QUEUE, SEQ, AUTO, LOCK, warmInfo, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, notifyAfter };
+module.exports = { queueWhy, scorePreview, rotInfo, nextCity, QUEUE, SEQ, AUTO, LOCK, warmInfo, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, notifyAfter };
