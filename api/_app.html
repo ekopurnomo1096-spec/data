@@ -888,7 +888,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <div class="f"><label for="source">Sumber data</label>
       <select id="source"><option value="google">Google Maps (lengkap)</option><option value="osm">OpenStreetMap (gratis, tipis)</option></select></div>
     <button class="go" id="run"><span id="runtxt">Cari</span></button>
-    <label class="chk" id="nxwrap" style="grid-column:1/-1"><input type="checkbox" id="nxcity"> Cari kota baru dari daftar secara bergantian (bukan mengulang kota yang sama)</label>
+    <label class="chk" id="nxwrap" style="grid-column:1/-1"><input type="checkbox" id="nxcity"> Cari kota baru di negara ini secara bergantian (bukan mengulang kota yang sama)</label>
     <p class="hint2" id="nxinfo" style="grid-column:1/-1;margin:0" hidden></p>
   </div>
   </div>
@@ -1419,7 +1419,7 @@ function loadLeads(){
   return fetch("/api/leads").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){LS=j.items||{};SAVED=j.searches||[];renderSaved();try{if(CUR==="4"||CUR==="6")renderMail()}catch(_){}}).catch(function(e){if(e===0)return;$("t3n").classList.remove("tsk");$("svbox").innerHTML="<p class='info'>Gagal memuat data tersimpan. Muat ulang halaman.</p>"});
 }
 function loadSearches(){
-  fetch("/api/leads?part=searches").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){SAVED=j.searches||[];renderSaved()}).catch(function(){});
+  return fetch("/api/leads?part=searches").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){SAVED=j.searches||[];renderSaved()}).catch(function(){});
 }
 function showMine(){
   SVKEY=null;
@@ -1516,16 +1516,17 @@ function render(){
 }
 async function run(force){
   if($("nxcity").checked&&force!==true){
-    // Kota diambil otomatis: berikutnya di daftar putaran kota yang belum pernah dicari untuk jenis dan sumber ini
-    var ni=$("nxinfo");
+    // Kota diambil otomatis dari "Kota populer" negara yang dipilih: kota berikutnya yang belum pernah dicari untuk jenis dan sumber ini
+    var ni=$("nxinfo"),cn=$("country").value.trim(),pl=POPULAR_CITIES[cn];
+    if(!cn||!pl){ni.hidden=false;ni.textContent="Pilih negara dulu (yang punya daftar kota populer).";return say("err","Pilih negara dulu, lalu tekan Cari.")}
     loading(true);
-    try{
-      var o=await auApi({action:"nextcity",kind:$("kind").value,source:$("source").value}),nj=o.j;
-      if(!o.ok)throw new Error(nj.error||"Gagal mengambil kota berikutnya");
-      if(!nj.city){loading(false);ni.hidden=false;ni.textContent="Semua kota di daftar sudah pernah dicari untuk jenis dan sumber ini. Tambah kota baru di Otomatis → Pengaturan → Putaran kota.";return say("info","Semua kota di daftar sudah pernah dicari. Tambah kota baru di daftar, atau pilih jenis tempat lain.")}
-      var pc=nj.city.split(",");$("city").value=nj.city;if(pc.length>1)$("country").value=pc[pc.length-1].trim();
-      ni.hidden=false;ni.textContent="Kota ini: "+nj.city+". Sisa "+Math.max(nj.left-1,0)+" kota di daftar"+(nj.next&&nj.next.length?". Berikutnya: "+nj.next.join(", "):"")+".";
-    }catch(e){loading(false);if(e===0)return;return say("err","Gagal mengambil kota berikutnya: "+esc(e.message||String(e)))}
+    try{await loadSearches()}catch(_){}
+    var kd=$("kind").value,sr=$("source").value;
+    var done=SAVED.filter(function(m){return m.kind===kd&&(m.source||"google")===sr}).map(function(m){return String(m.city||"").split(",")[0].trim().toLowerCase()});
+    var todo=pl.filter(function(k){return done.indexOf(k.toLowerCase())<0});
+    if(!todo.length){loading(false);ni.hidden=false;ni.textContent="Semua "+pl.length+" kota populer di "+cn+" sudah pernah dicari untuk jenis dan sumber ini.";return say("info","Semua kota populer di "+esc(cn)+" sudah pernah dicari. Ketik kota lain di kolom Kota yang dicari, atau pilih negara atau jenis tempat lain.")}
+    $("city").value=todo[0]+", "+cn;
+    ni.hidden=false;ni.textContent="Kota ini: "+todo[0]+". Sisa "+(todo.length-1)+" dari "+pl.length+" kota populer di "+cn+(todo.length>1?". Berikutnya: "+todo.slice(1,3).join(", "):"")+".";
   }
   var city=$("city").value.trim(),kind=$("kind").value;
   if(!city){say("err","Tulis nama kota dulu, misalnya London atau Purwokerto.");$("city").focus();return}
