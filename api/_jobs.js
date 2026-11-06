@@ -513,6 +513,38 @@ async function queueWhy(ids) {
   return out;
 }
 
+// Masukkan tempat ke antrean secara manual (dari tombol di tab Email). Dipakai untuk tempat yang belum masuk sendiri
+// (cek domain belum selesai, atau pernah ditolak). Tidak mengubah yang sudah ok/pending; yang berstatus "no" dihidupkan lagi.
+async function enqueue(ids) {
+  const cfg = await getCfg(), data = await loadData();
+  const qraw = await hgetall(QUEUE), queue = {};
+  Object.keys(qraw).forEach(k => { const v = parse(qraw[k]); if (v) queue[k] = v; });
+  const mailed = new Set(Object.keys(await hgetall(M.MAIL)));
+  const res = { added: 0, already: 0, skipped: [] }, cand = [];
+  for (const id of ids) {
+    const x = data.map.get(id), nm = x ? M.clean(x.name, 80) : id;
+    if (!x) { res.skipped.push({ id, name: nm, why: "tempat tidak ditemukan" }); continue; }
+    const q = queue[id];
+    if (q && (q.st === "ok" || q.st === "pending")) { res.already++; continue; }
+    if (mailed.has(id)) { res.skipped.push({ id, name: nm, why: "sudah pernah dikirimi" }); continue; }
+    const to = freeEmail(x);
+    if (!to) { res.skipped.push({ id, name: nm, why: "tidak ada email Gmail/Yahoo dkk yang valid" }); continue; }
+    cand.push({ x, to, name: nm });
+  }
+  const sup = await M.suppressedSet(cand.map(c => c.to));
+  const args = [], now = Date.now();
+  for (const c of cand) {
+    if (sup.has(c.to)) { res.skipped.push({ id: c.x.id, name: c.name, why: "ada di Daftar berhenti" }); continue; }
+    const sc = scoreLead(c.x, cfg.mail.weights);
+    args.push(c.x.id, JSON.stringify({ id: c.x.id, to: c.to, name: c.name, sc: sc.s, why: sc.neg.concat(sc.why).slice(0, 4), st: cfg.mail.approve ? "pending" : "ok", t: now, man: 1 }));
+    res.added++;
+  }
+  for (let i = 0; i < args.length; i += 200) await cmd(["HSET", QUEUE, ...args.slice(i, i + 200)]);
+  if (res.added) await M.stat("queued", res.added);
+  res.pending = cfg.mail.approve;
+  return res;
+}
+
 // Uji bobot: hitung ulang skor prospek yang memenuhi syarat antrean (Belum dihubungi, punya email, belum pernah dikirimi)
 // dengan bobot dan batas dari halaman (belum perlu disimpan). Tidak mengubah data apa pun.
 async function scorePreview(cfgIn) {
@@ -770,4 +802,4 @@ async function runAuto(opts) {
   return out;
 }
 
-module.exports = { queueWhy, scorePreview, rotInfo, nextCity, QUEUE, SEQ, AUTO, LOCK, warmInfo, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, notifyAfter };
+module.exports = { queueWhy, enqueue, scorePreview, rotInfo, nextCity, QUEUE, SEQ, AUTO, LOCK, warmInfo, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, notifyAfter };

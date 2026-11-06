@@ -4,6 +4,7 @@
 // POST {action:"cfg", cfg}               simpan pengaturan
 // POST {action:"scoretest", cfg}          uji bobot skor dan batas (belum disimpan) pada prospek yang ada
 // POST {action:"approve", ids?|all?}     setujui prospek di antrean (all = semua yang menunggu)
+// POST {action:"enqueue", ids}         masukkan tempat ke antrean secara manual
 // POST {action:"reject", ids}            tolak (tidak akan diantrekan lagi)
 // POST {action:"run", job}               jalankan sekarang: "all" | "mail" | "refresh" | "rotate" | "enrich"
 // POST {action:"digest"}                    kirim tes ringkasan harian ke email penerima laporan
@@ -103,6 +104,10 @@ module.exports = async (req, res) => {
     }
     if (b.action === "scoretest") { // uji bobot skor tanpa menyimpan
       return res.status(200).json({ ok: true, ...(await J.scorePreview(b.cfg)) });
+    }
+    if (b.action === "enqueue") { // masukkan tempat yang belum masuk antrean (termasuk yang pernah ditolak)
+      if (!ids.length) return res.status(400).json({ error: "pilih tempat dulu" });
+      return res.status(200).json({ ok: true, ...(await J.enqueue(ids)) });
     }
     if (b.action === "approve" || b.action === "reject") {
       const q = await hgetall(J.QUEUE), args = [];

@@ -1023,7 +1023,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
       <select id="emst" class="sortsel" aria-label="Filter status prospek"><option value="baru" selected>Belum dihubungi</option><option value="all">Semua status</option><option value="chat">Sudah dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak cocok</option></select>
       <label class="chk"><input type="checkbox" id="emhide" checked> Sembunyikan yang sudah dikirimi atau kembar</label>
       <label class="chk"><input type="checkbox" id="emfree" checked> Hanya email Gmail, Yahoo, dll</label>
-      <div class="tbtns"><button class="ghost" id="emall" type="button">Pilih 20 pertama</button><button class="ghost" id="emnone" type="button">Kosongkan pilihan</button></div>
+      <div class="tbtns"><button class="ghost" id="emall" type="button">Pilih 20 pertama</button><button class="ghost" id="emnone" type="button">Kosongkan pilihan</button><button class="ghost" id="emenq" type="button" title="Masukkan yang dipilih (atau semua yang belum masuk antrean kalau tidak ada yang dipilih) ke Antrean persetujuan">Masukkan ke antrean</button></div>
     </div>
     <p class="info" id="eminfo"></p>
     <div class="mlist" id="elist" hidden></div>
@@ -2566,6 +2566,19 @@ $("emmt").onkeydown=$("emmn").onkeydown=function(e){if(e.key==="Enter"){e.preven
 $("emq").oninput=$("emst").onchange=$("emhide").onchange=$("emfree").onchange=renderMail;
 $("emall").onclick=function(){EM.sel={};var QI=queuedIds();mailView().filter(function(x){return!QI[x.id]}).slice(0,emCap()).forEach(function(x){EM.sel[x.id]=true});renderMail()}; // lewati yang sudah di antrean supaya tidak terkirim dobel
 $("emnone").onclick=function(){EM.sel={};renderMail()};
+$("emenq").onclick=function(){
+  var QI=queuedIds(),ids=selIds().filter(function(id){return!QI[id]});
+  if(!ids.length)ids=mailView().filter(function(x){return!QI[x.id]&&!EM.sent[x.id]}).map(function(x){return x.id});
+  if(!ids.length){flash("Semua yang tampil sudah di antrean");return}
+  var b=this;b.disabled=true;
+  auApi({action:"enqueue",ids:ids.slice(0,500)}).then(function(o){
+    b.disabled=false;
+    if(!o.ok){emErr((o.j&&o.j.error)||"Gagal memasukkan ke antrean");return}
+    var j=o.j,sk=j.skipped||[];
+    flash(j.added+" tempat masuk antrean"+(j.pending?" (menunggu persetujuan)":"")+(sk.length?", "+sk.length+" dilewati: "+sk.slice(0,2).map(function(s){return s.name+" ("+s.why+")"}).join("; "):""));
+    EM.whyAt=0;auLoad(false).then(renderMail);
+  }).catch(function(e){b.disabled=false;if(e!==0)emErr("Tidak bisa menghubungi server.")});
+};
 $("elist").addEventListener("change",function(e){
   var c=e.target;if(!c||c.type!=="checkbox")return;
   var id=c.getAttribute("data-id");
