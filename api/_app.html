@@ -1590,8 +1590,10 @@ function nxFindSaved(city,cn,kd,sr){
   var nk=nz(city);
   for(var i=0;i<ALLSEARCHED.length;i++){
     var m=ALLSEARCHED[i];if(m.kind!==kd||(m.source||"google")!==sr)continue;
-    var p=String(m.city||"").split(","),n=p.length>1?nz(p[p.length-1]):"";
-    if(nz(p[0])===nk&&nxSameCountry(n,cn))return m.city;
+    var p=String(m.city||"").split(","),h=nz(p[0]),n=p.length>1?nz(p[p.length-1]):"";
+    if(h===nk){if(nxSameCountry(n,cn))return m.city;continue}
+    // tanpa koma: "Atlanta USA", "Atlanta GA" (nama kota di depan, sisanya negara bagian atau negara)
+    if(h.indexOf(nk+" ")===0){var rest=h.slice(nk.length+1).trim();if(nxSameCountry(rest,cn)&&(!n||nxSameCountry(n,cn)))return m.city}
   }
   return"";
 }
@@ -1687,7 +1689,7 @@ async function run(force){
   if(!cn||!pl){loading(false);nxPreview();return say("err","Pilih negara dulu, lalu tekan Cari.")}
   if(!todo.length){loading(false);nxPreview();return say("info","Semua kota populer di "+esc(cn)+" sudah pernah dicari. Matikan centang lalu ketik kota lain, atau pilih negara atau jenis tempat lain.")}
   var n=Math.max(1,Math.min(10,parseInt($("nxn").value,10)||3));$("nxn").value=n;
-  var pick=todo.slice(0,n),acc=[],seen={},okc=0,names=[],stopped="",cont=[],sr0=$("source").value;
+  var pick=todo.slice(0,n),acc=[],seen={},okc=0,names=[],stopped="",cont=[],hid=0,sr0=$("source").value;
   BATCH=true;
   try{
     for(var i=0;i<pick.length;i++){
@@ -1704,16 +1706,16 @@ async function run(force){
       if(chs[i]){chs[i].classList.remove("cur");chs[i].classList.add(st==="fail"?"bad":"ok");if(st!=="fail")chs[i].firstChild.innerHTML=NXCHK}
       if(st==="fail"){stopped=pick[i];break}
       names.push(pick[i]);
-      if(st==="ok"){okc++;(fresh||rows).forEach(function(x){var k=x.id||(x.name+"|"+x.address);if(!seen[k]){seen[k]=1;x.grp=gname;acc.push(x)}})}
+      if(st==="ok"){okc++;(fresh||rows).forEach(function(x){var k=x.id||(x.name+"|"+x.address);if(!seen[k]){seen[k]=1;if(!fresh&&stOf(x)){hid++;return}x.grp=gname;acc.push(x)}})}
     }
   }finally{BATCH=false;loading(false)}
   // Hasil semua kota digabung di satu tabel (tiap kota juga tersimpan sendiri di Pencarian tersimpan)
-  if(okc>1||cont.length){
+  if(okc>1||cont.length||hid){
     rows=acc;lastQ=LABEL[kd]+" di "+names.join(", ")+" ("+cn+")";lastCountry=cn;sKey="";sDir=1;MORE=false;
     $("cinfo").hidden=true;$("status").innerHTML="";render();
   }
   try{await loadSearches()}catch(_){}
-  var msg=(stopped?"Berhenti di "+stopped+" karena gagal. ":"")+"Selesai: "+names.length+" kota ("+names.join(", ")+"). "+(cont.length?"Sudah pernah dicari, diambil tempat barunya: "+cont.join(", ")+". ":"");
+  var msg=(stopped?"Berhenti di "+stopped+" karena gagal. ":"")+"Selesai: "+names.length+" kota ("+names.join(", ")+"). "+(cont.length?"Sudah pernah dicari, diambil tempat barunya: "+cont.join(", ")+". ":"")+(hid?hid+" tempat yang sudah pernah dihubungi disembunyikan. ":"");
   nxPreview();ni.textContent=msg+ni.textContent;
 }
 async function runOne(force){
