@@ -865,6 +865,18 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
  #walist .mrow .stsel{grid-column:3;justify-self:start}
  #walist .mrow .btn{grid-column:1/-1;justify-content:center;height:40px;margin-top:4px}
 }
+/* Tab Email di layar kecil: tombol dan baris daftar tidak terpotong */
+.tools:has(#emq) .tbtns{flex-wrap:wrap}
+@media (max-width:760px){
+  .tools:has(#emq) .tbtns .ghost{flex:1 1 calc(50% - 4px);min-height:40px}
+  .tools:has(#emq) #emenq{flex:1 1 100%;background:var(--accsoft);border-color:var(--acc);color:var(--acc);font-weight:600}
+  #elist .mrow{flex-wrap:wrap;row-gap:6px;align-items:flex-start}
+  #elist .mrow input{margin-top:14px}
+  #elist .mrow span{flex:1 1 calc(100% - 92px)}
+  #elist .mrow b{white-space:normal;overflow:visible;line-height:1.25}
+  #elist .mrow em.mtag:first-of-type{margin-left:84px}
+  #elist .mrow .mtag{font-size:.72rem}
+}
 </style>
 </head>
 <body>
@@ -1023,6 +1035,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
       <select id="emst" class="sortsel" aria-label="Filter status prospek"><option value="baru" selected>Belum dihubungi</option><option value="all">Semua status</option><option value="chat">Sudah dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak cocok</option></select>
       <label class="chk"><input type="checkbox" id="emhide" checked> Sembunyikan yang sudah dikirimi atau kembar</label>
       <label class="chk"><input type="checkbox" id="emfree" checked> Hanya email Gmail, Yahoo, dll</label>
+      <label class="chk"><input type="checkbox" id="emnq"> Hanya yang belum masuk antrean</label>
       <div class="tbtns"><button class="ghost" id="emall" type="button">Pilih 20 pertama</button><button class="ghost" id="emnone" type="button">Kosongkan pilihan</button><button class="ghost" id="emenq" type="button" title="Masukkan yang dipilih (atau semua yang belum masuk antrean kalau tidak ada yang dipilih) ke Antrean persetujuan">Masukkan ke antrean</button></div>
     </div>
     <p class="info" id="eminfo"></p>
@@ -2299,7 +2312,8 @@ function leadByMail(e){e=String(e||"").toLowerCase();
   // Tempat yang tidak ada di pencarian aktif dan tidak punya status/catatan dicari juga di semua pencarian tersimpan (supaya foto & nama tetap muncul)
   return find(mailPool())||find(typeof WA!=="undefined"&&WA.all||[])}
 function mailView(){
-  EM.hidN=0;
+  EM.hidN=0;EM.allN=0;EM.qN=0;
+  var QI=queuedIds(),onlyNQ=$("emnq").checked;
   var q=$("emq").value.trim().toLowerCase(),fs=$("emst").value,hide=$("emhide").checked,free=$("emfree").checked;
   return mailPool().filter(function(x){
     if(q&&((x.name||"")+" "+(x.address||"")+" "+emailsOf(x).join(" ")).toLowerCase().indexOf(q)<0)return false;
@@ -2307,6 +2321,9 @@ function mailView(){
     if(hide&&EM.sent[x.id])return false;
     if(free&&!freeMail(x))return false;
     if(hide&&emBlocked(x)){EM.hidN++;return false}
+    EM.allN++;
+    if(QI[x.id])EM.qN++;
+    if(onlyNQ&&QI[x.id])return false;
     return true;
   });
 }
@@ -2373,7 +2390,11 @@ function renderMail(){
   }else{
     emWhyLoad();
     var QI=queuedIds(),nq=v.filter(function(x){return QI[x.id]}).length;
-    info.textContent=v.length+" tempat dengan email"+(nq?", "+nq+" di antaranya sudah ada di Antrean persetujuan (ditandai)":"")+(EM.hidN?". "+EM.hidN+" disembunyikan karena alamatnya sudah dikirimi atau kembar dengan tempat lain":"")+".";info.hidden=false;
+    var nn=EM.allN-EM.qN,pt=[EM.allN+" tempat dengan email",EM.qN+" sudah di antrean"];
+    pt.push(nn?nn+" belum masuk antrean":"semua sudah masuk antrean");
+    if(EM.hidN)pt.push(EM.hidN+" disembunyikan (alamat sudah dikirimi atau kembar)");
+    if($("emnq").checked)pt.push("menampilkan yang belum masuk antrean saja");
+    info.textContent=pt.join(" · ");info.hidden=false;
     list.innerHTML=v.map(function(x){
       var s=EM.sent[x.id],sc=ruleScore(x),why=sc.neg.concat(sc.why).slice(0,4),stt=s?"chat":(stOf(x)||"baru");
       return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+(why.length?" · "+esc(why.join(", ")):"")+(!QI[x.id]&&!s&&EM.why&&EM.why[x.id]?"<br><span style='color:#b45309'>Belum masuk antrean: "+esc(EM.why[x.id])+"</span>":"")+"</small></span><em class='mtag pl sc-"+aiCls(sc.s)+"'>skor "+sc.s+"</em>"+(QI[x.id]&&!s?"<em class='mtag pl'>Di antrean</em>":"")+(stt==="baru"?"":"<em class='mtag pl st-"+stt+"'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em>")+"</label>";
@@ -2563,7 +2584,7 @@ function emManual(force){
 }
 $("emmsend").onclick=function(){emManual(false)};
 $("emmt").onkeydown=$("emmn").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();emManual(false)}};
-$("emq").oninput=$("emst").onchange=$("emhide").onchange=$("emfree").onchange=renderMail;
+$("emq").oninput=$("emst").onchange=$("emhide").onchange=$("emfree").onchange=$("emnq").onchange=renderMail;
 $("emall").onclick=function(){EM.sel={};var QI=queuedIds();mailView().filter(function(x){return!QI[x.id]}).slice(0,emCap()).forEach(function(x){EM.sel[x.id]=true});renderMail()}; // lewati yang sudah di antrean supaya tidak terkirim dobel
 $("emnone").onclick=function(){EM.sel={};renderMail()};
 $("emenq").onclick=function(){
