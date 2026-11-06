@@ -2414,7 +2414,7 @@ function waRender(){
     var w=waOf(x);if(!w||(!ph&&w.src==="phone"))return false;
     if(se&&x.sk!==se)return false;
     var s=waStOf(x);
-    if(st!=="all"&&s!==st)return false;
+    if(st!=="all"&&s!==(st==="baru"?"":st))return false;
     if(q&&(x.name+" "+(x.address||"")).toLowerCase().indexOf(q)<0)return false;
     return true;
   }).sort(function(a,b){return(b.rating||0)-(a.rating||0)||(b.reviews||0)-(a.reviews||0)});
