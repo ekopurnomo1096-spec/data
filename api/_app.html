@@ -888,6 +888,8 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <div class="f"><label for="source">Sumber data</label>
       <select id="source"><option value="google">Google Maps (lengkap)</option><option value="osm">OpenStreetMap (gratis, tipis)</option></select></div>
     <button class="go" id="run"><span id="runtxt">Cari</span></button>
+    <label class="chk" id="nxwrap" style="grid-column:1/-1"><input type="checkbox" id="nxcity"> Cari kota baru dari daftar secara bergantian (bukan mengulang kota yang sama)</label>
+    <p class="hint2" id="nxinfo" style="grid-column:1/-1;margin:0" hidden></p>
   </div>
   </div>
   <div id="slot1"><div id="resbox">
@@ -1513,6 +1515,18 @@ function render(){
   $("res").hidden=false;
 }
 async function run(force){
+  if($("nxcity").checked&&force!==true){
+    // Kota diambil otomatis: berikutnya di daftar putaran kota yang belum pernah dicari untuk jenis dan sumber ini
+    var ni=$("nxinfo");
+    loading(true);
+    try{
+      var o=await auApi({action:"nextcity",kind:$("kind").value,source:$("source").value}),nj=o.j;
+      if(!o.ok)throw new Error(nj.error||"Gagal mengambil kota berikutnya");
+      if(!nj.city){loading(false);ni.hidden=false;ni.textContent="Semua kota di daftar sudah pernah dicari untuk jenis dan sumber ini. Tambah kota baru di Otomatis → Pengaturan → Putaran kota.";return say("info","Semua kota di daftar sudah pernah dicari. Tambah kota baru di daftar, atau pilih jenis tempat lain.")}
+      var pc=nj.city.split(",");$("city").value=nj.city;if(pc.length>1)$("country").value=pc[pc.length-1].trim();
+      ni.hidden=false;ni.textContent="Kota ini: "+nj.city+". Sisa "+Math.max(nj.left-1,0)+" kota di daftar"+(nj.next&&nj.next.length?". Berikutnya: "+nj.next.join(", "):"")+".";
+    }catch(e){loading(false);if(e===0)return;return say("err","Gagal mengambil kota berikutnya: "+esc(e.message||String(e)))}
+  }
   var city=$("city").value.trim(),kind=$("kind").value;
   if(!city){say("err","Tulis nama kota dulu, misalnya London atau Purwokerto.");$("city").focus();return}
   loading(true);
@@ -2876,25 +2890,11 @@ function auCfg(){
     +"<div class='aurow' style='margin-top:10px'>"+["salon","wig","beauty"].map(function(k){return"<label class='chk'><input type='checkbox' class='au_xk' value='"+k+"'"+(ro.kinds.indexOf(k)>-1?" checked":"")+"> "+L[k]+"</label>"}).join("")+"</div>"
     +"<div class='f' style='margin-top:10px'><label for='au_xc'>Daftar kota (Kota, Negara / baris)</label><textarea id='au_xc' rows='8' spellcheck='false'>"+esc((ro.cities||[]).join("\n"))+"</textarea></div>"
     +"<p class='hint2'>"+(rt?"Progres: <b>"+(rt.total-rt.left)+" dari "+rt.total+"</b> kombinasi kota dan jenis sudah dicari"+(rt.left&&rt.next&&rt.next.length?". Berikutnya: "+esc(rt.next.join(", ")):(rt.left?"":". Semua sudah dicari, tambahkan kota baru di daftar."))+".":"Simpan pengaturan dulu untuk melihat progres.")+"</p>"
-    +"<div class='aurow' style='margin-top:10px;align-items:center'><button type='button' class='btn' id='au_xrun'>Cari kota berikutnya sekarang</button><span class='hint2' id='au_xmsg' style='margin:0'></span></div>"
-    +"<p class='hint2'>Tombol di atas jalan manual, walau putaran otomatis mati. Memakai daftar kota yang sudah tersimpan, jadi klik Simpan pengaturan dulu kalau daftarnya baru diubah. Maks pencarian per klik mengikuti angka di atas.</p>"
     +"<p class='hint2'>Tiap jalan mengambil kota berikutnya yang belum dicari dan hanya menambah tempat baru. Memakai 1 kuota SerpApi per halaman (terpisah dari Cari ulang) dan dilewati jika sisa kuota di bawah batas. Halaman 2 dan 3 hanya diambil jika halaman sebelumnya semuanya tempat baru. Daftar kota bisa diubah. Tanpa centang jenis tempat, putaran tidak jalan.</p>");
   h+=auSec("Cari email",onoff(e.on),
     "<label class='chk'><input type='checkbox' id='au_eon'"+(e.on?" checked":"")+"> Cek website tempat baru untuk mencari email dan WhatsApp</label>"
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_em'>Maks website per jalan</label><input type='number' id='au_em' min='1' max='200' value='"+e.max+"'></div></div>");
   $("aucfg").innerHTML=h;
-  var xr=$("au_xrun");
-  if(xr)xr.onclick=function(){
-    if(AU.busy)return;
-    if(!confirm("Cari kota berikutnya sekarang? Ini memakai kuota SerpApi (1 per halaman)."))return;
-    var m=$("au_xmsg");AU.busy=true;auSwitch();xr.disabled=true;xr.setAttribute("aria-busy","true");m.textContent="Mencari… tunggu sampai 1 menit.";
-    function fin(t){AU.busy=false;auSwitch();xr.disabled=false;xr.setAttribute("aria-busy","false");m.textContent=t}
-    auApi({action:"run",job:"rotate"}).then(function(o){
-      if(!o.ok&&!o.j.jobs){fin(o.j.error||"Gagal menjalankan");return}
-      fin(o.j.paused?"Tidak berjalan: "+o.j.paused:auJobText("rotate",o.j.jobs&&o.j.jobs.rotate)||"Selesai");
-      auLoad(false);refreshAll();
-    }).catch(function(e){fin(e===0?"":"Tidak bisa menghubungi server. Cek lagi riwayat sebentar lagi.")});
-  };
   applyAuto();
   auSteps(m.steps);
   if($("au_sctest")){

@@ -114,6 +114,11 @@ module.exports = async (req, res) => {
       for (let i = 0; i < args.length; i += 200) await cmd(["HSET", J.QUEUE, ...args.slice(i, i + 200)]);
       return res.status(200).json({ ok: true, n });
     }
+    if (b.action === "nextcity") { // kota baru berikutnya dari daftar putaran kota, untuk pencarian manual
+      const kind = ["salon", "wig", "beauty"].includes(b.kind) ? b.kind : "salon", source = b.source === "osm" ? "osm" : "google";
+      const r = await J.nextCity(await J.getCfg(), kind, source);
+      return res.status(200).json(r);
+    }
     if (b.action === "run") {
       const job = ["all", "mail", "refresh", "rotate", "enrich", "queue", "intake"].includes(b.job) ? b.job : "all";
       const r = await J.runAuto({ jobs: job, src: "manual", base: M.baseUrl(req) });

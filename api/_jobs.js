@@ -320,17 +320,25 @@ async function rotInfo(cfg) {
   }
   return { total: rc.cities.length * rc.kinds.length, left: todo.length, todo };
 }
+// Kota berikutnya yang belum pernah dicari (untuk jenis dan sumber yang dipilih) dari daftar putaran kota. Dipakai tombol di Cari tempat (manual).
+async function nextCity(cfg, kind, source) {
+  const rc = cfg.rotate, done = await getRot(), meta = await hgetall(META), todo = [];
+  for (const city of rc.cities) {
+    const ck = places.cacheKey(city, kind, source);
+    if (!meta[ck] && !(source === "google" && done[ck])) todo.push(city);
+  }
+  return { total: rc.cities.length, left: todo.length, city: todo[0] || null, next: todo.slice(1, 3) };
+}
 async function jobRotate(cfg, ctx) {
   const rc = cfg.rotate;
   if (cfg.autosearch === false) return { skip: "cari tempat otomatis dimatikan" };
-  const manual = !!ctx.force && ctx.only === "rotate"; // tombol "Cari kota berikutnya sekarang": jalan walau putaran otomatis mati
-  if (!rc.on && !manual) return { skip: "mati" };
+  if (!rc.on) return { skip: "mati" };
   if (!rc.cities.length) return { skip: "daftar kota kosong" };
   const day = M.today();
   let usedRaw = null; try { usedRaw = await cmd(["HGET", AUTO, "rotday"]); } catch (e) { /* anggap 0 */ }
   const ud = usedRaw && parse(usedRaw);
   let usedToday = ud && ud.d === day ? Number(ud.n) || 0 : 0;
-  const room = manual ? rc.maxSearches : rc.maxSearches - usedToday; // manual: batas harian tidak menghalangi, tapi tetap maks pencarian per klik
+  const room = rc.maxSearches - usedToday;
   if (room <= 0) return { skip: "batas " + rc.maxSearches + " pencarian hari ini tercapai" };
   const info = await rotInfo(cfg);
   if (!info.todo.length) return { searches: 0, added: 0, left: 0, note: "semua kota di daftar sudah pernah dicari. Tambah kota baru di Pengaturan" };
@@ -671,7 +679,7 @@ async function runAuto(opts) {
     const fillOnly = opts.jobs === "intake" || opts.jobs === "queue"; // mengisi antrean setelah cari manual tetap jalan saat dijeda (tidak mengirim apa pun)
     if (why && !fillOnly) out.paused = why;
     else {
-      const ctx = { softEnd: t0 + budget, hardEnd: t0 + budget + 6000, base: opts.base || "", force: opts.src === "manual", only: opts.jobs, data: await loadData() };
+      const ctx = { softEnd: t0 + budget, hardEnd: t0 + budget + 6000, base: opts.base || "", force: opts.src === "manual", data: await loadData() };
       const want = j => opts.jobs === "all" || opts.jobs === j || (opts.jobs === "intake" && (j === "enrich" || j === "queue")); // intake = cari email lalu isi antrean (dipakai setelah cari manual)
       const guard = async (name, fn) => { try { out.jobs[name] = await fn(); } catch (e) { out.jobs[name] = { err: e.message }; } };
       if (want("mail")) await guard("mail", () => jobMailSend(cfg, ctx));
@@ -701,4 +709,4 @@ async function runAuto(opts) {
   return out;
 }
 
-module.exports = { scorePreview, rotInfo, QUEUE, SEQ, AUTO, LOCK, warmInfo, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, notifyAfter };
+module.exports = { scorePreview, rotInfo, nextCity, QUEUE, SEQ, AUTO, LOCK, warmInfo, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, notifyAfter };
