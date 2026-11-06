@@ -71,6 +71,7 @@ input::placeholder{color:var(--mute);opacity:.8}
 .nxchip i{font-style:normal;color:var(--mute);font-size:.78rem}
 .nxchip.cur{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
 .nxchip.ok{color:var(--acc);border-color:var(--acc)}
+.nxchip.ok i{background:var(--acc);color:var(--onacc)}
 .nxchip.bad{color:#b42318;border-color:#b42318}
 @media (min-width:901px){.form.nxon #run{grid-column:span 2}}
 .go{align-self:end;height:42px;background:var(--acc);color:var(--onacc);border:0;border-radius:8px;padding:0 22px;font:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px}
@@ -1567,6 +1568,7 @@ function render(){
   $("res").hidden=false;
 }
 var BATCH=false;
+var NXCHK="<svg width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round' aria-label='Selesai' role='img'><path d='M5 12.5l4.5 4.5L19 7.5'/></svg>";
 function nz(t){return String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim()}
 // Kota berikutnya yang belum dicari, dari daftar kota populer negara yang dipilih
 function nxTodo(){
@@ -1623,7 +1625,7 @@ async function run(force){
       var chs=$("nxchips").children;if(chs[i])chs[i].classList.add("cur");
       ni.textContent="Mencari kota "+(i+1)+" dari "+pick.length+": "+pick[i]+"…";
       var st=await runOne(false);
-      if(chs[i]){chs[i].classList.remove("cur");chs[i].classList.add(st==="fail"?"bad":"ok");if(st!=="fail")chs[i].firstChild.textContent="\u2713"}
+      if(chs[i]){chs[i].classList.remove("cur");chs[i].classList.add(st==="fail"?"bad":"ok");if(st!=="fail")chs[i].firstChild.innerHTML=NXCHK}
       if(st==="fail"){stopped=pick[i];break}
       names.push(pick[i]);
       if(st==="ok"){okc++;rows.forEach(function(x){var k=x.id||(x.name+"|"+x.address);if(!seen[k]){seen[k]=1;x.grp=pick[i];acc.push(x)}})}
