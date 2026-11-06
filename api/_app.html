@@ -1021,7 +1021,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <div class="tools">
       <input type="search" class="q" id="emq" placeholder="Cari nama, alamat, atau email" aria-label="Cari penerima">
       <select id="emst" class="sortsel" aria-label="Filter status prospek"><option value="baru" selected>Belum dihubungi</option><option value="all">Semua status</option><option value="chat">Sudah dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak cocok</option></select>
-      <label class="chk"><input type="checkbox" id="emhide" checked> Sembunyikan yang sudah dikirimi</label>
+      <label class="chk"><input type="checkbox" id="emhide" checked> Sembunyikan yang sudah dikirimi atau kembar</label>
       <label class="chk"><input type="checkbox" id="emfree" checked> Hanya email Gmail, Yahoo, dll</label>
       <div class="tbtns"><button class="ghost" id="emall" type="button">Pilih 20 pertama</button><button class="ghost" id="emnone" type="button">Kosongkan pilihan</button></div>
     </div>
@@ -2299,14 +2299,26 @@ function leadByMail(e){e=String(e||"").toLowerCase();
   // Tempat yang tidak ada di pencarian aktif dan tidak punya status/catatan dicari juga di semua pencarian tersimpan (supaya foto & nama tetap muncul)
   return find(mailPool())||find(typeof WA!=="undefined"&&WA.all||[])}
 function mailView(){
+  EM.hidN=0;
   var q=$("emq").value.trim().toLowerCase(),fs=$("emst").value,hide=$("emhide").checked,free=$("emfree").checked;
   return mailPool().filter(function(x){
     if(q&&((x.name||"")+" "+(x.address||"")+" "+emailsOf(x).join(" ")).toLowerCase().indexOf(q)<0)return false;
     if(fs!=="all"&&(stOf(x)||"baru")!==fs)return false;
     if(hide&&EM.sent[x.id])return false;
     if(free&&!freeMail(x))return false;
+    if(hide&&emBlocked(x)){EM.hidN++;return false}
     return true;
   });
+}
+// Sama ketatnya dengan Antrean persetujuan: alamat yang sudah pernah dikirimi (walau lewat listing lain), bisnis atau email kembar,
+// Daftar berhenti, dan domain email tidak valid disembunyikan. Alasannya dari server (action "why", lihat api/_jobs.js queueWhy).
+var EMBLOCK=/sudah pernah dikirimi|sudah ada di antrean|^bisnis sama|^email sama|Daftar berhenti|tanpa MX/;
+function emBlocked(x){
+  var w=EM.why&&EM.why[x.id];
+  if(w&&EMBLOCK.test(w))return true;
+  var m=String(pickMail(x)||"").toLowerCase();
+  if(m){var k=Object.keys(EM.sent);for(var i=0;i<k.length;i++){var t=EM.sent[k[i]];if(t&&String(t.to||"").toLowerCase()===m)return true}}
+  return false;
 }
 function selIds(){return Object.keys(EM.sel).filter(function(k){return EM.sel[k]})}
 function emErr(t){var e=$("emerr");e.textContent=t||"";e.hidden=!t;if(t)$("emwrite").open=true}
@@ -2361,7 +2373,7 @@ function renderMail(){
   }else{
     emWhyLoad();
     var QI=queuedIds(),nq=v.filter(function(x){return QI[x.id]}).length;
-    info.textContent=v.length+" tempat dengan email"+(nq?", "+nq+" di antaranya sudah ada di Antrean persetujuan (ditandai)":"")+".";info.hidden=false;
+    info.textContent=v.length+" tempat dengan email"+(nq?", "+nq+" di antaranya sudah ada di Antrean persetujuan (ditandai)":"")+(EM.hidN?". "+EM.hidN+" disembunyikan karena alamatnya sudah dikirimi atau kembar dengan tempat lain":"")+".";info.hidden=false;
     list.innerHTML=v.map(function(x){
       var s=EM.sent[x.id],sc=ruleScore(x),why=sc.neg.concat(sc.why).slice(0,4),stt=s?"chat":(stOf(x)||"baru");
       return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+(why.length?" · "+esc(why.join(", ")):"")+(!QI[x.id]&&!s&&EM.why&&EM.why[x.id]?"<br><span style='color:#b45309'>Belum masuk antrean: "+esc(EM.why[x.id])+"</span>":"")+"</small></span><em class='mtag pl sc-"+aiCls(sc.s)+"'>skor "+sc.s+"</em>"+(QI[x.id]&&!s?"<em class='mtag pl'>Di antrean</em>":"")+(stt==="baru"?"":"<em class='mtag pl st-"+stt+"'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em>")+"</label>";
