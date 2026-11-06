@@ -48,7 +48,6 @@ button:focus:not(:focus-visible),a:focus:not(:focus-visible){outline:none}
 .lm button:hover,.lm button.a{background:var(--ico)}
 .lm button.a{font-weight:700}
 @media(max-width:600px){.nav{padding-block:12px}.lg b{font-size:16px}}
-[dir=rtl] .lm{right:auto;left:0}
 .lm{max-height:60vh;overflow:auto}
 #home{width:100%;max-width:400px;margin:0 auto;padding:56px 16px 48px;text-align:center}
 .code{font-size:clamp(72px,22vw,104px);font-weight:600;line-height:1.1;letter-spacing:-2px;color:var(--text)}
@@ -61,8 +60,6 @@ h1{font-size:19px;font-weight:600}
 .ico svg{width:20px;height:20px;stroke:var(--icos);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .t{flex:1}
 .ch{width:16px;height:16px;stroke:var(--mute);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-[dir=rtl] .ch{transform:scaleX(-1)}
-[dir=rtl] .link{text-align:right}
 .f{margin-top:36px;font-size:11px;color:var(--mute)}
 .link:focus-visible,.lb:focus-visible,.lg:focus-visible{outline:2px solid var(--text);outline-offset:3px}
 @media (prefers-reduced-motion:reduce){.link{transition:none}.link:hover{transform:none}}
@@ -95,16 +92,15 @@ en:'<svg viewBox="0 0 24 24"><rect width="24" height="24" fill="#1e3a8a"/><path 
 it:'<svg viewBox="0 0 24 24"><rect width="24" height="24" fill="#fff"/><rect width="8" height="24" fill="#15803d"/><rect x="16" width="8" height="24" fill="#dc2626"/></svg>',
 es:'<svg viewBox="0 0 24 24"><rect width="24" height="24" fill="#c60b1e"/><rect y="6" width="24" height="12" fill="#ffc400"/></svg>',
 fr:'<svg viewBox="0 0 24 24"><rect width="24" height="24" fill="#fff"/><rect width="8" height="24" fill="#1d4ed8"/><rect x="16" width="8" height="24" fill="#dc2626"/></svg>',
-ar:'<svg viewBox="0 0 24 24"><rect width="24" height="24" fill="#15803d"/><rect x="5" y="15" width="14" height="2" rx="1" fill="#fff"/><rect x="8" y="8" width="8" height="2" rx="1" fill="#fff"/></svg>',
 de:'<svg viewBox="0 0 24 24"><rect width="24" height="8" fill="#111"/><rect y="8" width="24" height="8" fill="#dd0000"/><rect y="16" width="24" height="8" fill="#ffce00"/></svg>',
 ru:'<svg viewBox="0 0 24 24"><rect width="24" height="8" fill="#fff"/><rect y="8" width="24" height="8" fill="#1c57a5"/><rect y="16" width="24" height="8" fill="#d52b1e"/></svg>'};
-var LN={en:"English",id:"Indonesia",it:"Italiano",es:"Español",fr:"Français",ar:"العربية",de:"Deutsch",ru:"Русский"};
-var T={"en": ["Page not found", "This link is invalid or no longer available.", "Back to Home", "Shop Wholesale", "Toggle dark / light mode", "© 2026 EMAHAIRSHOP. All rights reserved."], "id": ["Halaman tidak ditemukan", "Tautan tidak valid atau sudah tidak tersedia.", "Kembali ke Beranda", "Belanja Grosir", "Ganti mode gelap / terang", "© 2026 EMAHAIRSHOP. Seluruh hak cipta dilindungi."], "it": ["Pagina non trovata", "Link non valido o non più disponibile.", "Torna alla Home", "Acquista all'ingrosso", "Passa alla modalità scura / chiara", "© 2026 EMAHAIRSHOP. Tutti i diritti riservati."], "es": ["Página no encontrada", "Enlace no válido o ya no disponible.", "Volver al inicio", "Comprar al por mayor", "Cambiar modo oscuro / claro", "© 2026 EMAHAIRSHOP. Todos los derechos reservados."], "fr": ["Page introuvable", "Lien invalide ou plus disponible.", "Retour à l'accueil", "Acheter en gros", "Basculer mode sombre / clair", "© 2026 EMAHAIRSHOP. Tous droits réservés."], "ar": ["الصفحة غير موجودة", "الرابط غير صالح أو لم يعد متاحًا.", "العودة إلى الرئيسية", "تسوّق بالجملة", "تبديل الوضع الداكن / الفاتح", "© 2026 EMAHAIRSHOP. جميع الحقوق محفوظة."], "de": ["Seite nicht gefunden", "Ungültiger Link oder nicht mehr verfügbar.", "Zurück zur Startseite", "Großhandel shoppen", "Dunkel- / Hellmodus umschalten", "© 2026 EMAHAIRSHOP. Alle Rechte vorbehalten."], "ru": ["Страница не найдена", "Ссылка недействительна или недоступна.", "На главную", "Оптовые покупки", "Переключить тёмный / светлый режим", "© 2026 EMAHAIRSHOP. Все права защищены."]};
+var LN={en:"English",id:"Indonesia",it:"Italiano",es:"Español",fr:"Français",de:"Deutsch",ru:"Русский"};
+var T={"en": ["Page not found", "This link is invalid or no longer available.", "Back to Home", "Shop Wholesale", "Toggle dark / light mode", "© 2026 EMAHAIRSHOP. All rights reserved."], "id": ["Halaman tidak ditemukan", "Tautan tidak valid atau sudah tidak tersedia.", "Kembali ke Beranda", "Belanja Grosir", "Ganti mode gelap / terang", "© 2026 EMAHAIRSHOP. Seluruh hak cipta dilindungi."], "it": ["Pagina non trovata", "Link non valido o non più disponibile.", "Torna alla Home", "Acquista all'ingrosso", "Passa alla modalità scura / chiara", "© 2026 EMAHAIRSHOP. Tutti i diritti riservati."], "es": ["Página no encontrada", "Enlace no válido o ya no disponible.", "Volver al inicio", "Comprar al por mayor", "Cambiar modo oscuro / claro", "© 2026 EMAHAIRSHOP. Todos los derechos reservados."], "fr": ["Page introuvable", "Lien invalide ou plus disponible.", "Retour à l'accueil", "Acheter en gros", "Basculer mode sombre / clair", "© 2026 EMAHAIRSHOP. Tous droits réservés."], "de": ["Seite nicht gefunden", "Ungültiger Link oder nicht mehr verfügbar.", "Zurück zur Startseite", "Großhandel shoppen", "Dunkel- / Hellmodus umschalten", "© 2026 EMAHAIRSHOP. Alle Rechte vorbehalten."], "ru": ["Страница не найдена", "Ссылка недействительна или недоступна.", "На главную", "Оптовые покупки", "Переключить тёмный / светлый режим", "© 2026 EMAHAIRSHOP. Все права защищены."]};
 function applyLang(){
 var d=T[LG]||T.en;
 document.querySelectorAll("[data-i]").forEach(function(e){e.textContent=d[+e.dataset.i]});
 document.querySelectorAll("[data-a]").forEach(function(e){e.setAttribute("aria-label",d[+e.dataset.a])});
-R.lang=LG;R.dir=LG==="ar"?"rtl":"ltr";document.title="EMAHAIRSHOP | "+d[0];
+R.lang=LG;R.dir="ltr";document.title="EMAHAIRSHOP | "+d[0];
 document.getElementById("lf").innerHTML=FL[LG];
 document.getElementById("lc").textContent=LG.toUpperCase();
 document.querySelectorAll("#lmn button").forEach(function(b){b.classList.toggle("a",b.dataset.l===LG)})}
