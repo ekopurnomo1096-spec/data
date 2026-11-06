@@ -888,7 +888,10 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <div class="f"><label for="source">Sumber data</label>
       <select id="source"><option value="google">Google Maps (lengkap)</option><option value="osm">OpenStreetMap (gratis, tipis)</option></select></div>
     <button class="go" id="run"><span id="runtxt">Cari</span></button>
-    <label class="chk" id="nxwrap" style="grid-column:1/-1"><input type="checkbox" id="nxcity"> Cari kota baru di negara ini secara bergantian (bukan mengulang kota yang sama)</label>
+    <div style="grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center">
+      <label class="chk" id="nxwrap"><input type="checkbox" id="nxcity"> Cari kota baru di negara ini secara bergantian (bukan mengulang kota yang sama)</label>
+      <label class="chk" id="nxnwrap" style="display:none">Jumlah kota sekali cari <input type="number" id="nxn" min="1" max="10" value="3" style="width:70px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surf);font:inherit;color:inherit"></label>
+    </div>
     <p class="hint2" id="nxinfo" style="grid-column:1/-1;margin:0" hidden></p>
   </div>
   </div>
@@ -1514,40 +1517,66 @@ function render(){
   $("morebox").hidden=!(MORE&&lastQ!=="Prospek saya");
   $("res").hidden=false;
 }
+var BATCH=false;
+function nz(t){return String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim()}
+$("nxcity").addEventListener("change",function(){
+  $("nxnwrap").style.display=this.checked?"flex":"none";
+  var ni=$("nxinfo");ni.hidden=!this.checked;
+  if(this.checked)ni.textContent="Tiap kota memakai 1 kuota SerpApi (Google Maps). Kota diambil berurutan dari daftar kota populer negara yang dipilih, yang belum pernah dicari.";
+});
 async function run(force){
-  if($("nxcity").checked&&force!==true){
-    // Kota diambil otomatis dari "Kota populer" negara yang dipilih: kota berikutnya yang belum pernah dicari untuk jenis dan sumber ini
-    var ni=$("nxinfo"),cn=$("country").value.trim(),pl=POPULAR_CITIES[cn];
-    if(!cn||!pl){ni.hidden=false;ni.textContent="Pilih negara dulu (yang punya daftar kota populer).";return say("err","Pilih negara dulu, lalu tekan Cari.")}
-    loading(true);
-    try{await loadSearches()}catch(_){}
-    var kd=$("kind").value,sr=$("source").value;
-    function nz(t){return String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim()}
-    var ncn=nz(cn);
-    // Sudah dicari = ada di Pencarian tersimpan (jenis dan sumber sama), nama kota sama (tanpa aksen) dan negaranya cocok kalau tertulis
-    var done=SAVED.filter(function(m){return m.kind===kd&&(m.source||"google")===sr}).map(function(m){var p=String(m.city||"").split(",");return{c:nz(p[0]),n:p.length>1?nz(p[p.length-1]):""}});
-    var todo=pl.filter(function(k){var nk=nz(k);return!done.some(function(d){return d.c===nk&&(!d.n||d.n===ncn)})});
-    if(!todo.length){loading(false);ni.hidden=false;ni.textContent="Semua "+pl.length+" kota populer di "+cn+" sudah pernah dicari untuk jenis dan sumber ini.";return say("info","Semua kota populer di "+esc(cn)+" sudah pernah dicari. Ketik kota lain di kolom Kota yang dicari, atau pilih negara atau jenis tempat lain.")}
-    $("city").value=todo[0]+", "+cn;
-    ni.hidden=false;ni.textContent="Kota ini: "+todo[0]+". Sisa "+(todo.length-1)+" dari "+pl.length+" kota populer di "+cn+(todo.length>1?". Berikutnya: "+todo.slice(1,3).join(", "):"")+".";
+  if(!$("nxcity").checked||force===true)return runOne(force);
+  if(BATCH)return;
+  var ni=$("nxinfo"),cn=$("country").value.trim(),pl=POPULAR_CITIES[cn];
+  ni.hidden=false;
+  if(!cn||!pl){ni.textContent="Pilih negara dulu (yang punya daftar kota populer).";return say("err","Pilih negara dulu, lalu tekan Cari.")}
+  loading(true);
+  try{await loadSearches()}catch(_){}
+  var kd=$("kind").value,sr=$("source").value,ncn=nz(cn);
+  // Sudah dicari = ada di Pencarian tersimpan (jenis dan sumber sama), nama kota sama (tanpa aksen) dan negaranya cocok kalau tertulis
+  var done=SAVED.filter(function(m){return m.kind===kd&&(m.source||"google")===sr}).map(function(m){var p=String(m.city||"").split(",");return{c:nz(p[0]),n:p.length>1?nz(p[p.length-1]):""}});
+  var todo=pl.filter(function(k){var nk=nz(k);return!done.some(function(d){return d.c===nk&&(!d.n||d.n===ncn)})});
+  if(!todo.length){loading(false);ni.textContent="Semua "+pl.length+" kota populer di "+cn+" sudah pernah dicari untuk jenis dan sumber ini.";return say("info","Semua kota populer di "+esc(cn)+" sudah pernah dicari. Ketik kota lain di kolom Kota yang dicari (matikan centang), atau pilih negara atau jenis tempat lain.")}
+  var n=Math.max(1,Math.min(10,parseInt($("nxn").value,10)||3));$("nxn").value=n;
+  var pick=todo.slice(0,n),acc=[],seen={},okc=0,names=[],stopped="";
+  BATCH=true;
+  try{
+    for(var i=0;i<pick.length;i++){
+      $("city").value=pick[i]+", "+cn;
+      ni.textContent="Mencari kota "+(i+1)+" dari "+pick.length+": "+pick[i]+"…";
+      var st=await runOne(false);
+      if(st==="fail"){stopped=pick[i];break}
+      names.push(pick[i]);
+      if(st==="ok"){okc++;rows.forEach(function(x){var k=x.id||(x.name+"|"+x.address);if(!seen[k]){seen[k]=1;acc.push(x)}})}
+    }
+  }finally{BATCH=false;loading(false)}
+  // Hasil semua kota digabung di satu tabel (tiap kota juga tersimpan sendiri di Pencarian tersimpan)
+  if(okc>1){
+    rows=acc;lastQ=LABEL[kd]+" di "+names.join(", ")+" ("+cn+")";lastCountry=cn;sKey="";sDir=1;MORE=false;
+    $("cinfo").hidden=true;$("status").innerHTML="";render();
   }
+  ni.textContent=(stopped?"Berhenti di "+stopped+" karena gagal. ":"")+"Selesai: "+names.length+" kota ("+names.join(", ")+"). Sisa "+Math.max(todo.length-names.length,0)+" dari "+pl.length+" kota populer di "+cn+". Tekan Cari lagi untuk kota berikutnya.";
+}
+async function runOne(force){
   var city=$("city").value.trim(),kind=$("kind").value;
-  if(!city){say("err","Tulis nama kota dulu, misalnya London atau Purwokerto.");$("city").focus();return}
+  if(!city){say("err","Tulis nama kota dulu, misalnya London atau Purwokerto.");$("city").focus();return"fail"}
   loading(true);
   try{
     var r=await fetch("/api/places?city="+encodeURIComponent(city)+"&kind="+kind+"&source="+$("source").value+(force===true?"&refresh=1":""),{}),tx=await r.text(),j;
-    if(r.status===401){loading(false);return showLogin("Sesi habis, silakan masuk lagi.")}
+    if(r.status===401){loading(false);showLogin("Sesi habis, silakan masuk lagi.");return"fail"}
     try{j=JSON.parse(tx)}catch(x){throw new Error("server membalas error ("+r.status+"). Cek Logs di dashboard Vercel.")}
     if(!r.ok)throw new Error(j.error||"Gagal");
     rows=j.results;hydrate(rows);lastDupes=j.dupes||0;loading(false);serpSwitched(j);if($("source").value!=="osm"&&!j.cached)usageAfterSearch();
-    if(!rows.length)return say("info","Tidak ada data "+LABEL[kind]+" di "+esc(city)+" dari sumber ini. Coba kota lain, jenis tempat lain, atau ganti sumber data.");
+    if(!rows.length){say("info","Tidak ada data "+LABEL[kind]+" di "+esc(city)+" dari sumber ini. Coba kota lain, jenis tempat lain, atau ganti sumber data.");return"empty"}
     lastQ=LABEL[kind]+" di "+city;lastCountry=$("country").value;sKey="";sDir=1;
     MORE=!!j.more&&$("source").value!=="osm";NEXT=j.next||20;mCity=city;mKind=kind;
     setCinfo(j);render();if(!j.cached)loadSearches();
     fillQueue("intake"); // cek email website tempat baru, lalu isi Antrean persetujuan
+    return"ok";
   }catch(e){loading(false);var m=e.message.replace(/\.$/,"");
     if(/Pengaturan/.test(m)){say("err",esc(m)+". <button class='ghost' id='goset' type='button'>Buka Pengaturan</button>");$("goset").onclick=openSet}
-    else say("err","Pencarian gagal: "+esc(m)+". Server peta gratis kadang sibuk, jadi coba lagi beberapa saat.")}
+    else say("err","Pencarian gagal: "+esc(m)+". Server peta gratis kadang sibuk, jadi coba lagi beberapa saat.");
+    return"fail"}
 }
 $("more").onclick=async function(){
   var b=this,h=$("morehint");
@@ -1586,7 +1615,7 @@ var SVKEY=null;
 function tabPath(n){return"/"+((String(n)==="3"&&SVKEY&&!$("svres").hidden)?sid(SVKEY):(HN[n]||n))}
 function openSavedSearch(m){
   $("city").value=m.city;$("kind").value=m.kind;$("source").value=m.source;
-  placeRes(3);run(false);SVKEY=m.key;
+  placeRes(3);runOne(false);SVKEY=m.key;
   try{history.replaceState(null,"","/"+sid(m.key))}catch(e){}
 }
 var resHome=1;
