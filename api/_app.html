@@ -72,6 +72,7 @@ input::placeholder{color:var(--mute);opacity:.8}
 .nxchip.cur{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
 .nxchip.ok{color:var(--acc);border-color:var(--acc)}
 .nxchip.ok i{background:var(--acc);color:var(--onacc)}
+.nxchip i svg{width:11px;height:11px;margin:0;vertical-align:0;color:inherit}
 .nxchip.bad{color:#b42318;border-color:#b42318}
 @media (min-width:901px){.form.nxon #run{grid-column:span 2}}
 .go{align-self:end;height:42px;background:var(--acc);color:var(--onacc);border:0;border-radius:8px;padding:0 22px;font:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px}
@@ -1567,10 +1568,60 @@ function render(){
   $("morebox").hidden=!(MORE&&lastQ!=="Prospek saya");
   $("res").hidden=false;
 }
-var BATCH=false;
+var BATCH=false,NEWONLY=null;
 var NXCHK="<svg width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round' aria-label='Selesai' role='img'><path d='M5 12.5l4.5 4.5L19 7.5'/></svg>";
 function nz(t){return String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim()}
 // Kota berikutnya yang belum dicari, dari daftar kota populer negara yang dipilih
+// Akhiran nama kota ("Miami, FL", "Miami, USA", "Miami, Florida") dianggap negara yang sama kecuali
+// jelas-jelas nama negara lain. Dulu hanya "Miami, United States" persis yang dikenali, jadi kota yang
+// pernah dicari dengan tulisan lain dianggap belum dicari dan memakai kuota lagi.
+var NXALIAS={"united states":["usa","us","u.s.","u.s.a.","america","united states of america"],"united kingdom":["uk","u.k.","great britain","england","scotland","wales"],"united arab emirates":["uae"]};
+function nxSameCountry(n,cn){
+  if(!n)return true;
+  var ncn=nz(cn);
+  if(n===ncn)return true;
+  if((NXALIAS[ncn]||[]).indexOf(n)>-1)return true;
+  var code=COUNTRY_CODES[cn];if(code&&n===nz(code))return true;
+  for(var i=0;i<COUNTRY_NAMES.length;i++)if(nz(COUNTRY_NAMES[i])===n)return false; // nama negara lain
+  return true; // negara bagian / provinsi (Florida, FL, Texas, ...)
+}
+// Pencarian tersimpan untuk kota ini (tulisan apa pun: "Miami, FL", "Miami, USA", ...), supaya tidak dicari ulang dari halaman 1
+function nxFindSaved(city,cn,kd,sr){
+  var nk=nz(city);
+  for(var i=0;i<ALLSEARCHED.length;i++){
+    var m=ALLSEARCHED[i];if(m.kind!==kd||(m.source||"google")!==sr)continue;
+    var p=String(m.city||"").split(","),n=p.length>1?nz(p[p.length-1]):"";
+    if(nz(p[0])===nk&&nxSameCountry(n,cn))return m.city;
+  }
+  return"";
+}
+// Ambil 20 tempat berikutnya untuk kota yang sedang aktif (mCity/NEXT), sama seperti tombol "Muat 20 lagi"
+async function nxMore(){
+  try{
+    var r=await fetch("/api/places?city="+encodeURIComponent(mCity)+"&kind="+mKind+"&source=google&start="+NEXT),tx=await r.text(),j;
+    if(r.status===401){showLogin("Sesi habis, silakan masuk lagi.");return null}
+    try{j=JSON.parse(tx)}catch(x){return null}
+    if(!r.ok)return null;
+    rows=j.results;hydrate(rows);lastDupes=j.dupes||0;serpSwitched(j);usageAfterSearch();
+    MORE=!!j.more;NEXT=j.next||NEXT+20;
+    if(j.added>0)fillQueue("intake");
+    return j;
+  }catch(e){return null}
+}
+// Lanjutkan kota yang sudah pernah dicari: cek simpanan saja (gratis, tanpa kuota) hanya untuk tahu halaman berikutnya,
+// lalu ambil halaman itu (1 kuota). Halaman yang sama tidak pernah diambil dua kali.
+async function nxContinue(sv,kd){
+  mCity=sv;mKind=kd;NEXT=20;
+  try{
+    var r=await fetch("/api/places?city="+encodeURIComponent(sv)+"&kind="+kd+"&source=google&cacheonly=1");
+    if(r.status===401){showLogin("Sesi habis, silakan masuk lagi.");return{st:"fail",fresh:[]}}
+    var j=await r.json();
+    if(j&&!j.empty){ if(!j.more)return{st:"ok",fresh:[]}; NEXT=j.next||20 }
+  }catch(e){return{st:"fail",fresh:[]}}
+  var jm=await nxMore();
+  if(!jm)return{st:"fail",fresh:[]};
+  return{st:"ok",fresh:jm.added>0?rows.slice(-jm.added):[]};
+}
 function nxTodo(){
   var cn=$("country").value.trim(),pl=POPULAR_CITIES[cn];
   if(!cn||!pl)return{cn:cn,pl:null,todo:[]};
@@ -1607,8 +1658,27 @@ function nxPreview(){
 $("nxcity").addEventListener("change",function(){if(!this.checked)$("city").value="";nxPreview();if(this.checked){var r=loadSearches();if(r&&r.then)r.then(function(){if($("nxcity").checked&&!BATCH)nxPreview()})}});
 ["country","kind","source","nxn"].forEach(function(id){["input","change"].forEach(function(ev){$(id).addEventListener(ev,function(){if($("nxcity").checked&&!BATCH)nxPreview()})})});
 async function run(force){
-  if(!$("nxcity").checked||force===true)return runOne(force);
   if(BATCH)return;
+  if(!$("nxcity").checked||force===true){
+    // Kota yang diketik sudah pernah dicari: langsung ambil tempat baru (halaman berikutnya), jangan tampilkan hasil lama
+    var typed=$("city").value.trim(),kd1=$("kind").value,sr1=$("source").value;
+    if(force!==true&&typed&&sr1!=="osm"){
+      try{await loadSearches()}catch(_){}
+      var sv1=nxFindSaved(typed.split(",")[0],$("country").value.trim(),kd1,sr1);
+      if(sv1){
+        loading(true);
+        var cr1=await nxContinue(sv1,kd1);
+        loading(false);
+        if(cr1.st==="fail")return say("err","Pencarian gagal. Coba lagi beberapa saat.");
+        if(!cr1.fresh.length){MORE=false;$("morebox").hidden=true;return say("info",esc(sv1)+" sudah pernah dicari dan tidak ada tempat baru lagi. Coba kota lain.")}
+        NEWONLY=cr1.fresh.slice();rows=NEWONLY;lastDupes=0;
+        lastQ=LABEL[kd1]+" di "+sv1+" (tempat baru)";lastCountry=$("country").value;sKey="";sDir=1;
+        $("cinfo").hidden=true;$("status").innerHTML="";render();
+        return;
+      }
+    }
+    return runOne(force);
+  }
   var ni=$("nxinfo");
   loading(true);
   try{await loadSearches()}catch(_){}
@@ -1617,27 +1687,33 @@ async function run(force){
   if(!cn||!pl){loading(false);nxPreview();return say("err","Pilih negara dulu, lalu tekan Cari.")}
   if(!todo.length){loading(false);nxPreview();return say("info","Semua kota populer di "+esc(cn)+" sudah pernah dicari. Matikan centang lalu ketik kota lain, atau pilih negara atau jenis tempat lain.")}
   var n=Math.max(1,Math.min(10,parseInt($("nxn").value,10)||3));$("nxn").value=n;
-  var pick=todo.slice(0,n),acc=[],seen={},okc=0,names=[],stopped="";
+  var pick=todo.slice(0,n),acc=[],seen={},okc=0,names=[],stopped="",cont=[],sr0=$("source").value;
   BATCH=true;
   try{
     for(var i=0;i<pick.length;i++){
-      $("city").value=pick[i]+", "+cn;
+      var sv=nxFindSaved(pick[i],cn,kd,sr0),isCont=!!sv,gname=pick[i];
+      $("city").value=sv||(pick[i]+", "+cn);
       var chs=$("nxchips").children;if(chs[i])chs[i].classList.add("cur");
-      ni.textContent="Mencari kota "+(i+1)+" dari "+pick.length+": "+pick[i]+"…";
-      var st=await runOne(false);
+      ni.textContent=(isCont?"Kota "+(i+1)+" dari "+pick.length+": "+pick[i]+" sudah pernah dicari, mengambil tempat baru…":"Mencari kota "+(i+1)+" dari "+pick.length+": "+pick[i]+"…");
+      var st,fresh=null;
+      if(isCont&&sr0!=="osm"){
+        // Kota ini sudah pernah dicari: langsung ambil halaman berikutnya (tempat baru), tanpa mengulang halaman 1.
+        var cr=await nxContinue(sv,kd);st=cr.st;fresh=cr.fresh;
+        if(st==="ok"){gname=pick[i]+" (tempat baru)";cont.push(pick[i]+" ("+fresh.length+" baru)")}
+      }else st=await runOne(false);
       if(chs[i]){chs[i].classList.remove("cur");chs[i].classList.add(st==="fail"?"bad":"ok");if(st!=="fail")chs[i].firstChild.innerHTML=NXCHK}
       if(st==="fail"){stopped=pick[i];break}
       names.push(pick[i]);
-      if(st==="ok"){okc++;rows.forEach(function(x){var k=x.id||(x.name+"|"+x.address);if(!seen[k]){seen[k]=1;x.grp=pick[i];acc.push(x)}})}
+      if(st==="ok"){okc++;(fresh||rows).forEach(function(x){var k=x.id||(x.name+"|"+x.address);if(!seen[k]){seen[k]=1;x.grp=gname;acc.push(x)}})}
     }
   }finally{BATCH=false;loading(false)}
   // Hasil semua kota digabung di satu tabel (tiap kota juga tersimpan sendiri di Pencarian tersimpan)
-  if(okc>1){
+  if(okc>1||cont.length){
     rows=acc;lastQ=LABEL[kd]+" di "+names.join(", ")+" ("+cn+")";lastCountry=cn;sKey="";sDir=1;MORE=false;
     $("cinfo").hidden=true;$("status").innerHTML="";render();
   }
   try{await loadSearches()}catch(_){}
-  var msg=(stopped?"Berhenti di "+stopped+" karena gagal. ":"")+"Selesai: "+names.length+" kota ("+names.join(", ")+"). ";
+  var msg=(stopped?"Berhenti di "+stopped+" karena gagal. ":"")+"Selesai: "+names.length+" kota ("+names.join(", ")+"). "+(cont.length?"Sudah pernah dicari, diambil tempat barunya: "+cont.join(", ")+". ":"");
   nxPreview();ni.textContent=msg+ni.textContent;
 }
 async function runOne(force){
@@ -1649,7 +1725,7 @@ async function runOne(force){
     if(r.status===401){loading(false);showLogin("Sesi habis, silakan masuk lagi.");return"fail"}
     try{j=JSON.parse(tx)}catch(x){throw new Error("server membalas error ("+r.status+"). Cek Logs di dashboard Vercel.")}
     if(!r.ok)throw new Error(j.error||"Gagal");
-    rows=j.results;hydrate(rows);lastDupes=j.dupes||0;loading(false);serpSwitched(j);if($("source").value!=="osm"&&!j.cached)usageAfterSearch();
+    NEWONLY=null;rows=j.results;hydrate(rows);lastDupes=j.dupes||0;loading(false);serpSwitched(j);if($("source").value!=="osm"&&!j.cached)usageAfterSearch();
     if(!rows.length){say("info","Tidak ada data "+LABEL[kind]+" di "+esc(city)+" dari sumber ini. Coba kota lain, jenis tempat lain, atau ganti sumber data.");return"empty"}
     lastQ=LABEL[kind]+" di "+city;lastCountry=$("country").value;sKey="";sDir=1;
     MORE=!!j.more&&$("source").value!=="osm";NEXT=j.next||20;mCity=city;mKind=kind;
@@ -1670,7 +1746,9 @@ $("more").onclick=async function(){
     if(r.status===401)return showLogin("Sesi habis, silakan masuk lagi.");
     try{j=JSON.parse(tx)}catch(x){throw new Error("server membalas error ("+r.status+")")}
     if(!r.ok)throw new Error(j.error||"Gagal");
-    rows=j.results;hydrate(rows);lastDupes=j.dupes||0;serpSwitched(j);usageAfterSearch();
+    hydrate(j.results);
+    if(NEWONLY){if(j.added>0)NEWONLY=NEWONLY.concat(j.results.slice(-j.added));rows=NEWONLY}else rows=j.results;
+    lastDupes=j.dupes||0;serpSwitched(j);usageAfterSearch();
     MORE=!!j.more;NEXT=j.next||NEXT+20;
     render();
     if(j.added>0)fillQueue("intake");
