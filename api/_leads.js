@@ -79,4 +79,4 @@ function sanitizeLead(l) {
   return o;
 }
 
-module.exports = { STATUSES, dedupe, sanitizeLead };
+module.exports = { STATUSES, dedupe, sanitizeLead, placeKey };

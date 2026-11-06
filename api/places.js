@@ -2,8 +2,8 @@
 const { isAuthed } = require("./_auth");
 const { getKey, dbConfigured, cmd } = require("./_store");
 const { pickSerp, switchAfterError, EXHAUSTED } = require("./_serp");
-const { dedupe } = require("./_leads");
-const CACHE = "hairleads:cache", META = "hairleads:cmeta";
+const { dedupe, placeKey } = require("./_leads");
+const CACHE = "hairleads:cache", META = "hairleads:cmeta", PLACEIDX = "hairleads:placeidx";
 const FILTERS = {
   salon: 'nwr["shop"="hairdresser"]',
   beauty: 'nwr["shop"~"beauty|cosmetics"]',
@@ -160,6 +160,38 @@ function cacheKey(city, kind, source) {
   return (source === "osm" ? "osm" : "google") + "|" + (FILTERS[kind] ? kind : "salon") + "|" + String(city || "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+// Buang tempat yang place_id-nya (Google/OSM) sama dengan tempat yang sudah "dimiliki" pencarian kota
+// lain, untuk kombinasi jenis+sumber yang sama. Tanpa ini, dedupe() di atas hanya bekerja di dalam satu
+// kota saja, jadi tempat yang sama bisa nampak dobel kalau kebetulan muncul di dua kota berbeda (misal
+// cabang dekat perbatasan kota, atau Google menandainya masuk dua kota). Kota yang lebih dulu mencari
+// dan menemukan sebuah tempat tetap "memilikinya"; kota berikutnya yang menemukan tempat yang sama
+// tidak menampilkannya lagi. Tempat tanpa place_id asli (id-nya ditebak dari nama+alamat) dilewati,
+// karena alamatnya sudah pasti khas per kota jadi risiko tabrakan lintas kota kecil.
+async function crossCityDedupe(list, kind, source, ckey) {
+  const gkOf = r => { const pk = placeKey(r.osm); return pk ? kind + "|" + source + "|" + pk : ""; };
+  const gks = [...new Set(list.map(gkOf).filter(Boolean))];
+  if (!gks.length) return { list, removed: 0 };
+  let owners;
+  try { owners = await cmd(["HMGET", PLACEIDX, ...gks]); }
+  catch (e) { return { list, removed: 0 }; } // Redis bermasalah: lewati pengecekan, jangan gagalkan pencarian
+  const ownerOf = {};
+  gks.forEach((gk, i) => { ownerOf[gk] = owners[i] || ""; });
+  const keep = [], toRegister = [], seen = new Set();
+  let removed = 0;
+  for (const r of list) {
+    const gk = gkOf(r);
+    if (!gk) { keep.push(r); continue; }
+    const owner = ownerOf[gk];
+    if (owner && owner !== ckey) { removed++; continue; } // sudah dimiliki kota lain: buang
+    keep.push(r);
+    if (!owner && !seen.has(gk)) { seen.add(gk); toRegister.push(gk, ckey); }
+  }
+  if (toRegister.length) {
+    try { await cmd(["HSET", PLACEIDX, ...toRegister]); } catch (e) { /* gagal daftar tidak fatal, coba lagi pencarian berikutnya */ }
+  }
+  return { list: keep, removed };
+}
+
 // Inti pencarian, dipakai rute di bawah dan pekerjaan otomatis (_jobs.js).
 // q: {city, kind, source:"google"|"osm", start, refresh}. opts.merge: pencarian baru digabung ke hasil tersimpan (bukan menggantikan).
 // Melempar Error (dengan properti status kalau perlu) kalau gagal.
@@ -228,6 +260,14 @@ async function searchCore(q, opts) {
   const d = dedupe(prev.concat(results));
   results = d.list;
   d.dupes += prevDupes;
+  // Lintas kota: buang tempat yang sudah dimiliki pencarian kota lain (lihat crossCityDedupe di atas)
+  if (dbConfigured() && results.length) {
+    try {
+      const cc = await crossCityDedupe(results, kind, source, ckey);
+      d.dupes += cc.removed;
+      results = cc.list;
+    } catch (e) { /* gagal cek lintas kota tidak boleh menggagalkan pencarian */ }
+  }
   const added = (start > 0 || hit) ? results.length - before : results.length;
   if (start > 0 && added <= 0) more = false;
   let next = more ? (start || 0) + 20 : 0;

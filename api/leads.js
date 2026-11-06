@@ -3,7 +3,7 @@ const { isAuthed } = require("./_auth");
 const { dbConfigured, cmd, hgetall } = require("./_store");
 const { STATUSES, sanitizeLead } = require("./_leads");
 
-const LEADS = "hairleads:leads", META = "hairleads:cmeta", CACHE = "hairleads:cache", AI = "hairleads:ai";
+const LEADS = "hairleads:leads", META = "hairleads:cmeta", CACHE = "hairleads:cache", AI = "hairleads:ai", PLACEIDX = "hairleads:placeidx";
 const parse = v => { try { return JSON.parse(v); } catch (e) { return null; } };
 
 module.exports = async (req, res) => {
@@ -59,6 +59,13 @@ module.exports = async (req, res) => {
             }
           }
         } catch (e) { aiRemoved = []; leadsRemoved = []; /* gagal bersih-bersih tidak boleh menggagalkan penghapusan */ }
+        // Lepas kepemilikan tempat-tempat yang terdaftar lewat pencarian kota ini (lihat crossCityDedupe
+        // di places.js), supaya kota lain bisa menemukan tempat yang sama lagi setelah pencarian ini dihapus.
+        try {
+          const idx = await hgetall(PLACEIDX);
+          const freed = Object.keys(idx).filter(k => idx[k] === key);
+          for (let i = 0; i < freed.length; i += 200) await cmd(["HDEL", PLACEIDX, ...freed.slice(i, i + 200)]);
+        } catch (e) { /* gagal melepas kepemilikan tidak boleh menggagalkan penghapusan */ }
         await cmd(["HDEL", CACHE, key]);
         await cmd(["HDEL", META, key]);
         return res.status(200).json({ ok: true, aiRemoved, leadsRemoved });
