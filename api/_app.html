@@ -1624,6 +1624,20 @@ async function nxContinue(sv,kd){
   if(!jm)return{st:"fail",fresh:[]};
   return{st:"ok",fresh:jm.added>0?rows.slice(-jm.added):[]};
 }
+// Ronde 2 (semua kota populer sudah dicari): ambil tempat baru dari kota yang masih punya halaman berikutnya.
+// Kota yang paling sedikit diambil didahulukan supaya bergiliran, bukan kota yang sama terus. Cek simpanan gratis, tanpa kuota.
+async function nxRepeatPick(pl,cn,kd,sr,n){
+  if(sr==="osm")return[];
+  var cand=[],seen={};
+  pl.forEach(function(k){var nk=nz(k);if(seen[nk])return;seen[nk]=1;var sv=nxFindSaved(k,cn,kd,sr);if(sv)cand.push({k:k,sv:sv})});
+  var info=await Promise.all(cand.map(function(c){
+    return fetch("/api/places?city="+encodeURIComponent(c.sv)+"&kind="+kd+"&source=google&cacheonly=1").then(function(r){return r.json()}).catch(function(){return null});
+  }));
+  var list=[];
+  cand.forEach(function(c,i){var j=info[i];if(j&&!j.empty&&!j.more)return;list.push({k:c.k,next:(j&&!j.empty&&j.next)||20,i:i})});
+  list.sort(function(a,b){return a.next-b.next||a.i-b.i});
+  return list.slice(0,n).map(function(x){return x.k});
+}
 function nxTodo(){
   var cn=$("country").value.trim(),pl=POPULAR_CITIES[cn];
   if(!cn||!pl)return{cn:cn,pl:null,todo:[]};
@@ -1633,7 +1647,7 @@ function nxTodo(){
   // cocok kalau tertulis
   var done=ALLSEARCHED.filter(function(m){return m.kind===kd&&(m.source||"google")===sr}).map(function(m){var p=String(m.city||"").split(",");return{c:nz(p[0]),n:p.length>1?nz(p[p.length-1]):""}});
   var seen={};
-  return{cn:cn,pl:pl,todo:pl.filter(function(k){var nk=nz(k);if(seen[nk])return false;seen[nk]=1;return!done.some(function(d){return d.c===nk&&(!d.n||d.n===ncn)})})};
+  return{cn:cn,pl:pl,todo:pl.filter(function(k){var nk=nz(k);if(seen[nk])return false;seen[nk]=1;return!nxFindSaved(k,cn,kd,sr)})};
 }
 function nxCount(){return Math.max(1,Math.min(10,parseInt($("nxn").value,10)||3))}
 // Saat centang aktif, kota yang akan dicari tampil lengkap sebagai daftar di bawah centang (bukan satu kolom)
@@ -1652,7 +1666,7 @@ function nxPreview(){
   var t=nxTodo();ni.hidden=false;
   if(!t.cn||!t.pl){nxChips([]);ni.textContent="Pilih negara yang punya daftar kota populer, nanti kota yang akan dicari muncul di sini.";return}
   var n=nxCount();
-  if(!t.todo.length){nxChips([]);ni.textContent="Semua "+t.pl.length+" kota populer di "+t.cn+" sudah pernah dicari untuk jenis dan sumber ini.";return}
+  if(!t.todo.length){nxChips([]);ni.textContent="Semua "+t.pl.length+" kota populer di "+t.cn+" sudah pernah dicari. Tekan Cari untuk mengambil tempat baru dari kota-kota itu, bergiliran.";return}
   var pk=t.todo.slice(0,n);
   nxChips(pk);
   ni.textContent="Akan dicari "+pk.length+" kota, 1 kuota SerpApi per kota. Sisa "+t.todo.length+" dari "+t.pl.length+" kota populer di "+t.cn+" yang belum dicari.";
@@ -1687,9 +1701,15 @@ async function run(force){
   var t=nxTodo(),cn=t.cn,pl=t.pl,todo=t.todo,kd=$("kind").value;
   ni.hidden=false;
   if(!cn||!pl){loading(false);nxPreview();return say("err","Pilih negara dulu, lalu tekan Cari.")}
-  if(!todo.length){loading(false);nxPreview();return say("info","Semua kota populer di "+esc(cn)+" sudah pernah dicari. Matikan centang lalu ketik kota lain, atau pilih negara atau jenis tempat lain.")}
   var n=Math.max(1,Math.min(10,parseInt($("nxn").value,10)||3));$("nxn").value=n;
-  var pick=todo.slice(0,n),acc=[],seen={},okc=0,names=[],stopped="",cont=[],hid=0,sr0=$("source").value;
+  var pick;
+  if(todo.length)pick=todo.slice(0,n);
+  else{
+    pick=await nxRepeatPick(pl,cn,kd,$("source").value,n);
+    if(!pick.length){loading(false);nxPreview();return say("info","Semua kota populer di "+esc(cn)+" sudah dicari dan tidak ada tempat baru lagi. Matikan centang lalu ketik kota lain, atau pilih negara atau jenis tempat lain.")}
+    nxChips(pick);
+  }
+  var acc=[],seen={},okc=0,names=[],stopped="",cont=[],hid=0,sr0=$("source").value;
   BATCH=true;
   try{
     for(var i=0;i<pick.length;i++){
