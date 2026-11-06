@@ -1911,7 +1911,7 @@ function ruleScore(x){
     var h=scHost(x.website);
     if(h&&SCSOCIAL.test(h))add("social","website hanya media sosial");
   }
-  if(waOf(x))add("wa","ada WhatsApp");
+  if(x.wa)add("wa","ada WhatsApp"); // seperti server: hanya WhatsApp yang ditemukan di website, bukan tebakan dari nomor telepon
   if(firstPhone(x))add("phone","ada telepon");
   var rating=parseFloat(x.rating),reviews=parseInt(String(x.reviews==null?"":x.reviews).replace(/[^\d]/g,""),10);
   if(rating>=4.5)add("r45","rating "+rating);
@@ -2737,6 +2737,7 @@ function auLoad(full){
   return auApi().then(function(o){
     if(!o.ok){$("aust").innerHTML="<span class='bad'>"+esc(o.j.error||"Gagal memuat")+"</span>";return}
     AU.st=o.j;
+    try{var cw=o.j.cfg&&o.j.cfg.mail&&o.j.cfg.mail.weights;if(cw){var ch=false;Object.keys(cw).forEach(function(k){if(SCW[k]!==cw[k]){SCW[k]=cw[k];ch=true}});if(ch&&typeof renderMail==="function"&&$("emq"))renderMail()}}catch(e){} // samakan bobot skor dengan pengaturan server
     if(o.j.nodb){$("aust").innerHTML="<span class='bad'>Database belum terhubung. Hubungkan Upstash Redis di Vercel lalu Redeploy.</span>";return}
     if(full||!AU.cfg)AU.cfg=o.j.cfg;
     auStatus();auQueue();auSupp();auLog();rpLoad();
