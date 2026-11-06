@@ -1899,6 +1899,7 @@ function scHost(u){try{return new URL(/^https?:\/\//i.test(u)?u:"https://"+u).ho
 function ruleScore(x){
   var why=[],neg=[],s=0;
   function add(k,text){var p=SCW[k];if(!p)return;s+=p;why.push(text);if(p<0)neg.push(text)}
+  function addq(k){var p=SCW[k];if(p)s+=p} // sama seperti server (_score.js): menambah skor tanpa muncul sebagai alasan
   var em=(emailsOf(x)[0]||"").trim().toLowerCase();
   if(em){
     add("email","ada email");
@@ -1915,8 +1916,10 @@ function ruleScore(x){
   var rating=parseFloat(x.rating),reviews=parseInt(String(x.reviews==null?"":x.reviews).replace(/[^\d]/g,""),10);
   if(rating>=4.5)add("r45","rating "+rating);
   else if(rating>=4)add("r40","rating "+rating);
+  else if(rating>=3.5)addq("r35");
   if(reviews>=100)add("v100",reviews+" ulasan");
   else if(reviews>=30)add("v30",reviews+" ulasan");
+  else if(reviews>=10)addq("v10");
   if(rating>0&&rating<3&&reviews>=10)add("lowRate","rating rendah "+rating);
   if(rating>0&&reviews<3)add("fewRev","hampir tanpa ulasan");
   var name=String(x.name||"");
