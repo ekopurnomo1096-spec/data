@@ -869,13 +869,15 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
 .tools:has(#emq) .tbtns{flex-wrap:wrap}
 @media (max-width:760px){
   .tools:has(#emq) .tbtns .ghost{flex:1 1 calc(50% - 4px);min-height:40px}
-  .tools:has(#emq) #emenq{flex:1 1 100%;background:var(--accsoft);border-color:var(--acc);color:var(--acc);font-weight:600}
+  .tools:has(#emq) #emenq{flex:1 1 100%}
   #elist .mrow{flex-wrap:wrap;row-gap:6px;align-items:flex-start}
   #elist .mrow input{margin-top:14px}
-  #elist .mrow span{flex:1 1 calc(100% - 92px)}
+  #elist .mrow span:not(.th){flex:1 1 calc(100% - 92px)}
   #elist .mrow b{white-space:normal;overflow:visible;line-height:1.25}
   #elist .mrow em.mtag:first-of-type{margin-left:84px}
   #elist .mrow .mtag{font-size:.72rem}
+  /* centang tidak lagi memberi latar hijau di HP: kotak tetap putih, hanya centangnya yang berwarna */
+  .tools .chk:has(input:checked),.fbar .tools .chk:has(input:checked),.aub .aurow>.chk:has(input:checked){background:var(--surf);border-color:var(--line);color:var(--ink);font-weight:400}
 }
 </style>
 </head>
