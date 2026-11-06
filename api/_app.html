@@ -1307,6 +1307,9 @@ var WANOTE=/^WA, \d{1,2} [A-Za-z]{3,5}\.?$/;
 // Khusus tab WhatsApp: "sudah/belum dihubungi" dilihat dari catatan "WA, ..." sendiri, bukan status global
 // (status global bisa saja sudah "Sudah dihubungi" gara-gara email terkirim duluan, padahal WA-nya belum).
 function waContacted(x){return noteOf(x).split("\n").some(function(l){return WANOTE.test(l.trim())})}
+// Status yang ditampilkan di tab WhatsApp: "Sudah dihubungi" hanya kalau ada catatan WA; Dibalas/Deal/Tidak cocok tetap global
+function waStOf(x){var s=stOf(x);return(s===""||s==="chat")?(waContacted(x)?"chat":""):s}
+function waSel(x,extra){var s=waStOf(x);return"<select class='stsel st-"+(s||"baru")+"'"+(extra||"")+" aria-label='Status WhatsApp'>"+STAT.map(function(p){return"<option value='"+p[0]+"'"+(p[0]===s?" selected":"")+">"+p[1]+"</option>"}).join("")+"</select>"}
 function statusPatch(x,v){
   var p={s:v};
   if(!v){var cur=noteOf(x),n=cur.split("\n").filter(function(l){return!AUTONOTE.test(l.trim())}).join("\n").trim();if(n!==cur)p.n=n}
@@ -2410,10 +2413,8 @@ function waRender(){
   var all=WA.rows.filter(function(x){
     var w=waOf(x);if(!w||(!ph&&w.src==="phone"))return false;
     if(se&&x.sk!==se)return false;
-    var s=stOf(x),wac=waContacted(x);
-    if(st==="baru"){if(wac)return false}
-    else if(st==="chat"){if(!(wac&&s==="chat"))return false}
-    else if(st!=="all"){if(s!==st)return false}
+    var s=waStOf(x);
+    if(st!=="all"&&s!==st)return false;
     if(q&&(x.name+" "+(x.address||"")).toLowerCase().indexOf(q)<0)return false;
     return true;
   }).sort(function(a,b){return(b.rating||0)-(a.rating||0)||(b.reviews||0)-(a.reviews||0)});
@@ -2422,7 +2423,7 @@ function waRender(){
   var box=$("walist");box.hidden=!shown.length;
   box.innerHTML=shown.map(function(x,i){
     var w=waOf(x),s=stOf(x),sc=ruleScore(x);
-    return"<div class='mrow klk' tabindex='0' data-wr='"+i+"'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>+"+esc(w.n)+(w.src==="phone"?" \u00b7 dari telepon":"")+(x.address?" \u00b7 "+esc(x.address):"")+"</small></span><em class='mtag pl sc-"+aiCls(sc.s)+"'>skor "+sc.s+"</em>"+stSel(x,"","  data-wi='"+i+"'")+"<button class='btn primary' type='button' data-i='"+i+"'>Buka WhatsApp</button></div>";
+    return"<div class='mrow klk' tabindex='0' data-wr='"+i+"'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>+"+esc(w.n)+(w.src==="phone"?" \u00b7 dari telepon":"")+(x.address?" \u00b7 "+esc(x.address):"")+"</small></span><em class='mtag pl sc-"+aiCls(sc.s)+"'>skor "+sc.s+"</em>"+waSel(x,"  data-wi='"+i+"'")+"<button class='btn primary' type='button' data-i='"+i+"'>Buka WhatsApp</button></div>";
   }).join("");
 }
 $("walist").addEventListener("click",function(e){
@@ -2434,12 +2435,17 @@ $("walist").addEventListener("change",function(e){
   var sel=e.target.closest("select.stsel");if(!sel)return;
   var x=(WA.shown||[])[+sel.getAttribute("data-wi")];if(!x)return;
   sel.className="stsel st-"+(sel.value||"baru");
-  var p=statusPatch(x,sel.value);
-  // Status diganti dari halaman WhatsApp: catatan otomatis ditambah "WA, 3 Nov" (tidak dobel di hari yang sama)
-  if(sel.value){
-    var line="WA, "+new Date().toLocaleDateString("id-ID",{day:"numeric",month:"short"}),cur=noteOf(x);
-    if(cur.indexOf(line)<0)p.n=cur?cur+"\n"+line:line;
-  }
+  var v=sel.value,cur=noteOf(x),p;
+  if(v==="chat"){
+    // Dipilih manual setelah benar-benar kirim pesan: catat "WA, 3 Nov" (tidak dobel di hari yang sama)
+    var line="WA, "+new Date().toLocaleDateString("id-ID",{day:"numeric",month:"short"});
+    p={s:"chat"};if(cur.indexOf(line)<0)p.n=cur?cur+"\n"+line:line;
+  }else if(v===""){
+    // Kembali ke Belum dihubungi: hapus catatan WA saja, catatan Email/Telepon dan status global tidak disentuh
+    var gs=stOf(x);
+    if(gs==="chat"||gs==="")p={n:cur.split("\n").filter(function(l){return!WANOTE.test(l.trim())}).join("\n").trim()};
+    else p=statusPatch(x,"");
+  }else p=statusPatch(x,v);
   saveLead(x,p);
   setTimeout(waRender,450);
 });
