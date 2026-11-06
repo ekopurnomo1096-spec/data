@@ -66,7 +66,13 @@ input[type=text],input[type=search],input[type=password],select{width:100%;heigh
 .pwtoggle:focus,.pwtoggle:focus-visible{outline:none}
 input::placeholder{color:var(--mute);opacity:.8}
 #nxn{width:100%;height:42px;font:inherit;font-size:.92rem;color:var(--ink);background-color:var(--inp,var(--bg));border:1px solid var(--line);border-radius:8px;padding:0 12px}
-#city[readonly]{background-color:var(--bg);cursor:default}
+.nxchips{display:flex;flex-wrap:wrap;gap:8px}
+.nxchip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--line);border-radius:99px;background:var(--bg);font-size:.86rem;color:var(--ink)}
+.nxchip i{font-style:normal;color:var(--mute);font-size:.78rem}
+.nxchip.cur{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
+.nxchip.ok{color:var(--acc);border-color:var(--acc)}
+.nxchip.bad{color:#b42318;border-color:#b42318}
+@media (min-width:901px){.form.nxon #run{grid-column:span 2}}
 .go{align-self:end;height:42px;background:var(--acc);color:var(--onacc);border:0;border-radius:8px;padding:0 22px;font:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px}
 .go[disabled]{opacity:.7;cursor:not-allowed}
 .go[disabled][aria-busy="true"]{cursor:progress}
@@ -892,6 +898,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
       <select id="source"><option value="google">Google Maps (lengkap)</option><option value="osm">OpenStreetMap (gratis, tipis)</option></select></div>
     <button class="go" id="run"><span id="runtxt">Cari</span></button>
     <label class="chk" id="nxwrap" style="grid-column:1/-1"><input type="checkbox" id="nxcity"> Cari kota baru di negara ini secara bergantian (bukan mengulang kota yang sama)</label>
+    <div class="f" id="nxl" style="grid-column:1/-1;display:none"><label>Kota yang akan dicari</label><div class="nxchips" id="nxchips"></div></div>
     <p class="hint2" id="nxinfo" style="grid-column:1/-1;margin:0" hidden></p>
   </div>
   </div>
@@ -1531,21 +1538,26 @@ function nxTodo(){
   return{cn:cn,pl:pl,todo:pl.filter(function(k){var nk=nz(k);if(seen[nk])return false;seen[nk]=1;return!done.some(function(d){return d.c===nk&&(!d.n||d.n===ncn)})})};
 }
 function nxCount(){return Math.max(1,Math.min(10,parseInt($("nxn").value,10)||3))}
-// Kolom "Kota yang dicari" menampilkan semua kota yang akan dicari sekarang (bukan satu)
+// Saat centang aktif, kota yang akan dicari tampil lengkap sebagai daftar di bawah centang (bukan satu kolom)
+function nxChips(list){
+  $("nxchips").innerHTML=list.map(function(k,i){return"<span class='nxchip'><i>"+(i+1)+"</i>"+esc(k)+"</span>"}).join("");
+}
 function nxPreview(){
   var on=$("nxcity").checked;
   $("nxf").style.display=on?"":"none";
-  var cs=$("citysel").closest(".f");if(cs)cs.style.display=on?"none":"";
-  var c=$("city"),ni=$("nxinfo");c.readOnly=on;
+  var cs=$("citysel").closest(".f"),cf=$("city").closest(".f");
+  if(cs)cs.style.display=on?"none":"";if(cf)cf.style.display=on?"none":"";
+  $("nxl").style.display=on?"":"none";
+  document.querySelector("#p1 .form").classList.toggle("nxon",on);
+  var ni=$("nxinfo");
   if(!on){ni.hidden=true;return}
   var t=nxTodo();ni.hidden=false;
-  if(!t.cn||!t.pl){c.value="";c.placeholder="Pilih negara dulu";ni.textContent="Pilih negara yang punya daftar kota populer, nanti kota yang akan dicari muncul di sini.";return}
+  if(!t.cn||!t.pl){nxChips([]);ni.textContent="Pilih negara yang punya daftar kota populer, nanti kota yang akan dicari muncul di sini.";return}
   var n=nxCount();
-  if(!t.todo.length){c.value="";c.placeholder="Semua kota sudah dicari";ni.textContent="Semua "+t.pl.length+" kota populer di "+t.cn+" sudah pernah dicari untuk jenis dan sumber ini.";return}
+  if(!t.todo.length){nxChips([]);ni.textContent="Semua "+t.pl.length+" kota populer di "+t.cn+" sudah pernah dicari untuk jenis dan sumber ini.";return}
   var pk=t.todo.slice(0,n);
-  // Kolom hanya cukup untuk ringkasan, daftar lengkap ada di teks di bawahnya
-  c.value=pk.length>2?pk.slice(0,2).join(", ")+" +"+(pk.length-2)+" kota":pk.join(", ");c.title=pk.join(", ");
-  ni.textContent="Akan dicari "+pk.length+" kota: "+pk.join(", ")+". Tiap kota memakai 1 kuota SerpApi. Sisa "+t.todo.length+" dari "+t.pl.length+" kota populer di "+t.cn+" yang belum dicari.";
+  nxChips(pk);
+  ni.textContent="Akan dicari "+pk.length+" kota, 1 kuota SerpApi per kota. Sisa "+t.todo.length+" dari "+t.pl.length+" kota populer di "+t.cn+" yang belum dicari.";
 }
 $("nxcity").addEventListener("change",function(){if(!this.checked)$("city").value="";nxPreview();if(this.checked){var r=loadSearches();if(r&&r.then)r.then(function(){if($("nxcity").checked&&!BATCH)nxPreview()})}});
 ["country","kind","source","nxn"].forEach(function(id){["input","change"].forEach(function(ev){$(id).addEventListener(ev,function(){if($("nxcity").checked&&!BATCH)nxPreview()})})});
@@ -1564,9 +1576,11 @@ async function run(force){
   BATCH=true;
   try{
     for(var i=0;i<pick.length;i++){
-      $("city").value=pick[i]+", "+cn;$("city").readOnly=true;
+      $("city").value=pick[i]+", "+cn;
+      var chs=$("nxchips").children;if(chs[i])chs[i].classList.add("cur");
       ni.textContent="Mencari kota "+(i+1)+" dari "+pick.length+": "+pick[i]+"…";
       var st=await runOne(false);
+      if(chs[i]){chs[i].classList.remove("cur");chs[i].classList.add(st==="fail"?"bad":"ok");if(st!=="fail")chs[i].firstChild.textContent="\u2713"}
       if(st==="fail"){stopped=pick[i];break}
       names.push(pick[i]);
       if(st==="ok"){okc++;rows.forEach(function(x){var k=x.id||(x.name+"|"+x.address);if(!seen[k]){seen[k]=1;acc.push(x)}})}
