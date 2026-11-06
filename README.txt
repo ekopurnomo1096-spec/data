@@ -74,7 +74,6 @@ Analisis
   Dasbor                   Corong, variasi A/B, statistik harian, per negara/kota (bagian 9).
 Cari pembeli
   Cari tempat              Cari salon/toko di kota mana pun.
-  Siapa yang membeli?      Panduan kelompok pembeli.
   Tersimpan                Prospek bertanda dan pencarian tersimpan.
 Hubungi
   Email                    Kirim email manual.

@@ -887,7 +887,6 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <button class="tab" type="button" id="t7" data-v="7" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><rect x='3' y='3' width='7' height='7' rx='1'/><rect x='14' y='3' width='7' height='7' rx='1'/><rect x='3' y='14' width='7' height='7' rx='1'/><rect x='14' y='14' width='7' height='7' rx='1'/></svg><span>Dasbor</span></button>
     <div class="ngl">Cari pembeli</div>
     <button class="tab" type="button" id="t1" data-v="1" aria-selected="true" aria-current="page"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><circle cx='11' cy='11' r='7'/><path d='M21 21l-4.3-4.3'/></svg><span>Cari tempat</span></button>
-    <button class="tab" type="button" id="t2" data-v="2" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75'/></svg><span>Siapa yang membeli?</span></button>
     <button class="tab" type="button" id="t3" data-v="3" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z'/></svg><span>Tersimpan</span><em class="tn tsk" id="t3n"></em></button>
     <div class="ngl">Hubungi</div>
     <button class="tab" type="button" id="t4" data-v="4" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><rect x='2' y='4' width='20' height='16' rx='2'/><path d='M22 7l-10 6L2 7'/></svg><span>Email</span></button>
@@ -973,10 +972,6 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <div class="morebox" id="morebox" hidden><button class="ghost" id="more" type="button">Muat 20 lagi</button><span class="hint2" id="morehint">Memakai 1 kuota SerpApi.</span></div>
   </div>
   </div></div>
-</section>
-<section id="p2" hidden>
-  <p class="info" style="margin-bottom:14px">Daftar pembeli yang paling mungkin tertarik. Yang punya tombol bisa langsung dicari di tab Cari tempat.</p>
-  <div class="segs" id="segs"></div>
 </section>
 <section id="p3" hidden>
   <div id="svbox"><div class="svh">Prospek saya</div><div class="sk tall"></div><div class="svh">Pencarian tersimpan</div><div class="sk tall"></div><div class="sk tall"></div></div>
@@ -2587,10 +2582,9 @@ $("elist").addEventListener("change",function(e){
   }else delete EM.sel[id];
   emCount();
 });
-var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"]];
 var CUR="1";
-var PG={"7":["Dasbor","Corong prospek, perbandingan variasi email A/B, dan performa per negara dan kota."],"1":["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],"2":["Siapa yang membeli?","Kelompok pembeli yang paling mungkin tertarik pada hair extension."],"3":["Tersimpan","Prospek yang sudah Anda tandai dan pencarian yang pernah disimpan."],"wa":["WhatsApp","Daftar prospek yang punya WhatsApp, buka chat-nya langsung dari sini."],"4":["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],"6":["Riwayat kirim","Semua email yang pernah dikirim lewat aplikasi ini, manual maupun otomatis."],"ringkas":["Status","Status jalan otomatis dan tombol jalankan sekarang."],"antrean":["Antrean persetujuan","Email yang menunggu persetujuan Anda sebelum dikirim."],"kirim":["Kirim otomatis","Aturan kirim otomatis, batas harian, dan follow-up."],"teks":["Teks email","Isi email pertama dan follow-up yang dikirim otomatis."],"ulang":["Cari ulang","Ulangi pencarian tersimpan secara berkala, hanya tempat baru yang ditambahkan."],"putar":["Putaran kota","Cari kota baru dari daftar secara bergantian."],"cariem":["Cari email","Cek website tempat baru untuk mencari email dan WhatsApp."],"skor":["Skor prospek","Atur bobot skor yang menentukan siapa masuk antrean."],"lapor":["Laporan & peringatan","Ringkasan harian dan peringatan masalah lewat email."],"bersih":["Pembersihan data","Buang data lama otomatis supaya database tetap ringan."],"serp":["Akun SerpApi","Pindah akun otomatis saat kuota akun aktif menipis."],"berhenti":["Daftar berhenti","Alamat yang tidak akan dikirimi email lagi."]};
-var HN={"7":"dasbor","1":"cari","2":"pembeli","3":"tersimpan","4":"email","6":"riwayat"},HR={};Object.keys(HN).forEach(function(k){HR[HN[k]]=k});
+var PG={"7":["Dasbor","Corong prospek, perbandingan variasi email A/B, dan performa per negara dan kota."],"1":["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],"3":["Tersimpan","Prospek yang sudah Anda tandai dan pencarian yang pernah disimpan."],"wa":["WhatsApp","Daftar prospek yang punya WhatsApp, buka chat-nya langsung dari sini."],"4":["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],"6":["Riwayat kirim","Semua email yang pernah dikirim lewat aplikasi ini, manual maupun otomatis."],"ringkas":["Status","Status jalan otomatis dan tombol jalankan sekarang."],"antrean":["Antrean persetujuan","Email yang menunggu persetujuan Anda sebelum dikirim."],"kirim":["Kirim otomatis","Aturan kirim otomatis, batas harian, dan follow-up."],"teks":["Teks email","Isi email pertama dan follow-up yang dikirim otomatis."],"ulang":["Cari ulang","Ulangi pencarian tersimpan secara berkala, hanya tempat baru yang ditambahkan."],"putar":["Putaran kota","Cari kota baru dari daftar secara bergantian."],"cariem":["Cari email","Cek website tempat baru untuk mencari email dan WhatsApp."],"skor":["Skor prospek","Atur bobot skor yang menentukan siapa masuk antrean."],"lapor":["Laporan & peringatan","Ringkasan harian dan peringatan masalah lewat email."],"bersih":["Pembersihan data","Buang data lama otomatis supaya database tetap ringan."],"serp":["Akun SerpApi","Pindah akun otomatis saat kuota akun aktif menipis."],"berhenti":["Daftar berhenti","Alamat yang tidak akan dikirimi email lagi."]};
+var HN={"7":"dasbor","1":"cari","3":"tersimpan","4":"email","6":"riwayat"},HR={};Object.keys(HN).forEach(function(k){HR[HN[k]]=k});
 var AUV=["ringkas","antrean","kirim","teks","ulang","putar","cariem","skor","lapor","bersih","serp","berhenti"];
 var ASEC={kirim:["Kirim otomatis"],teks:["Teks email"],ulang:["Cari ulang"],putar:["Putaran kota"],cariem:["Cari email"],skor:["Skor prospek"],lapor:["Laporan dan peringatan"],bersih:["Pembersihan data"],serp:["Akun SerpApi"]};
 function applyAuto(){
@@ -2615,7 +2609,7 @@ function tab(n){
   CUR=n;
   try{history.replaceState(null,"",tabPath(n))}catch(e){}
   var page=AUV.indexOf(n)>-1?"5":n;
-  [1,2,3,4,5,6,7].forEach(function(i){$("p"+i).hidden=String(i)!==page});
+  [1,3,4,5,6,7].forEach(function(i){var el=$("p"+i);if(el)el.hidden=String(i)!==page});
   $("pwa").hidden=page!=="wa";
   [].forEach.call(document.querySelectorAll(".tab[data-v]"),function(b){
     var on=b.getAttribute("data-v")===n;
@@ -2641,8 +2635,6 @@ function afterTab(v){
   if(v==="4"||v==="6"){renderMail();loadMailTab()}
   if(AUV.indexOf(v)>-1){if(!AU.st)auLoad(true)}
 }
-$("segs").innerHTML=SEG.map(function(s,i){return"<div class='seg'><div class='n'>"+(i+1)+"</div><div><b>"+s[0]+"</b><span>"+s[1]+"</span>"+(s[2]?"<div><button class='ghost' data-i='"+i+"'>Cari tempat ini</button></div>":"")+"</div></div>"}).join("");
-document.querySelectorAll("#segs button").forEach(function(b){b.onclick=function(){$("kind").value=SEG[+b.getAttribute("data-i")][2];tab(1);$("city").focus()}});
 
 
 // ---- WhatsApp: daftar prospek ber-WA dari semua pencarian tersimpan, pesan terisi lewat wa.me (dikirim manual, tidak ada pengiriman otomatis)
