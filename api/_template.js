@@ -1,4 +1,5 @@
-// Template pesan pertama EMAHAIRSHOP, dipakai bersama oleh ai.js (draf WA) dan send.js (email). Ubah teks di sini untuk mengganti isinya.
+// Template pesan cold outreach awal. Digunakan bersama oleh ai.js dan send.js.
+// Silakan sesuaikan isi pesan dan metadata brand di bawah ini sesuai kebutuhan bisnis Anda.
 const TEMPLATE = `Hi! We’re a human hair supplier from Indonesia, specializing in hair extensions:
 
 • Hair Weft

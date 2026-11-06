@@ -746,8 +746,8 @@ async function unlock() { try { await cmd(["DEL", LOCK]); } catch (e) { /* kunci
 
 // opts: {jobs: "all"|"mail"|"refresh"|"enrich", src: "cron"|"manual", base, budgetMs}
 async function runAuto(opts) {
-  if (!dbConfigured()) return { error: "Database belum terhubung. Hubungkan Upstash Redis di Vercel lalu Redeploy" };
-  if (!(await lock())) return { error: "Pekerjaan otomatis sedang berjalan. Coba lagi sebentar lagi" };
+  if (!dbConfigured()) return { error: "Database belum terhubung. Pastikan koneksi Upstash Redis telah dikonfigurasi." };
+  if (!(await lock())) return { error: "Proses otomasi sedang berjalan di latar belakang. Silakan coba beberapa saat lagi." };
   const t0 = Date.now(), out = { t: t0, src: opts.src || "manual", jobs: {} };
   const isCron = out.src === "cron";
   let cfg = null, prevCronT = 0;

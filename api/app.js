@@ -1,16 +1,15 @@
-// Gerbang halaman. Halaman aplikasi (dulu index.html) sekarang dikirim dari sini, HANYA jika alamat
-// yang diminta cocok dengan LOGIN_PATH di Vercel. Tanpa tahu LOGIN_PATH, situs ini menampilkan halaman 404
-// (api/_404.html) dari luar - orang lain yang buka domainnya langsung tidak akan menemukan form login sama sekali.
+// Application Gateway. Mengontrol akses aplikasi berdasarkan konfigurasi LOGIN_PATH.
+// Halaman utama aplikasi hanya di-render apabila request sesuai dengan LOGIN_PATH yang ditentukan,
+// atau jika pengguna telah memiliki sesi otentikasi yang valid.
 //
-// Isi di Vercel: Settings > Environment Variables > LOGIN_PATH = teks rahasia, bebas, tanpa garis
-// miring (contoh: masuk-x7q2). Centang Production, Preview, Development, lalu Redeploy.
-// Setelah itu alamat masuknya jadi: https://domainanda.com/masuk-x7q2
+// Konfigurasi Environment Variable di Vercel:
+// Settings > Environment Variables > LOGIN_PATH = [path-rahasia] (contoh: portal-auth-9x)
+// Pastikan memilih target: Production, Preview, dan Development, lalu lakukan Redeploy.
+// URL akses pertama: https://domainanda.com/[LOGIN_PATH]
 //
-// Setelah login, alamat di browser otomatis jadi "/" (tanpa LOGIN_PATH). Jika sudah login, "/" langsung
-// membuka aplikasi; jika belum login atau sudah keluar, "/" menampilkan halaman 404.
-//
-// Ganti LOGIN_PATH kapan saja jika alamatnya diketahui orang yang tidak berwenang - sesi yang sudah login
-// (cookie) tetap jalan seperti biasa, hanya alamat untuk masuk pertama kali yang berubah.
+// Setelah otentikasi berhasil, URL browser akan dibersihkan menjadi "/" (root path).
+// Apabila belum terotentikasi dan mengakses path selain LOGIN_PATH, sistem mengembalikan halaman 404
+// untuk melindungi antarmuka login dari scanning atau akses pihak tidak berwenang.
 const fs = require("fs");
 const path = require("path");
 const { isAuthed } = require("./_auth");
@@ -31,13 +30,11 @@ module.exports = (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   const want = norm(process.env.LOGIN_PATH);
   const got = norm(String(req.url || "/").split("?")[0]);
-  // Sudah login (cookie sesi valid): halaman dikirim di alamat mana pun, jadi setelah masuk alamatnya bisa
-  // dibersihkan jadi "/" (lihat showApp di _app.html). Belum login: hanya LOGIN_PATH yang menampilkan halaman.
+  // Sesi aktif: sajikan aplikasi pada path mana pun.
+  // Sesi belum aktif: batasi akses hanya melalui LOGIN_PATH yang terkonfigurasi.
   const authed = isAuthed(req);
   if (!authed && (!want || got !== want)) {
-    // Bukan LOGIN_PATH dan belum login: tampilkan halaman 404 buatan sendiri (api/_404.html) dengan status 404 asli.
-    // Tidak membedakan "LOGIN_PATH belum diisi" dengan "alamat salah", jadi tidak ada petunjuk buat orang yang
-    // hanya menebak alamat.
+    // Kembalikan 404 buatan untuk menyembunyikan eksistensi portal dari pemindaian publik
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.status(404).send(notFoundHtml());
     return;

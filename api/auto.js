@@ -87,7 +87,7 @@ module.exports = async (req, res) => {
     if (!dbConfigured()) return res.status(200).json({ nodb: true, cfg: J.defaultCfg(), scoreDefs, queue: [], log: [], supp: { n: 0, list: [] }, searches: [], flags: {}, mail: {}, counts: {}, seq: {} });
 
     if (req.method === "GET") return res.status(200).json(await state(req));
-    if (req.method !== "POST") return res.status(405).json({ error: "metode tidak didukung" });
+    if (req.method !== "POST") return res.status(405).json({ error: "Metode HTTP tidak didukung" });
 
     let b = req.body;
     if (typeof b === "string") { try { b = JSON.parse(b); } catch (e) { b = {}; } }
@@ -105,7 +105,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, ...(await J.scorePreview(b.cfg)) });
     }
     if (b.action === "enqueue") { // masukkan tempat yang belum masuk antrean (termasuk yang pernah ditolak)
-      if (!ids.length) return res.status(400).json({ error: "Pilih tempat terlebih dahulu." });
+      if (!ids.length) return res.status(400).json({ error: "Pilih minimal satu prospek terlebih dahulu." });
       return res.status(200).json({ ok: true, ...(await J.enqueue(ids)) });
     }
     if (b.action === "approve" || b.action === "reject") {
@@ -139,22 +139,22 @@ module.exports = async (req, res) => {
       } catch (e) { return res.status(400).json({ error: e.message }); }
     }
     if (b.action === "pause") {
-      if (b.on) await M.setPause("Dijeda manual", false); else await M.clearPause();
+      if (b.on) await M.setPause("Dijeda secara manual oleh pengguna", false); else await M.clearPause();
       return res.status(200).json({ ok: true, pause: await M.getPause() });
     }
     if (b.action === "suppadd") {
       const e = String(b.email || "").trim().toLowerCase();
-      if (!M.EMAIL.test(e)) return res.status(400).json({ error: "Alamat email tidak valid" });
+      if (!M.EMAIL.test(e)) return res.status(400).json({ error: "Format alamat email tidak valid" });
       await M.suppress(e, "manual");
       return res.status(200).json({ ok: true });
     }
     if (b.action === "suppdel") {
       const e = String(b.email || "").trim().toLowerCase();
-      if (!e) return res.status(400).json({ error: "Alamat email kosong" });
+      if (!e) return res.status(400).json({ error: "Alamat email tidak boleh kosong" });
       await cmd(["HDEL", M.SUPP, e]);
       return res.status(200).json({ ok: true });
     }
-    return res.status(400).json({ error: "Aksi tidak dikenal" });
+    return res.status(400).json({ error: "Parameter aksi tidak valid" });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

@@ -237,7 +237,7 @@ async function searchCore(q, opts) {
     // Akun dipilih lewat _serp.js: akun aktif (switch di pojok kanan atas), dan pindah otomatis
     // jika sisa kuotanya di bawah batas (Pengaturan otomatis > Akun SerpApi).
     const sp = await pickSerp();
-    if (!sp) throw fail("API key SerpApi belum diisi. Buka Pengaturan lalu masukkan key-nya");
+    if (!sp) throw fail("API key SerpApi belum dikonfigurasi. Silakan lengkapi pada menu Pengaturan.");
     const two = !!sp.other || !!sp.switched;
     acct = sp.n; switched = sp.switched;
     try {
@@ -289,7 +289,7 @@ async function searchCore(q, opts) {
 
 module.exports = async (req, res) => {
   try {
-    if (!isAuthed(req)) return res.status(401).json({ error: "Belum login" });
+    if (!isAuthed(req)) return res.status(401).json({ error: "Otorisasi diperlukan. Silakan masuk terlebih dahulu." });
     res.setHeader("Cache-Control", "private, no-store");
     const qy = req.query || {};
     const out = await searchCore({ city: qy.city, kind: qy.kind, source: qy.source, start: qy.start, refresh: qy.refresh === "1", cacheonly: qy.cacheonly === "1" });

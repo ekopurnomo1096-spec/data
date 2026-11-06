@@ -1,4 +1,4 @@
-// Status prospek + catatan (per tempat) dan daftar pencarian tersimpan. Semua di Redis, berawalan "hairleads:".
+// Manajemen Data Prospek & Riwayat Pencarian Tersimpan (Upstash Redis).
 const { isAuthed } = require("./_auth");
 const { dbConfigured, cmd, hgetall } = require("./_store");
 const { STATUSES, sanitizeLead } = require("./_leads");
@@ -9,7 +9,7 @@ const parse = v => { try { return JSON.parse(v); } catch (e) { return null; } };
 module.exports = async (req, res) => {
   try {
     res.setHeader("Cache-Control", "private, no-store");
-    if (!isAuthed(req)) return res.status(401).json({ error: "Belum login" });
+    if (!isAuthed(req)) return res.status(401).json({ error: "Otorisasi diperlukan. Silakan masuk terlebih dahulu." });
 
     if (req.method === "GET") {
       if (!dbConfigured()) return res.status(200).json({ items: {}, searches: [], nodb: true });
@@ -19,9 +19,7 @@ module.exports = async (req, res) => {
         const m = await hgetall(META);
         const all = Object.keys(m).map(k => { const v = parse(m[k]); return v && { key: k, ...v }; }).filter(Boolean);
         out.searches = all.slice().sort((a, b) => b.at - a.at).slice(0, 40);
-        // Semua kota yang pernah dicari (ringkas: kota+jenis+sumber saja, tanpa batas 40), dipakai "Cari kota
-        // baru secara bergantian" supaya tidak menyarankan ulang kota yang sudah lama dicari tapi sudah
-        // tergeser dari 40 pencarian terbaru di atas.
+        // Seluruh kombinasi pencarian tersimpan untuk referensi rotasi kota
         out.allSearched = all.map(v => ({ city: v.city, kind: v.kind, source: v.source }));
       }
       if (part !== "searches") {
@@ -33,14 +31,14 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === "POST") {
-      if (!dbConfigured()) return res.status(500).json({ error: "Database belum terhubung, jadi status dan catatan belum bisa disimpan. Hubungkan Upstash Redis di Vercel lalu Redeploy" });
+      if (!dbConfigured()) return res.status(500).json({ error: "Database belum terhubung. Pastikan koneksi Upstash Redis telah dikonfigurasi." });
       let b = req.body;
       if (typeof b === "string") { try { b = JSON.parse(b); } catch (e) { b = {}; } }
       b = b || {};
 
       if (b.action === "delsearch") {
         const key = String(b.key || "");
-        if (!key || key.length > 300) return res.status(400).json({ error: "Kunci tidak valid" });
+        if (!key || key.length > 300) return res.status(400).json({ error: "Kunci pencarian tidak valid" });
         // Skor AI, email, dan WhatsApp tempat-tempat di pencarian ini ikut dihapus, kecuali yang sudah punya status atau catatan
         let aiRemoved = [], leadsRemoved = [];
         try {
@@ -77,12 +75,12 @@ module.exports = async (req, res) => {
 
       if (b.action === "save") {
         const id = String(b.id || "");
-        if (!/^[\w:./|-]{1,120}$/.test(id)) return res.status(400).json({ error: "ID tempat tidak valid" });
+        if (!/^[\w:./|-]{1,120}$/.test(id)) return res.status(400).json({ error: "ID prospek tidak valid" });
         const s = STATUSES.includes(b.s) ? b.s : "";
         const n = String(b.n || "").slice(0, 2000);
         const lead = sanitizeLead(b.lead);
         lead.id = id;
-        // Tidak ada status, catatan, atau hasil cari email: tidak perlu disimpan
+        // Tidak ada status, catatan, atau hasil ekstraksi: tidak perlu disimpan
         if (!s && !n && !lead.looked) {
           await cmd(["HDEL", LEADS, id]);
           return res.status(200).json({ ok: true, removed: true });
@@ -91,9 +89,9 @@ module.exports = async (req, res) => {
         await cmd(["HSET", LEADS, id, JSON.stringify(rec)]);
         return res.status(200).json({ ok: true, t: rec.t });
       }
-      return res.status(400).json({ error: "Aksi tidak dikenal" });
+      return res.status(400).json({ error: "Parameter aksi tidak valid" });
     }
-    return res.status(405).json({ error: "metode tidak didukung" });
+    return res.status(405).json({ error: "Metode HTTP tidak didukung" });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

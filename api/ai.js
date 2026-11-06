@@ -1,7 +1,5 @@
-// AI prospek (Gemini 3.5 Flash-Lite): skor prospek, ringkasan catatan, langkah berikutnya, dan draf pesan.
-// GET  = skor yang sudah tersimpan ({items: {id: {s, w, t}}})
-// POST = {action:"score", leads:[...]} atau {action:"email", brief, subject?, text?} (draf email sesuai permintaan)
-// Key Gemini disimpan terenkripsi di Redis (nama "gem"); GEMINI_API_KEY di Vercel dipakai sebagai cadangan.
+// Modul AI Prospek (Google Gemini): Penilaian prospek otomatis dan perancangan draf pesan penawaran.
+// GET: Mengambil riwayat skor yang tersimpan | POST: Aksi penilaian batch ("score") atau penulisan email ("email").
 const { isAuthed } = require("./_auth");
 const { dbConfigured, getKey, cmd, hgetall } = require("./_store");
 
@@ -35,16 +33,16 @@ async function gemini(key, user, maxTokens) {
   const j = await r.json().catch(() => ({}));
   if (!r.ok) {
     const m = (j.error && j.error.message) || String(r.status);
-    if (r.status === 429) throw new Error("Kuota Gemini sedang habis atau terlalu cepat. Tunggu sebentar lalu coba lagi");
-    if (r.status === 400 && /API key/i.test(m)) throw new Error("API key Gemini tidak valid. Periksa lagi di Pengaturan");
-    if (r.status === 403) throw new Error("API key Gemini ditolak. Periksa lagi di Pengaturan");
-    throw new Error("Gemini: " + m);
+    if (r.status === 429) throw new Error("Batas kuota Gemini API tercapai atau permintaan terlalu cepat (Rate Limit). Silakan coba sesaat lagi.");
+    if (r.status === 400 && /API key/i.test(m)) throw new Error("API key Gemini tidak valid. Silakan periksa kembali di Pengaturan.");
+    if (r.status === 403) throw new Error("Akses Gemini API ditolak. Silakan periksa izin dan masa aktif API key.");
+    throw new Error("Gemini API: " + m);
   }
   const parts = (((j.candidates || [])[0] || {}).content || {}).parts || [];
   let t = parts.filter(p => !p.thought && typeof p.text === "string").map(p => p.text).join("").trim();
   t = t.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
   const out = parse(t);
-  if (!out) throw new Error("Balasan AI tidak bisa dibaca, coba lagi");
+  if (!out) throw new Error("Gagal mengurai format respons AI. Silakan coba kembali.");
   return out;
 }
 
@@ -62,7 +60,7 @@ const validId = id => /^[\w:./|-]{1,120}$/.test(id);
 module.exports = async (req, res) => {
   try {
     res.setHeader("Cache-Control", "private, no-store");
-    if (!isAuthed(req)) return res.status(401).json({ error: "Belum login" });
+    if (!isAuthed(req)) return res.status(401).json({ error: "Otorisasi diperlukan. Silakan masuk terlebih dahulu." });
 
     if (req.method === "GET") {
       if (!dbConfigured()) return res.status(200).json({ items: {} });
@@ -72,13 +70,13 @@ module.exports = async (req, res) => {
       return res.status(200).json({ items });
     }
 
-    if (req.method !== "POST") return res.status(405).json({ error: "metode tidak didukung" });
+    if (req.method !== "POST") return res.status(405).json({ error: "Metode HTTP tidak didukung" });
     let b = req.body;
     if (typeof b === "string") { try { b = JSON.parse(b); } catch (e) { b = {}; } }
     b = b || {};
 
     const key = (await getKey("gem")) || process.env.GEMINI_API_KEY;
-    if (!key) return res.status(500).json({ error: "API key Gemini belum diisi. Buka Pengaturan lalu masukkan key-nya" });
+    if (!key) return res.status(500).json({ error: "API key Gemini belum dikonfigurasi. Silakan isi pada menu Pengaturan." });
 
     async function saveScores(list) {
       const items = {}, t = Date.now();
@@ -96,7 +94,7 @@ module.exports = async (req, res) => {
 
     if (b.action === "score") {
       const leads = (Array.isArray(b.leads) ? b.leads : []).slice(0, 25).map(cleanLead).filter(l => validId(l.id));
-      if (!leads.length) return res.status(400).json({ error: "Tidak ada tempat untuk dinilai" });
+      if (!leads.length) return res.status(400).json({ error: "Tidak ada data prospek yang valid untuk dinilai." });
       const prompt =
         "Nilai tiap tempat berikut. Skor 0-100 = peluang jadi pembeli grosir hair extension DAN kemudahan dihubungi.\n" +
         "Pertimbangkan: apakah usahanya jelas memasang atau menjual extension/wig, rating dan jumlah ulasan (tanda bisnis aktif), " +
@@ -135,11 +133,11 @@ module.exports = async (req, res) => {
       const o = await gemini(key, prompt, 4096);
       const subject = str(o.subject, 200).replace(/[\r\n\t]+/g, " ").trim();
       const text = str(o.text, 5000).trim();
-      if (!subject || !text) return res.status(500).json({ error: "AI tidak menghasilkan email, coba lagi" });
+      if (!subject || !text) return res.status(500).json({ error: "AI tidak berhasil menyusun draf email. Silakan coba kembali." });
       return res.status(200).json({ subject, text });
     }
 
-    return res.status(400).json({ error: "Aksi tidak dikenal" });
+    return res.status(400).json({ error: "Parameter aksi tidak valid" });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

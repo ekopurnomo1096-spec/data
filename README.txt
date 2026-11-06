@@ -1,393 +1,339 @@
-HAIR LEADS - PANDUAN
-====================
-Alat mencari prospek (salon, toko wig, toko kecantikan) lewat Google Maps, mencari email/WhatsApp
-dari website mereka, lalu mengirim email penawaran dengan follow-up otomatis.
-Semua data disimpan di Upstash Redis dengan awalan "hairleads:".
+================================================================================
+B2B LEAD GENERATION & AUTOMATED OUTREACH PLATFORM - DOKUMENTASI TEKNIS & PANDUAN
+================================================================================
 
-ISI
-  1. Pasang pertama kali
-  2. Variabel di Vercel
-  3. Peta menu
-  4. Cari dan simpan prospek
-  5. Kirim email manual
-  6. Otomatis (kirim, follow-up, cari ulang)
-  7. Keamanan pengiriman
-  8. Ringkasan harian, peringatan, pembersihan data
-  9. Dasbor
- 10. Data di Redis
- 11. Batas yang perlu diketahui
+Platform pencarian prospek bisnis B2B (salon, toko wig, toko kecantikan, dan distributor) 
+berbasis Google Maps dan OpenStreetMap, terintegrasi dengan mesin ekstraksi kontak otomatis 
+(email & WhatsApp), penilaian prospek cerdas (Scoring Engine AI & Rule-based), serta sistem 
+cold email outreach otomatis bertahap dengan pelacakan konversi dan kepatuhan anti-spam.
 
+Seluruh data transaksi dan status disimpan secara terpusat pada Upstash Redis 
+dengan namespace awalan "hairleads:".
 
-1. PASANG PERTAMA KALI (sekali saja)
-------------------------------------
-1) Di Vercel, project ini: tab Storage > Connect database Upstash Redis yang sudah ada.
-   Variabel koneksi terisi otomatis.
-2) Project > Settings > Environment Variables, tambahkan APP_PASSWORD = kata sandi untuk masuk
-   ke halaman ini (pilih yang panjang dan unik). Centang Production, Preview, Development.
-3) Tambahkan juga LOGIN_PATH = teks rahasia bebas tanpa garis miring (contoh: masuk-x7q2). Ini
-   alamat satu-satunya tempat halaman login muncul (setelah login, alamat di browser otomatis jadi "/" saja): https://domainanda.com/masuk-x7q2 - domain tanpa
-   alamat ini (termasuk "/" polos) sengaja menampilkan halaman 404 (api/_404.html), supaya orang lain yang iseng buka domainnya
-   tidak akan menemukan form login sama sekali. Ganti LOGIN_PATH kapan saja jika alamatnya diketahui orang
-   yang tidak berwenang (sesi yang sudah login tidak kena pengaruh, hanya alamat untuk masuk pertama kali yang berbeda).
-   Lalu Deployments > titik tiga di deploy terbaru > Redeploy.
-4) Buka https://domainanda.com/<LOGIN_PATH>, masuk, klik "Pengaturan", isi API key SerpApi (dan
-   Geoapify, opsional). Key disimpan terenkripsi di Redis (hairleads:keys), berlaku di semua
-   browser dan perangkat. Jika APP_PASSWORD diganti, key harus diisi ulang.
-
-Progress bar kuota SerpApi tampil di pojok kanan atas, diambil dari Account API SerpApi
-(tidak mengurangi kuota).
-
-PENTING: jangan menaruh API key, kata sandi, atau LOGIN_PATH di file aplikasi (api/_app.html) atau di GitHub - semua itu hanya boleh di Environment Variables Vercel.
+--------------------------------------------------------------------------------
+DAFTAR ISI
+--------------------------------------------------------------------------------
+  1. Panduan Instalasi & Deployment
+  2. Konfigurasi Variabel Lingkungan (Environment Variables)
+  3. Arsitektur Menu & Navigasi
+  4. Manajemen & Eksplorasi Prospek
+  5. Pengiriman Email Outreach (Integrasi Resend)
+  6. Mesin Otomasi (Pengiriman, Follow-Up, Rotasi Kota, Ekstraksi Kontak)
+  7. Standar Keamanan & Kepatuhan Regulasi (Compliance)
+  8. Laporan Operasional Harian, Notifikasi Sistem & Pemeliharaan Data
+  9. Dasbor Analitik & Uji Variasi Pesan A/B
+ 10. Skema Struktur Data Redis
+ 11. Batasan Sistem & Rekomendasi Infrastruktur
+ 12. Struktur Direktori Proyek
 
 
-2. VARIABEL DI VERCEL
----------------------
-Setelah mengubah variabel, selalu Redeploy.
+--------------------------------------------------------------------------------
+1. PANDUAN INSTALASI & DEPLOYMENT
+--------------------------------------------------------------------------------
+Langkah deployment sistem (sekali konfigurasi di Vercel):
 
-Wajib
-  APP_PASSWORD            Kata sandi masuk.
-  LOGIN_PATH              Alamat rahasia tempat halaman login muncul (lihat bagian 1, langkah 3).
-                          Tanpa ini seluruh situs menampilkan halaman 404, termasuk "/" - tidak ada yang bisa
-                          masuk sama sekali, jadi wajib diisi.
+1) Hubungkan Basis Data Redis:
+   - Pada dashboard proyek Vercel, buka tab Storage > Connect Store > pilih Upstash Redis.
+   - Variabel koneksi (UPSTASH_REDIS_REST_URL dan UPSTASH_REDIS_REST_TOKEN) akan 
+     terisi secara otomatis ke dalam konfigurasi environment.
 
-Untuk fitur Otomatis (disarankan semua)
-  CRON_SECRET             Teks acak panjang. Tanpa ini jadwal harian ditolak. Vercel mengirimnya
-                          sendiri saat menjalankan cron.
-  RESEND_WEBHOOK_SECRET   "whsec_..." dari Resend > Webhooks. Tanpa ini bounce dan laporan spam
-                          tidak tercatat. Lihat bagian 7.
-  UNSUB_SECRET            Teks acak panjang untuk tanda tangan link berhenti berlangganan. Isi SEKALI
-                          dan jangan diganti lagi. Link di email lama tetap berlaku.
-  PUBLIC_URL (opsional)   https://DOMAINANDA, supaya link berhenti berlangganan selalu memakai
-                          domain sendiri.
+2) Konfigurasi Kredensial Keamanan:
+   - Buka Project Settings > Environment Variables, tambahkan variabel berikut:
+     * APP_PASSWORD : Kata sandi untuk otentikasi masuk ke portal sistem (gunakan kombinasi unik).
+     * LOGIN_PATH   : Path URL rahasia untuk mengakses form login tanpa garis miring 
+                      (contoh: portal-auth-x7q).
+   - Pastikan mencentang opsi Production, Preview, dan Development.
 
-Opsional
-  SERPAPI_KEY, GEOAPIFY_KEY            Cadangan jika belum ada key tersimpan di halaman.
-  RESEND_API_KEY, RESEND_FROM,
-  RESEND_REPLY_TO                      Cadangan untuk pengaturan email di halaman.
-  RESEND_DAILY_LIMIT                   Batas email per hari. Bawaan 100 (akun gratis Resend).
-                                       Isi 0 untuk tanpa batas, atau angka sendiri.
+3) Mekanisme Keamanan Stealth Gateway:
+   - Akses aplikasi pertama kali melalui URL: https://domainanda.com/<LOGIN_PATH>
+   - Seluruh request di luar path rahasia tersebut (termasuk root "/") secara default 
+     akan menyajikan halaman 404 (api/_404.html) dengan kode status HTTP 404 asli. 
+     Mekanisme ini dirancang untuk mencegah pemindaian pihak ketiga dan akses tanpa izin.
+   - Setelah otentikasi berhasil, sesi disimpan melalui HTTP-Only cookie terenkripsi, 
+     dan URL di browser akan secara otomatis kembali ke root ("/").
+   - Parameter LOGIN_PATH dapat diubah sewaktu-waktu tanpa membatalkan sesi pengguna aktif.
+
+4) Deploy & Inisialisasi Kunci API:
+   - Buka tab Deployments > klik ikon tiga titik pada commit terbaru > pilih Redeploy.
+   - Buka URL akses Anda, masuk menggunakan APP_PASSWORD, buka modal "Pengaturan", 
+     dan masukkan API Key pihak ketiga:
+     * SerpApi Key 1 (dan Akun 2 untuk failover cadangan)
+     * Resend API Key & Email Pengirim
+     * Google Gemini API Key (untuk fitur penilaian AI dan copywriting draf)
+     * Geoapify API Key (opsional, untuk sumber OpenStreetMap)
+   - Seluruh kunci API disimpan dalam bentuk terenkripsi pada Upstash Redis 
+     (hairleads:keys) dan dapat digunakan secara terpusat di semua perangkat.
 
 
-3. PETA MENU
-------------
+--------------------------------------------------------------------------------
+2. KONFIGURASI VARIABEL LINGKUNGAN (ENVIRONMENT VARIABLES)
+--------------------------------------------------------------------------------
+Setiap pembaruan variabel lingkungan memerlukan proses Redeploy pada Vercel.
+
+Variabel Wajib:
+  APP_PASSWORD            Kata sandi otentikasi master untuk mengakses portal aplikasi.
+  LOGIN_PATH              Path rahasia pintu masuk antarmuka login (mencegah akses publik).
+
+Variabel Fitur Otomasi & Kepatuhan (Sangat Direkomendasikan):
+  CRON_SECRET             Token acak panjang untuk mengamankan eksekusi endpoint 
+                          Vercel Cron (/api/auto?a=cron). Vercel menyematkan token 
+                          ini otomatis pada header Authorization: Bearer.
+  RESEND_WEBHOOK_SECRET   Kunci rahasia dari menu Resend > Webhooks (whsec_...). 
+                          Digunakan untuk memvalidasi integritas event bounce & spam.
+  UNSUB_SECRET            Token acak panjang untuk tanda tangan digital HMAC tautan 
+                          pembatalan langganan (Unsubscribe). Disimpan permanen agar 
+                          tautan pada email yang telah terkirim tetap valid.
+  PUBLIC_URL (opsional)   URL domain produksi (contoh: https://outreach.domainanda.com) 
+                          untuk memastikan keakuratan tautan unsubscribe dan webhook.
+  RESEND_DAILY_LIMIT      Batas kuota pengiriman harian (default: 100 untuk tier gratis 
+                          Resend). Masukkan nilai 0 untuk kuota tanpa batas.
+
+
+--------------------------------------------------------------------------------
+3. ARSITEKTUR MENU & NAVIGASI
+--------------------------------------------------------------------------------
 Analisis
-  Dasbor                   Corong, variasi A/B, statistik harian, per negara/kota (bagian 9).
-Cari pembeli
-  Cari tempat              Cari salon/toko di kota mana pun.
-  Tersimpan                Prospek bertanda dan pencarian tersimpan.
-Hubungi
-  Email                    Kirim email manual.
-  Riwayat kirim            Semua email yang pernah dikirim.
-Otomatis
-  Status & antrean         Status (jalan otomatis, "Jalankan sekarang", jeda) dan Antrean persetujuan.
-  Kirim email              Kirim otomatis, Teks email.
-  Cari prospek             Cari ulang, Putaran kota, Cari email.
-  Sistem                   Skor prospek, Laporan & peringatan, Pembersihan data, Akun SerpApi,
-                           Daftar berhenti.
+  Dasbor Utama             Analisis corong konversi prospek, performa uji variasi A/B, 
+                           serta distribusi geografis per negara dan kota.
+Manajemen Prospek
+  Cari Tempat              Eksplorasi prospek bisnis via Google Maps & OpenStreetMap.
+  Prospek Tersimpan        Koleksi prospek terverifikasi dan riwayat pencarian.
+Penjangkauan (Outreach)
+  Email Outreach           Pusat penyusunan dan pengiriman email penawaran cold outreach.
+  WhatsApp Outreach        Daftar prospek dengan nomor WhatsApp terverifikasi.
+  Riwayat Pengiriman       Log audit seluruh email yang telah diproses oleh sistem.
+Otomasi Sistem
+  Status & Antrean         Status operasional cron, eksekusi instan, dan antrean kurasi.
+  Pengiriman Email         Konfigurasi jadwal pengiriman otomatis & manajemen template pesan.
+  Otomasi Pencarian        Penyegaran pencarian berkala, rotasi multi-kota, & ekstraksi kontak.
+  Pengaturan Sistem        Kriteria bobot skor kelayakan, laporan harian, pemeliharaan 
+                           data, multi-akun SerpApi, dan daftar pengecualian.
 
 
-4. CARI DAN SIMPAN PROSPEK
---------------------------
-- Hasil pencarian disimpan di Redis (hairleads:cache). Mencari kota + jenis + sumber yang sama
-  lagi membuka hasil tersimpan TANPA memakai kuota SerpApi. Tombol "Cari ulang" memaksa
-  pencarian baru.
-- 1 halaman Google Maps = 20 tempat = 1 kuota SerpApi.
-- Duplikat dibuang otomatis: place_id sama, nama + alamat sama, atau nomor telepon sama dengan
-  nama mirip. Cabang dengan alamat berbeda tidak dibuang.
-- Status prospek dan catatan disimpan per tempat (hairleads:leads), jadi tempat yang sama di
-  pencarian lain memakai status yang sama.
-  Status: Belum dihubungi, Sudah dihubungi, Dibalas, Deal, Tidak cocok.
+--------------------------------------------------------------------------------
+4. MANAJEMEN & EKSPLORASI PROSPEK
+--------------------------------------------------------------------------------
+- Caching Data Efisien:
+  Hasil pencarian disimpan pada Redis (hairleads:cache). Pencarian ulang dengan 
+  kombinasi kota, kategori, dan sumber yang sama akan langsung membaca memori cache 
+  tanpa mengonsumsi kuota SerpApi. Tombol "Cari Prospek" memicu pengambilan data baru.
+- Rasio Kuota:
+  1 halaman Google Maps = 20 prospek bisnis = 1 kuota SerpApi.
+- Algoritma Deduplikasi Cerdas:
+  Sistem secara otomatis mendeteksi dan mengeliminasi entitas duplikat berdasarkan:
+  place_id, kombinasi identik nama dan alamat, atau nomor telepon serupa dengan nama mirip.
+  Entitas cabang dengan alamat berbeda tetap dipertahankan.
+- Deduplikasi Lintas Wilayah (Cross-City):
+  Tempat yang telah terdata pada pencarian kota lain tidak akan dicatat ganda pada 
+  pencarian kota baru berikutnya.
+- Status Prospek Terpadu:
+  Status dan catatan prospek disimpan terpusat (hairleads:leads) sehingga konsisten di 
+  seluruh modul:
+  * Belum Dihubungi (default)
+  * Sudah Dihubungi
+  * Dibalas
+  * Deal
+  * Tidak Cocok
 
 
-5. KIRIM EMAIL MANUAL (Resend)
-------------------------------
-Persiapan
-  1. Di Resend: buat API key, dan verifikasi domain pengirim (Domains > Add domain, isi DNS-nya).
-     Gmail/Yahoo tidak bisa dipakai sebagai pengirim.
-  2. Di halaman: tab Email > "Pengaturan email", isi:
-       API key Resend
-       Email pengirim   contoh: EMA Hairshop Wholesale <sales@wholesale.emahairshop.com>
-       Reply-To         alamat email yang Anda pantau (opsional, disarankan)
-       Alamat fisik di footer email, dan "Keterangan sumber kontak" (lihat bagian 7)
+--------------------------------------------------------------------------------
+5. PENGIRIMAN EMAIL OUTREACH (INTEGRASI RESEND)
+--------------------------------------------------------------------------------
+Prasyarat:
+  1. Pada akun Resend: Daftarkan dan verifikasi domain pengirim (Domains > Add Domain, 
+     lengkapi record DNS SPF dan DKIM).
+  2. Buka menu Pengaturan pada aplikasi: Masukkan API Key Resend, Alamat Email Pengirim 
+     (contoh: sales@domainanda.com), Alamat Reply-To, Alamat Fisik Bisnis, dan 
+     Keterangan Sumber Kontak.
 
-Cara kirim
-  - Satu tempat: buka detail tempat > Kirim email. Isi dapat diedit terlebih dahulu.
-  - Massal: tombol "Kirim email" di atas tabel. Hanya tempat berstatus Belum dihubungi yang punya
-    email, maksimal 20 sekali kirim. Daftar bisa dicentang.
-  - Manual: tab Email, ketik satu atau beberapa alamat (pisahkan koma), lalu kirim dengan subjek
-    dan isi di tab itu. Dipakai juga untuk tes kirim ke alamat email Anda sendiri.
+Metode Pengiriman:
+  - Pengiriman Langsung (Per Entitas): Buka detail prospek > Kirim Email. Konten 
+    dapat dipersonalisasi terlebih dahulu sebelum dikirim.
+  - Pengiriman Batch Terkurasi: Tombol "Kirim Email" pada tab Email Outreach. 
+    Hanya menargetkan prospek berstatus Belum Dihubungi yang memiliki email valid.
+  - Pengiriman Uji Coba: Fitur pengiriman manual untuk verifikasi tampilan ke email internal.
 
-Isi dan catatan
-  - Isi memakai template di api/_template.js (sama dengan draf WA). Sapaan diganti nama tempat.
-    Ada baris berhenti berlangganan di bawah.
-  - Setelah terkirim, status otomatis jadi Sudah dihubungi dan catatan ditambah "Email, 3 Nov".
-    Tempat yang sudah pernah dikirimi dilewati (dicatat di hairleads:mail).
-  - Meter "email hari ini" menghitung email yang terkirim lewat halaman ini (hairleads:mailday),
-    termasuk kirim manual. Batas bawaan 100 per hari, reset pukul 07.00 WIB (tengah malam UTC).
-    Pilihan penerima dan tombol kirim otomatis mengikuti sisa kuota. Email yang dikirim dari luar
-    halaman ini tidak ikut terhitung.
+Manajemen Reputasi & Pelacakan:
+  - Setiap email yang terkirim otomatis memperbarui status prospek menjadi "Sudah Dihubungi" 
+    dan mencatat timestamp pengiriman pada riwayat (hairleads:mail).
+  - Penghitung kuota harian (hairleads:mailday) memantau batas volume pengiriman 
+    secara real-time, reset setiap pukul 07.00 WIB (00:00 UTC).
 
 
-6. OTOMATIS (kirim, follow-up, cari ulang)
-------------------------------------------
-Semua berjalan tanpa AI (hanya aturan + Redis + Vercel Cron). Data berawalan hairleads:auto,
-queue, seq, supp.
+--------------------------------------------------------------------------------
+6. MESIN OTOMASI (PENGIRIMAN, FOLLOW-UP, ROTASI KOTA, EKSTRAKSI KONTAK)
+--------------------------------------------------------------------------------
+Arsitektur otomasi dirancang modular dan dieksekusi melalui endpoint /api/auto?a=cron 
+yang dijadwalkan via Vercel Cron.
 
-6.1 Jadwal
-  - vercel.json menjalankan /api/auto?a=cron setiap hari pukul 18:00 UTC = 01:00 WIB
-    ("0 18 * * *"). Zona waktu cron Vercel selalu UTC.
-  - Paket Hobby hanya mengizinkan cron sekali sehari, dan jamnya bisa bergeser sampai satu jam.
-  - Mengganti jam: ubah angka jam di vercel.json (UTC = WIB dikurangi 7), lalu deploy.
-      01:00 WIB = 0 18 * * *      08:00 WIB = 0 1 * * *      14:00 WIB = 0 7 * * *
-  - Kuota harian Resend reset 07:00 WIB (00:00 UTC), jadi jalan 01:00 WIB memakai kuota hari
-    UTC yang sama dengan jalan 08:00 WIB hari itu.
-  - Tombol "Jalankan sekarang" menjalankan semuanya langsung (jadwal cari ulang diabaikan, tetap
-    dibatasi pengaturan). Bisa sampai 1 menit.
+6.1 Penjadwalan:
+  - vercel.json mengeksekusi cron setiap hari pukul 18:00 UTC / 01:00 WIB ("0 18 * * *").
+  - Fitur "Jalankan Otomasi Sekarang" memungkinkan pemicuan seluruh tugas secara langsung 
+    dengan batas waktu eksekusi hingga 60 detik.
 
-6.2 Urutan tiap jalan
-  1. Kirim follow-up yang sudah waktunya + email pertama yang sudah disetujui.
-  2. Cari ulang pencarian yang dicentang.
-  3. Cari email/WhatsApp dari website tempat yang belum dicek.
-  4. Isi antrean persetujuan dengan prospek yang skornya cukup.
+6.2 Siklus Urutan Eksekusi:
+  1. Pengiriman pesan follow-up jatuh tempo + email penawaran pertama yang disetujui.
+  2. Penyegaran berkala terhadap pencarian tersimpan yang diaktifkan.
+  3. Ekstraksi otomatis email dan WhatsApp dari situs web prospek baru.
+  4. Pengisian antrean persetujuan berdasarkan evaluasi skor kelayakan prospek.
+  5. Pemeliharaan dan pembersihan data usang di akhir siklus.
 
-6.3 Skor prospek (api/_score.js, 0-100)
-  Menambah
-    email +30 (+5 jika bukan Gmail dkk) · website +10 · WhatsApp +5 · telepon +5
-    rating 4,5+ +10 / 4+ +6 / 3,5+ +3
-    ulasan 100+ +10 / 30+ +7 / 10+ +4
-    nama wig/extension/weave/beauty supply/wholesale +15
-    nama salon/hair/beauty/studio +8
-  Mengurangi (sinyal negatif)
-    jaringan besar (Sally Beauty, Ulta, Walmart dll) -50
-    bukan bisnis rambut (barber, nail, spa, tattoo, klinik, sekolah, lash) -15
-    email tidak dibaca orang (noreply, abuse, privacy, legal dll) -15
-    rating di bawah 3,0 dengan 10+ ulasan -10
-    ada rating namun ulasan kurang dari 3 -3
-    website hanya Facebook/Instagram dll -5
-  Cara mengubah
-    - Tab Otomatis > Skor prospek. Bobot tersimpan di cfg.mail.weights (tanpa deploy ulang).
-    - Sinyal negatif diisi angka POSITIF lalu dikurangkan. Isi 0 untuk mematikan satu sinyal.
-    - "Uji bobot" menghitung ulang prospek yang memenuhi syarat antrean dengan bobot di form
-      (belum disimpan): berapa yang lolos batas, sebaran skor, contoh teratas, dekat batas, dan
-      yang kena sinyal negatif. "Kembalikan bawaan" mengisi ulang bobot standar.
-    - Perubahan berlaku setelah Simpan pengaturan, dan hanya untuk prospek yang diantrekan
-      sesudahnya (yang sudah di antrean tidak dihitung ulang).
-    - Daftar kata jaringan besar, bukan bisnis rambut, dan email tidak dibaca orang ada di
-      api/_score.js. Nama yang memuat wig/extension/weave dan sejenisnya tidak pernah dikurangi
-      sebagai bukan bisnis rambut.
-    - Antrean menampilkan alasan skor, sinyal negatif di depan.
+6.3 Scoring Engine Kelayakan Prospek (0–100):
+  Sistem mengevaluasi prospek berdasarkan parameter rule-based (api/_score.js):
+  Penambah Skor (+):
+    - Kepemilikan Email: +30 (+5 jika domain perusahaan kustom)
+    - Kepemilikan Website: +10
+    - Kepemilikan WhatsApp / Telepon: +5 masing-masing
+    - Rating Bisnis Tinggi: 4.5+ (+10) / 4.0+ (+6)
+    - Volume Ulasan Tinggi: 100+ (+10) / 30+ (+7) / 10+ (+4)
+    - Kata Kunci Niche Relevan pada Nama Bisnis: +15
+  Pengurang Skor / Sinyal Negatif (-):
+    - Jaringan Korporasi / Ritel Masif (Sally Beauty, Ulta, Walmart, dll.): -50
+    - Non-Kategori Relevan (Klinik, Salon Kuku, Tato, Spa, Sekolah): -15
+    - Alamat Email Non-Personal (noreply@, abuse@, legal@, privacy@): -15
+    - Rating Rendah (< 3.0) dengan ulasan banyak: -10
+    - Website hanya berupa tautan media sosial: -5
+  * Seluruh bobot parameter dapat disesuaikan pada tab Otomasi > Skor Prospek 
+    dan diuji secara instan melalui fitur "Simulasi Uji Bobot".
 
-6.4 Antrean persetujuan
-  Syarat masuk antrean:
-    - Status Belum dihubungi, punya email, belum pernah dikirimi, tidak ada di Daftar berhenti.
-    - Skor >= batas.
-    - Alamat punya MX/alamat A (dicek lewat DNS, tanpa API; hasil di hairleads:mx, 14 hari untuk
-      valid, 3 hari untuk gagal). Domain yang belum pasti ditunda ke jalan berikutnya, bukan ditolak.
-    - Satu bisnis satu email: domain email milik sendiri (bukan Gmail dkk) dan host website yang
-      sama dengan yang sudah dikirimi/diantrekan dilewati, jadi info@ dan owner@ domain yang sama
-      tidak keduanya terkirim, dan cabang dengan website sama tidak terkirim berulang. Website
-      sosial/marketplace (Facebook, Instagram, Shopify dll) tidak dihitung.
-  Aturan lain:
-    - Maksimal 50 menunggu persetujuan sekaligus.
-    - "Tolak" = tidak diantrekan lagi.
-    - Hanya yang disetujui yang dikirim, maksimal "email per hari" di pengaturan dan tidak melewati
-      sisa kuota Resend.
-    - Setelah terkirim, status jadi Sudah dihubungi dan catatan ditambah "Email, 3 Nov".
-    - Isi email memakai template di tab Otomatis (sapaan Hi! -> Hi Nama team!).
+6.4 Antrean Persetujuan (Approval Queue):
+  Kriteria Kualifikasi:
+    - Status: Belum Dihubungi, memiliki alamat email terverifikasi, belum pernah dikirimi, 
+      dan tidak terdaftar pada Daftar Pengecualian.
+    - Nilai Skor >= Batas Minimal yang ditentukan.
+    - Validasi Domain MX / Record A: Sistem melakukan pengecekan DNS aktif 
+      (hasil cache 14 hari untuk domain valid, 3 hari untuk domain gagal).
+    - Kebijakan 1 Bisnis 1 Email: Mencegah pengiriman ganda ke beberapa staf di domain yang sama.
+  Kebijakan Operasional:
+    - Kapasitas antrean maksimal 50 prospek secara bersamaan.
+    - Opsi "Setujui" memvalidasi pengiriman pada siklus berikutnya, sedangkan "Tolak" 
+      mengecualikan prospek secara permanen.
 
-6.5 Follow-up dan variasi email
-  - Follow-up dikirim hari ke-N sejak email pertama (bawaan hari ke-4 dan ke-10).
-  - Berhenti sendiri jika status jadi Dibalas / Deal / Tidak cocok, atau alamatnya masuk Daftar
-    berhenti.
-  - Tiap tahap (email pertama dan tiap follow-up) bisa punya sampai 2 variasi tambahan (A, B, C).
-    Penerima berurutan mendapat A, B, C, A, ... per tahap. Follow-up bawaan sudah punya 1 variasi
-    tambahan.
-  - Variasi yang terkirim dicatat di urutan (hairleads:seq, field vs) dan di statistik harian
-    (metrik s{tahap}v{variasi}). Yang dibalas dicatat sebagai r{tahap}v{variasi}.
-    Perbandingannya tampil di Dasbor.
-
-6.6 Cari ulang
-  - Hanya pencarian yang dicentang. 1 halaman Google Maps (20 tempat) = 1 kuota SerpApi.
-  - Halaman 2 dan 3 hanya diambil jika seluruh isi halaman sebelumnya tempat baru (bisa diatur
-    1-3 di "Halaman per pencarian"). Tiap halaman dihitung ke "Maks pencarian per hari".
-  - Dilewati jika sisa kuota di bawah "Sisakan kuota SerpApi".
-  - Tempat lama tidak berubah, hanya yang baru ditambahkan.
-  - Nonaktifkan pencarian kosong: jika satu pencarian yang dicentang berturut-turut tidak
-    menambah tempat baru sebanyak "Matikan setelah kosong" (bawaan 3, isi 0 untuk mematikan
-    aturan), centangnya dimatikan sendiri dan Anda diberi tahu lewat email peringatan (maks sekali
-    sehari). Jika ada tempat baru, hitungan kembali ke nol. Satu pencarian dihitung paling
-    banyak sekali per 20 jam. Hitungan ada di hairleads:auto, field dry. Untuk mengaktifkan lagi,
-    centang kembali pencariannya.
-
-6.7 Putaran kota
-  - Daftar kota (satu per baris, "Kota, Negara") x jenis (salon / toko wig / kecantikan).
-  - Tiap jalan mengambil kombinasi BERIKUTNYA yang belum pernah dicari, jadi kuota SerpApi dipakai
-    untuk kota baru, bukan mengulang. Kombinasi yang sudah ada di pencarian tersimpan dilewati.
-    Yang hasilnya kosong atau gagal (bukan karena kuota) tetap dianggap sudah dicoba supaya
-    putaran tidak macet.
-  - Daftar bawaan: kota besar AS, Inggris, Kanada, Nigeria, Afrika Selatan, Ghana, dan Kenya.
-  - Batas: "Maks pencarian per hari" (bawaan 2, per hari UTC), "Sisakan kuota SerpApi" (bawaan 30),
-    halaman per kota (bawaan 1). Hitungan terpisah dari "Cari ulang".
-  - Hanya jalan jika dicentang, juga saat "Jalankan sekarang".
-  - Progres tampil di Pengaturan (mis. "12 dari 28 kombinasi sudah dicari"). Data di
-    hairleads:auto, field rot dan rotday.
-  - Kota yang sudah dicari tidak otomatis ikut Cari ulang; centang manual jika mau.
-
-6.8 Cari email dari website
-  - Maksimal 60 website per jalan (bisa diubah). Sisanya dilanjutkan di jalan berikutnya.
-  - Halaman yang dicek: /contact, /about, /pages/contact (pola Shopify), /contact-us, /kontak,
-    dan tautan "Contact/Kontak" di halaman utama (maks 6 halaman per website).
-  - Website yang gagal dijangkau (timeout, error server) TIDAK langsung ditandai selesai: dicoba
-    ulang SEKALI, paling cepat 20 jam kemudian. Website yang terbuka namun tanpa email tetap final.
-    Hasil jalan menampilkan "retry" dan "waiting".
-
-6.9 Pindah akun SerpApi otomatis
-  - Berlaku jika Akun 1 dan Akun 2 sama-sama diisi.
-  - Sebelum tiap pencarian Google Maps (manual maupun otomatis), sisa kuota akun aktif dicek lewat
-    Account API SerpApi (gratis). Jika di bawah "Pindah jika sisa di bawah" (bawaan 20) dan
-    akun lain punya sisa lebih banyak, akun aktif dipindah. Sama dengan switch di pojok kanan atas,
-    jadi pilihan manual tetap bisa diganti kapan saja.
-  - Jika SerpApi menolak pencarian karena kuota habis / key bermasalah, pencarian diulang sekali
-    dengan akun lain dan akun aktif dipindah.
-  - Pindah lewat jadwal harian dikabari lewat email peringatan (maks sekali sehari).
-  - Pengaturan di cfg.serp {auto, below}. Pindah terakhir di hairleads:auto, field serpsw.
-    Matikan kotaknya jika mau memilih akun murni manual.
+6.5 Siklus Follow-Up & Variasi A/B Testing:
+  - Pesan follow-up otomatis dijadwalkan pada hari ke-N sejak pengiriman pertama 
+    (default: Hari ke-4 dan Hari ke-10).
+  - Siklus otomatis terhenti saat prospek memberikan balasan atau statusnya berubah.
+  - Mendukung hingga 2 variasi pesan tambahan per tahap (A/B/C testing) untuk 
+    menguji efektivitas judul dan copywriting email.
 
 
-7. KEAMANAN PENGIRIMAN
-----------------------
-Berlaku untuk kirim otomatis DAN manual.
+--------------------------------------------------------------------------------
+7. STANDAR KEAMANAN & KEPATUHAN REGULASI (COMPLIANCE)
+--------------------------------------------------------------------------------
+Platform dirancang dengan mengedepankan kepatuhan penuh terhadap CAN-SPAM Act, GDPR, 
+serta panduan pengirim Google & Yahoo:
 
-Berhenti berlangganan
-  - Setiap email memuat tautan "Unsubscribe" bertanda tangan + header List-Unsubscribe (tombol
-    berhenti di Gmail/Apple Mail).
-  - Tautan hanya menampilkan tombol konfirmasi; yang benar-benar berhenti adalah klik tombolnya.
-  - Alamat di Daftar berhenti dilewati semua jalur kirim. Bisa ditambah/dihapus manual di tab
-    Otomatis.
+1) Pembatalan Langganan (Unsubscribe System):
+   - Setiap email menyertakan tautan Unsubscribe bertanda tangan digital (HMAC SHA-256) 
+     serta header standar RFC 8058 List-Unsubscribe.
+   - Penerima yang membatalkan langganan otomatis masuk ke Daftar Pengecualian 
+     (hairleads:supp) dan status prospek diperbarui menjadi "Tidak Cocok".
 
-Bounce dan spam (webhook Resend)
-  - Di Resend > Webhooks, tambahkan webhook ke https://DOMAINANDA/api/mailhook?a=resend dengan event
-    email.bounced dan email.complained. Isi RESEND_WEBHOOK_SECRET di Vercel.
-  - Bounce permanen dan laporan spam otomatis masuk Daftar berhenti. Bounce sementara (kotak
-    penuh dll) tidak.
-  - Bounce, laporan spam, dan berhenti berlangganan juga mengubah status prospek jadi "Tidak
-    cocok" + catatan, hanya jika statusnya masih Belum dihubungi / Sudah dihubungi.
-    Dibalas/Deal tidak diubah.
+2) Penanganan Bounce & Spam Otomatis (Webhook):
+   - Terintegrasi dengan endpoint /api/mailhook?a=resend untuk memproses event 
+     email.bounced dan email.complained.
+   - Kasus hard bounce dan aduan spam langsung dimasukkan ke daftar blacklist permanen.
 
-Jeda
-  - Tombol "Jeda semua" (kill switch) di bagian Status: menghentikan kirim otomatis, follow-up,
-    semua pekerjaan cron, DAN kirim manual dari tab Email sampai klik Lanjutkan.
-  - Jeda otomatis: jika bounce 3 hari terakhir >= batas (bawaan 4%, minimal 20 email terkirim)
-    atau ada 2+ laporan spam (>= 0,3%), sistem menjeda sendiri. Dicek tiap webhook bounce/spam
-    masuk dan tiap pekerjaan berjalan.
-  - Setelah Lanjutkan, hitungan bounce yang ada dijadikan titik nol supaya tidak langsung terjeda
-    lagi.
+3) Circuit Breaker (Auto-Pause Perlindungan Reputasi):
+   - Sistem secara proaktif memantau performa pengiriman. Jika rasio bounce 3 hari 
+     terakhir melampaui batas (default: 4%) atau tercatat 2 laporan spam atau lebih, 
+     sistem akan menghentikan seluruh pengiriman otomatis secara seketika untuk 
+     melindungi domain pengirim dari pemblokiran.
 
-Footer email (alamat fisik dan sumber kontak)
-  - Tab Email > Pengaturan email > isi "Alamat fisik di footer email" (kantor, toko, atau PO Box).
-    Tampil di bawah SETIAP email (otomatis dan manual), di versi HTML maupun teks.
-  - "Keterangan sumber kontak" opsional. Jika kosong, memakai teks bawaan: We found your email
-    address on your business website or public listing.
-  - Isi dua kolom ini SEBELUM kirim sungguhan. Tab Otomatis menampilkan peringatan merah selama
-    alamat fisik belum diisi. Pengiriman tidak diblokir.
-  - Disimpan terenkripsi di Redis bersama key lain (field addr dan srcn di hairleads:keys).
+4) Identitas Bisnis & Footer Email:
+   - Mewajibkan pencantuman alamat fisik bisnis yang valid serta penjelasan sumber 
+     perolehan kontak pada bagian footer setiap email penawaran.
 
 
-8. RINGKASAN HARIAN, PERINGATAN, PEMBERSIHAN DATA
--------------------------------------------------
-Tab Otomatis > Pengaturan > Laporan & peringatan.
-
-Ringkasan harian
-  - Dikirim lewat Resend setelah jalan otomatis harian (sekitar 01:00 WIB), sekali sehari.
-  - Isi: prospek baru, kontak ditemukan, email pertama dan follow-up terkirim, bounce, spam,
-    berhenti langganan (hari ini dan kemarin), status kirim otomatis, jumlah menunggu
-    persetujuan, sisa kuota Resend dan SerpApi tiap akun.
-  - "Hari ini" di ringkasan = sejak 07.00 WIB (awal hari UTC), termasuk jalan otomatis itu.
-  - Penerima: isi "Kirim ke email". Jika kosong, memakai Reply-To dari tab Email. Dikirim dari
-    alamat pengirim Resend yang sama.
-  - Tombol "Kirim tes ringkasan" mengirim sekarang (simpan pengaturan terlebih dahulu).
-
-Peringatan (email terpisah, "[Peringatan] ...")
-  Hanya dari jalan terjadwal dan webhook, maksimal sekali sehari per jenis:
-    - jeda otomatis karena bounce atau spam (selalu dikirim setiap terjadi)
-    - jadwal harian terlewat (jalan terakhir lebih dari 30 jam lalu, dicek saat jalan berikutnya)
-    - jalan otomatis gagal (error pekerjaan)
-    - kuota Resend habis atau terlalu cepat
-    - pencarian ulang gagal karena SerpApi, atau dilewati karena sisa kuota di bawah batas
-    - pindah akun SerpApi, dan pencarian kosong dinonaktifkan
-  Batas: jika cron Vercel tidak jalan sama sekali, tidak ada kode yang berjalan untuk memberi
-  tahu. Peringatan "terlewat" baru terkirim saat jalan berikutnya. Untuk jaga-jaga, pasang monitor
-  uptime eksternal.
-  Email laporan tidak ikut meter "email hari ini", namun tetap memakai kuota Resend yang sebenarnya.
-
-Pembersihan data
-  - Berjalan di akhir "Jalankan sekarang" dan jadwal harian, paling banyak sekali per 20 jam
-    (maks 40 pencarian per jalan).
-  - Sasaran: pencarian yang lebih tua dari "Umur data" (bawaan 30 hari) dan tidak dicentang
-    untuk cari ulang.
-  - Dibuang: tempat tanpa telepon, email, dan WhatsApp, setelah websitenya dicek (atau tanpa
-    website). Pencarian yang jadi kosong ikut dihapus.
-  - Ikut dibersihkan: skor AI dan catatan cek email milik tempat itu (jika tidak dipakai
-    pencarian lain), cache domain email yang kedaluwarsa, statistik harian lebih dari 90 hari.
-  - TIDAK PERNAH dibuang: tempat yang punya status atau catatan, pernah dikirimi email, ada di
-    antrean, atau urutan follow-up, serta tempat yang websitenya belum dicek.
-  - Hasilnya tampil di Riwayat jalan dan bagian Pembersihan data. Data yang dibuang tidak
-    diarsipkan, namun pencarian yang sama bisa diulang kapan saja (memakai kuota SerpApi).
+--------------------------------------------------------------------------------
+8. LAPORAN OPERASIONAL HARIAN, NOTIFIKASI SISTEM & PEMELIHARAAN DATA
+--------------------------------------------------------------------------------
+- Laporan Ringkasan Harian:
+  Dikirimkan otomatis setiap hari ke alamat email administrator pasca eksekusi cron.
+  Mencakup perolehan prospek baru, volume email terkirim, rasio balasan, tingkat bounce, 
+  serta sisa kapasitas kuota SerpApi dan Resend.
+- Sistem Peringatan Dini (Alerts):
+  Mengirimkan notifikasi segera apabila terdeteksi kegagalan cron, kuota API kritis, 
+  atau aktivasi Circuit Breaker akibat lonjakan bounce rate.
+- Pemeliharaan Data Otomatis (Data Cleanup):
+  Menjalankan optimasi basis data secara berkala untuk membersihkan prospek lama 
+  yang tidak memiliki kontak, cache DNS yang kedaluwarsa, dan log sementara 
+  guna menjaga efisiensi kapasitas Upstash Redis.
 
 
-9. DASBOR (menu Analisis > Dasbor)
------------------------------------
-Menu sendiri, hanya baca (api/dash.js). Dimuat saat menu dibuka atau tombol Segarkan ditekan,
-karena membaca seluruh pencarian tersimpan. Tidak memakai kuota SerpApi maupun Resend.
-Jendela waktu: 7 / 14 / 30 / 90 hari (statistik harian disimpan 90 hari).
-
-Isi
-  - Ringkasan: tempat tersimpan, email terkirim, balasan, tingkat balasan, bounce.
-  - Corong (seluruh data tersimpan):
-      Ditemukan > Punya kontak (email atau WA) > Dikirimi (riwayat kirim, urutan follow-up, atau
-      sudah berstatus) > Dibalas (status Dibalas/Deal) > Deal.
-  - Variasi A/B per tahap: terkirim, dibalas, tingkat balasan. Pemenang hanya ditandai jika tiap
-    variasi sudah terkirim minimal 30 kali dan selisihnya lolos uji dua proporsi (sekitar 90%
-    yakin). Selain itu tampil "belum cukup data" atau "belum ada pemenang". Batas 30 ada di
-    MIN_SENT pada api/dash.js. Hanya kiriman lewat jalur Otomatis yang bertanda variasi.
-  - Per negara dan per kota: negara = teks setelah koma terakhir pada nama kota pencarian. Satu
-    tempat dihitung sekali, di pencarian pertama yang memuatnya.
-  - Statistik harian: email, follow-up, bounce, spam, berhenti, balasan, tempat baru, ada kontak.
-    Tanggal UTC (ganti hari pukul 07.00 WIB), sama seperti kuota Resend.
-  - Tren harian.
+--------------------------------------------------------------------------------
+9. DASBOR ANALITIK & UJI VARIASI PESAN A/B
+--------------------------------------------------------------------------------
+Menu Analisis > Dasbor Utama menyajikan pemantauan metrik komprehensif tanpa 
+mengonsumsi kuota API:
+  - Corong Konversi: Ditemukan > Memiliki Kontak > Terkirim > Dibalas > Deal.
+  - Analisis Variasi Pesan A/B: Menggunakan uji statistik dua proporsi (z-test) 
+    dengan tingkat kepercayaan 90% untuk menentukan variasi pesan pemenang.
+  - Distribusi Wilayah: Pemetaan performa prospek dan konversi per negara dan kota.
+  - Tren Historis: Grafik metrik aktivitas pengiriman dan respon selama 7, 14, 30, atau 90 hari.
 
 
-10. DATA DI REDIS (semua berawalan "hairleads:")
-------------------------------------------------
-  keys       API key dan alamat footer (terenkripsi)
-  cache      Hasil pencarian tersimpan        cmeta    Ringkasan tiap pencarian (kota, jenis)
-  leads      Status dan catatan per tempat    ai       Skor AI per tempat
-  mail       Riwayat kirim                    mailday  Hitungan email per hari
-  mx         Cache cek domain email           supp     Daftar berhenti
-  queue      Antrean persetujuan              seq      Urutan follow-up
-  auto       Pengaturan, log, jeda, progres   autolock Kunci agar dua jalan tidak bentrok
-  stats      Statistik harian (field "YYYY-MM-DD:metrik", UTC)
+--------------------------------------------------------------------------------
+10. SKEMA STRUKTUR DATA REDIS
+--------------------------------------------------------------------------------
+Seluruh data menggunakan awalan namespace "hairleads:":
+  hairleads:keys       Kunci API pihak ketiga dan alamat footer (terenkripsi)
+  hairleads:cache      Cache data hasil pencarian Google Maps / OpenStreetMap
+  hairleads:cmeta      Metadata ringkasan pencarian tersimpan (kota, kategori, timestamp)
+  hairleads:leads      Data prospek, status konversi, catatan, dan kontak
+  hairleads:ai         Cache skor dan evaluasi prospek dari model Gemini AI
+  hairleads:mail       Log audit pengiriman email
+  hairleads:mailday    Akumulasi volume pengiriman email per hari (format: YYYY-MM-DD)
+  hairleads:mx         Cache validasi DNS MX dan Record A domain email
+  hairleads:supp       Daftar pengecualian alamat (Unsubscribe, Bounce, Spam)
+  hairleads:queue      Antrean kurasi prospek sebelum pengiriman otomatis
+  hairleads:seq        State urutan pengiriman pesan follow-up berkala
+  hairleads:auto       Konfigurasi otomasi, log riwayat eksekusi, dan state jeda
+  hairleads:autolock   Kunci mutex untuk mencegah bentrok eksekusi simultan
+  hairleads:stats      Agregasi statistik harian untuk dasbor analitik
 
 
-11. BATAS YANG PERLU DIKETAHUI
-------------------------------
-  - Paket Hobby Vercel: cron sekali sehari (jam bisa bergeser sampai satu jam), tiap fungsi
-    maksimal 60 detik (vercel.json).
-  - Resend gratis: 100 email per hari. Atur RESEND_DAILY_LIMIT jika akun berbayar.
-  - Gmail/Yahoo tidak bisa jadi pengirim, dan antrean otomatis hanya untuk alamat Gmail/Yahoo dkk.
-  - Mengganti APP_PASSWORD mematikan key tersimpan (isi ulang di Pengaturan). Link berhenti
-    berlangganan baru tidak terpengaruh jika UNSUB_SECRET sudah diisi.
+--------------------------------------------------------------------------------
+11. BATASAN SISTEM & REKOMENDASI INFRASTRUKTUR
+--------------------------------------------------------------------------------
+- Vercel Serverless Function:
+  * Paket Hobby mengizinkan eksekusi Serverless Function maksimal 60 detik.
+  * Cron harian berjalan sekali per hari pada jadwal yang ditentukan.
+- Upstash Redis:
+  * Kompatibel dengan tier gratis Upstash (10.000 perintah/hari) untuk skala wajar.
+- Resend:
+  * Kuota tier gratis: 100 email/hari (reset pukul 07.00 WIB / 00:00 UTC).
+  * Pengiriman mewajibkan domain email kustom yang telah terverifikasi DNS.
 
 
-CATATAN BATAS VERCEL HOBBY
---------------------------
-Paket Hobby maksimal 12 Serverless Function (setiap file api/*.js tanpa awalan "_" dihitung satu).
-Sekarang 11, masih ada satu slot kosong. Jangan menambah file baru di api/ tanpa menggabungkan yang lain. Pencarian
-email/WhatsApp (sebelumnya api/email.js) sekarang ada di api/usage.js lewat ?a=email.
-
-
-ALAMAT HALAMAN
---------------
-Setelah login, aplikasi memakai alamat biasa tanpa "#": /dasbor, /cari, /riwayat, dst, dan
-/<uuid> untuk pencarian tersimpan. Link lama berbentuk #nama masih dibaca. Jika belum login, semua
-alamat selain LOGIN_PATH menampilkan halaman 404.
+--------------------------------------------------------------------------------
+12. STRUKTUR DIREKTORI PROYEK
+--------------------------------------------------------------------------------
+├── api/
+│   ├── _404.html         Halaman 404 stealth multi-bahasa
+│   ├── _app.html         Antarmuka frontend utama (Single Page Application)
+│   ├── _auth.js          Modul autentikasi sesi HMAC & cookie security
+│   ├── _clean.js         Modul pemeliharaan dan pembersihan data usang
+│   ├── _contacts.js      Pembersihan dan validasi format email & telepon
+│   ├── _jobs.js          Mesin eksekusi tugas otomasi sistem
+│   ├── _leads.js         Fungsi deduplikasi dan standardisasi prospek
+│   ├── _mail.js          Gateway pengiriman email Resend, template HTML, & DNS MX
+│   ├── _score.js         Algoritma penilaian kelayakan prospek (Rule-based)
+│   ├── _serp.js          Konektor SerpApi dan mekanisme failover multi-akun
+│   ├── _store.js         Abstraksi koneksi REST Upstash Redis & enkripsi simetris
+│   ├── _template.js      Template pesan penjangkauan awal & konfigurasi brand
+│   ├── ai.js             Endpoint evaluasi prospek cerdas via Google Gemini AI
+│   ├── app.js            Gateway aplikasi & proteksi rute LOGIN_PATH
+│   ├── auto.js           Endpoint API manajemen otomasi dan webhook cron
+│   ├── dash.js           Endpoint analitik dasbor dan kalkulasi A/B testing
+│   ├── keys.js           Endpoint pengelolaan kunci API terenkripsi
+│   ├── leads.js          Endpoint manajemen status prospek dan pencarian
+│   ├── mailhook.js       Endpoint penanganan webhook Resend dan tautan unsubscribe
+│   ├── places.js         Endpoint pencarian data lokasi Google Maps & OpenStreetMap
+│   ├── send.js           Endpoint pemrosesan pengiriman email cold outreach
+│   ├── session.js        Endpoint otentikasi login, logout, dan proteksi brute-force
+│   └── usage.js          Endpoint pemantauan sisa kuota SerpApi & ekstraksi kontak
+├── vercel.json           Konfigurasi routing Vercel, serverless function, & jadwal cron
+├── README.txt            Dokumentasi teknis teks lengkap (File ini)
+└── README.md             Dokumentasi format Markdown resmi
+================================================================================

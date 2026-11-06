@@ -1,4 +1,5 @@
-// GET = status key tersimpan (dimasking), POST = simpan ({serp, serp2, geo, gem, rs (Resend), rsf (alamat pengirim), rrt (Reply-To), addr (alamat fisik di footer), srcn (keterangan sumber kontak)}; "" = hapus, tidak dikirim = tidak diubah)
+// Manajemen Kunci API dan Konfigurasi Pengirim (Tersimpan terenkripsi di Upstash Redis).
+// GET: Status keberadaan kunci (dimasking) | POST: Pembaruan atau penghapusan kunci API.
 const { isAuthed } = require("./_auth");
 const { dbConfigured, getKey, setKey, setActive } = require("./_store");
 
@@ -14,8 +15,8 @@ const hint = (v, full) => (v ? { set: true, hint: full ? v : "…" + v.slice(-4)
 module.exports = async (req, res) => {
   try {
     res.setHeader("Cache-Control", "no-store");
-    if (!isAuthed(req)) return res.status(401).json({ error: "Belum login" });
-    if (!dbConfigured()) return res.status(500).json({ error: "Database belum terhubung. Di Vercel, buka tab Storage, hubungkan Upstash Redis ke project ini, lalu Redeploy" });
+    if (!isAuthed(req)) return res.status(401).json({ error: "Otorisasi diperlukan. Silakan masuk terlebih dahulu." });
+    if (!dbConfigured()) return res.status(500).json({ error: "Database belum terhubung. Pastikan koneksi Upstash Redis telah dikonfigurasi." });
     if (req.method === "GET") {
       return res.status(200).json(await status());
     }
@@ -26,14 +27,14 @@ module.exports = async (req, res) => {
       for (const n of NAMES) {
         if (typeof b[n] === "string") {
           const v = b[n].trim();
-          if (v.length > 300) return res.status(400).json({ error: "Key terlalu panjang" });
+          if (v.length > 300) return res.status(400).json({ error: "Nilai kunci melebihi batas maksimal (300 karakter)." });
           await setKey(n, v);
         }
       }
       if (b.active === "1" || b.active === "2") await setActive(b.active);
       return res.status(200).json(await status());
     }
-    return res.status(405).json({ error: "metode tidak didukung" });
+    return res.status(405).json({ error: "Metode HTTP tidak didukung" });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
