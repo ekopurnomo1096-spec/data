@@ -2342,6 +2342,7 @@ function clearHist(){
       renderHist();flash("Riwayat dihapus dari daftar.");
     }).catch(function(e){b.disabled=false;if(e!==0)emErr("Tidak bisa menghubungi server.")});
 }
+function queuedIds(){var o={};((AU.st&&AU.st.queue)||[]).forEach(function(q){if(q&&(q.st==="ok"||q.st==="pending"))o[q.id]=1});return o}
 function renderMail(){
   var info=$("eminfo"),list=$("elist");
   if(!EM.loaded){info.hidden=true;list.innerHTML="<div class='sk'></div><div class='sk'></div><div class='sk'></div>";list.hidden=false;emCount();renderHist();return}
@@ -2353,10 +2354,11 @@ function renderMail(){
     info.textContent=mailPool().length?"Tidak ada tempat yang cocok dengan filter ini.":"Belum ada tempat yang punya email. Cari tempat dulu, lalu tekan Cari email semua di atas tabel.";
     info.hidden=false;list.hidden=true;
   }else{
-    info.textContent=v.length+" tempat dengan email.";info.hidden=false;
+    var QI=queuedIds(),nq=v.filter(function(x){return QI[x.id]}).length;
+    info.textContent=v.length+" tempat dengan email"+(nq?", "+nq+" di antaranya sudah ada di Antrean persetujuan (ditandai)":"")+".";info.hidden=false;
     list.innerHTML=v.map(function(x){
       var s=EM.sent[x.id],sc=ruleScore(x),why=sc.neg.concat(sc.why).slice(0,4),stt=s?"chat":(stOf(x)||"baru");
-      return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+(why.length?" · "+esc(why.join(", ")):"")+"</small></span><em class='mtag pl sc-"+aiCls(sc.s)+"'>skor "+sc.s+"</em>"+(stt==="baru"?"":"<em class='mtag pl st-"+stt+"'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em>")+"</label>";
+      return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+(why.length?" · "+esc(why.join(", ")):"")+"</small></span><em class='mtag pl sc-"+aiCls(sc.s)+"'>skor "+sc.s+"</em>"+(QI[x.id]&&!s?"<em class='mtag pl'>Di antrean</em>":"")+(stt==="baru"?"":"<em class='mtag pl st-"+stt+"'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em>")+"</label>";
     }).join("");
     list.hidden=false;
   }
@@ -2544,7 +2546,7 @@ function emManual(force){
 $("emmsend").onclick=function(){emManual(false)};
 $("emmt").onkeydown=$("emmn").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();emManual(false)}};
 $("emq").oninput=$("emst").onchange=$("emhide").onchange=$("emfree").onchange=renderMail;
-$("emall").onclick=function(){EM.sel={};mailView().slice(0,emCap()).forEach(function(x){EM.sel[x.id]=true});renderMail()};
+$("emall").onclick=function(){EM.sel={};var QI=queuedIds();mailView().filter(function(x){return!QI[x.id]}).slice(0,emCap()).forEach(function(x){EM.sel[x.id]=true});renderMail()}; // lewati yang sudah di antrean supaya tidak terkirim dobel
 $("emnone").onclick=function(){EM.sel={};renderMail()};
 $("elist").addEventListener("change",function(e){
   var c=e.target;if(!c||c.type!=="checkbox")return;
@@ -2737,7 +2739,8 @@ function auLoad(full){
   return auApi().then(function(o){
     if(!o.ok){$("aust").innerHTML="<span class='bad'>"+esc(o.j.error||"Gagal memuat")+"</span>";return}
     AU.st=o.j;
-    try{var cw=o.j.cfg&&o.j.cfg.mail&&o.j.cfg.mail.weights;if(cw){var ch=false;Object.keys(cw).forEach(function(k){if(SCW[k]!==cw[k]){SCW[k]=cw[k];ch=true}});if(ch&&typeof renderMail==="function"&&$("emq"))renderMail()}}catch(e){} // samakan bobot skor dengan pengaturan server
+    try{var cw=o.j.cfg&&o.j.cfg.mail&&o.j.cfg.mail.weights;if(cw){var ch=false;Object.keys(cw).forEach(function(k){if(SCW[k]!==cw[k]){SCW[k]=cw[k];ch=true}});}}catch(e){}
+    try{if(EM.loaded&&$("emq"))renderMail()}catch(e){} // samakan bobot skor dengan pengaturan server
     if(o.j.nodb){$("aust").innerHTML="<span class='bad'>Database belum terhubung. Hubungkan Upstash Redis di Vercel lalu Redeploy.</span>";return}
     if(full||!AU.cfg)AU.cfg=o.j.cfg;
     auStatus();auQueue();auSupp();auLog();rpLoad();
