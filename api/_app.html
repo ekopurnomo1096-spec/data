@@ -1180,7 +1180,7 @@ var POPULAR_CITIES={
 "United States":["New York","Los Angeles","Chicago","Houston","Miami","Dallas","Atlanta","San Francisco","Seattle","Las Vegas","Phoenix","Philadelphia","San Antonio","San Diego","San Jose","Austin","Jacksonville","Fort Worth","Columbus","Charlotte","Indianapolis","Denver","Washington","Boston","Nashville","Detroit","Baltimore","Orlando","Tampa","Minneapolis"],
 "Canada":["Toronto","Vancouver","Montreal","Calgary","Edmonton","Ottawa","Winnipeg","Quebec City","Hamilton","Kitchener","London","Victoria","Halifax","Oshawa","Windsor"],
 "Mexico":["Mexico City","Guadalajara","Monterrey","Puebla","Tijuana","León","Juárez","Mérida","Cancún","Querétaro"],
-"Brazil":["Sao Paulo","Rio de Janeiro","Brasilia","São Paulo","Brasília","Salvador","Fortaleza","Belo Horizonte","Manaus","Curitiba","Recife","Porto Alegre"],
+"Brazil":["Sao Paulo","Rio de Janeiro","Brasilia","Salvador","Fortaleza","Belo Horizonte","Manaus","Curitiba","Recife","Porto Alegre"],
 "Argentina":["Buenos Aires"],
 "Chile":["Santiago"],
 "Colombia":["Bogota","Medellin"],
@@ -1200,7 +1200,7 @@ var POPULAR_CITIES={
 "Norway":["Oslo","Bergen","Trondheim","Stavanger","Drammen","Fredrikstad","Kristiansand","Sandnes","Tromsø","Ålesund"],
 "Denmark":["Copenhagen","Aarhus","Odense","Aalborg","Esbjerg","Randers","Kolding","Horsens","Vejle","Roskilde"],
 "Finland":["Helsinki","Espoo","Tampere","Vantaa","Oulu","Turku","Jyväskylä","Lahti","Kuopio","Pori"],
-"Poland":["Warsaw","Krakow","Kraków","Łódź","Wrocław","Poznań","Gdańsk","Szczecin","Bydgoszcz","Lublin","Katowice","Białystok","Gdynia","Częstochowa","Radom","Toruń"],
+"Poland":["Warsaw","Krakow","Łódź","Wrocław","Poznań","Gdańsk","Szczecin","Bydgoszcz","Lublin","Katowice","Białystok","Gdynia","Częstochowa","Radom","Toruń"],
 "Czech Republic":["Prague","Brno","Ostrava","Plzeň","Liberec","Olomouc","České Budějovice","Hradec Králové","Ústí nad Labem","Pardubice","Zlín","Havířov","Kladno","Most","Opava"],
 "Greece":["Athens","Thessaloniki","Patras","Heraklion","Larissa","Volos","Ioannina","Chania","Chalcis","Kavala"],
 "Turkey":["Istanbul","Ankara","Izmir","Bursa","Antalya","Adana","Konya","Gaziantep","Kayseri","Mersin"],
@@ -1527,7 +1527,8 @@ function nxTodo(){
   var kd=$("kind").value,sr=$("source").value,ncn=nz(cn);
   // Sudah dicari = ada di Pencarian tersimpan (jenis dan sumber sama), nama kota sama (tanpa aksen) dan negaranya cocok kalau tertulis
   var done=SAVED.filter(function(m){return m.kind===kd&&(m.source||"google")===sr}).map(function(m){var p=String(m.city||"").split(",");return{c:nz(p[0]),n:p.length>1?nz(p[p.length-1]):""}});
-  return{cn:cn,pl:pl,todo:pl.filter(function(k){var nk=nz(k);return!done.some(function(d){return d.c===nk&&(!d.n||d.n===ncn)})})};
+  var seen={};
+  return{cn:cn,pl:pl,todo:pl.filter(function(k){var nk=nz(k);if(seen[nk])return false;seen[nk]=1;return!done.some(function(d){return d.c===nk&&(!d.n||d.n===ncn)})})};
 }
 function nxCount(){return Math.max(1,Math.min(10,parseInt($("nxn").value,10)||3))}
 // Kolom "Kota yang dicari" menampilkan semua kota yang akan dicari sekarang (bukan satu)
@@ -1541,8 +1542,10 @@ function nxPreview(){
   if(!t.cn||!t.pl){c.value="";c.placeholder="Pilih negara dulu";ni.textContent="Pilih negara yang punya daftar kota populer, nanti kota yang akan dicari muncul di sini.";return}
   var n=nxCount();
   if(!t.todo.length){c.value="";c.placeholder="Semua kota sudah dicari";ni.textContent="Semua "+t.pl.length+" kota populer di "+t.cn+" sudah pernah dicari untuk jenis dan sumber ini.";return}
-  c.value=t.todo.slice(0,n).join(", ");
-  ni.textContent="Akan dicari "+Math.min(n,t.todo.length)+" kota (1 kuota SerpApi per kota). Sisa "+t.todo.length+" dari "+t.pl.length+" kota populer di "+t.cn+" yang belum dicari.";
+  var pk=t.todo.slice(0,n);
+  // Kolom hanya cukup untuk ringkasan, daftar lengkap ada di teks di bawahnya
+  c.value=pk.length>2?pk.slice(0,2).join(", ")+" +"+(pk.length-2)+" kota":pk.join(", ");c.title=pk.join(", ");
+  ni.textContent="Akan dicari "+pk.length+" kota: "+pk.join(", ")+". Tiap kota memakai 1 kuota SerpApi. Sisa "+t.todo.length+" dari "+t.pl.length+" kota populer di "+t.cn+" yang belum dicari.";
 }
 $("nxcity").addEventListener("change",function(){if(!this.checked)$("city").value="";nxPreview();if(this.checked){var r=loadSearches();if(r&&r.then)r.then(function(){if($("nxcity").checked&&!BATCH)nxPreview()})}});
 ["country","kind","source","nxn"].forEach(function(id){["input","change"].forEach(function(ev){$(id).addEventListener(ev,function(){if($("nxcity").checked&&!BATCH)nxPreview()})})});
