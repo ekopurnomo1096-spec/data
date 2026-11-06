@@ -798,6 +798,29 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
 .acts{gap:10px}
 .di{padding:11px 0}
 
+/* Cari tempat (mode kota bergantian): baris "Sumber data" + tombol Cari dibuat seimbang.
+   Sebelumnya tombol Cari melebar 2 kolom di sebelah dropdown Sumber data yang hanya 1 kolom,
+   jadi terlihat timpang. Sekarang dropdown yang melebar, tombol selebar kolom biasa seperti isian lain. */
+@media (min-width:901px){
+  .form.nxon #source{grid-column:span 2}
+  .form.nxon #run{grid-column:auto;width:100%}
+}
+
+/* Cari tempat: blok "Kota yang akan dicari" dijadikan satu kartu kecil yang jelas batasnya,
+   bukan mengambang lepas di bawah checkbox seperti sebelumnya. Keterangan kuota di bawahnya
+   disatukan jadi satu kartu yang sama supaya rapi. */
+#nxl{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:4px}
+#nxl label{margin-bottom:10px}
+#nxl:has(+ #nxinfo:not([hidden])){border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0}
+#nxinfo:not([hidden]){background:var(--bg);border:1px solid var(--line);border-top:1px dashed var(--line);border-bottom-left-radius:10px;border-bottom-right-radius:10px;padding:10px 14px!important;margin:0!important}
+
+/* Cari tempat: chip nomor kota jadi lencana bulat, bukan angka tipis menempel nama kota */
+.nxchip{padding:5px 12px 5px 5px;background:var(--surf)}
+.nxchip i{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:var(--accsoft);color:var(--acc);font-size:.72rem;font-weight:700}
+
+/* Cari tempat: jarak antara baris checkbox dan kartu "Kota yang akan dicari" sedikit lebih lega */
+#nxwrap{margin-bottom:2px}
+
 /* HP */
 @media (max-width:760px){
  .dsk{grid-template-columns:1fr 1fr}
