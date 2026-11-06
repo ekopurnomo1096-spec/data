@@ -36,7 +36,7 @@ function idFor(r) {
   return "n:" + crypto.createHash("sha1").update(addrKey(r) || String(r.osm || r.name)).digest("hex").slice(0, 16);
 }
 
-// Dua baris dianggap duplikat kalau: place_id / id OSM sama, ATAU nama dan alamat sama,
+// Dua baris dianggap duplikat jika: place_id / id OSM sama, ATAU nama dan alamat sama,
 // ATAU nomor telepon sama dan namanya mirip. Cabang berbeda (alamat berbeda) tidak dibuang.
 function dedupe(list) {
   const out = [], byPlace = new Map(), byAddr = new Map(), byPhone = new Map();

@@ -36,11 +36,11 @@ const FU2B = "Hi!\n\nI will not keep filling your inbox. If you ever need a depe
 
 function defaultCfg() {
   return {
-    autosearch: true, // saklar utama cari tempat otomatis (cari ulang + putaran kota); mati = cari manual saja
+    autosearch: true, // saklar utama cari tempat otomatis (cari ulang + putaran kota); nonaktif = cari manual saja
     enrich: { on: true, max: 60 },
     refresh: { on: false, everyDays: 7, maxSearches: 3, reserve: 30, pages: 3, dryMax: 3, keys: [] }, // dryMax: nonaktifkan pencarian yang sekian kali berturut-turut tanpa tempat baru (0 = jangan)
     rotate: { on: false, maxSearches: 2, reserve: 30, pages: 1, kinds: ["salon"], cities: DEFAULT_CITIES.slice() }, // putaran kota baru
-    serp: { ...SERP_DEFAULT }, // pindah akun SerpApi otomatis kalau sisa kuota akun aktif di bawah "below"
+    serp: { ...SERP_DEFAULT }, // pindah akun SerpApi otomatis jika sisa kuota akun aktif di bawah "below"
     mail: {
       on: false, approve: true, minScore: 40, perDay: 20, followOn: true, maxBounce: 4,
       weights: { ...DEFAULT_W }, // bobot skor prospek (positif dan negatif), lihat _score.js
@@ -167,7 +167,7 @@ function shortDate() { // "3 Nov" dalam WIB, sama dengan catatan otomatis di hal
 
 // ---- Enrich -----------------------------------------------------------------------------------------------
 async function jobEnrich(cfg, ctx) {
-  if (!cfg.enrich.on) return { skip: "mati" };
+  if (!cfg.enrich.on) return { skip: "nonaktif" };
   // Yang gagal dijangkau dicoba ulang SEKALI, paling cepat 20 jam kemudian (retry=1). Setelah itu ditandai sudah dicek.
   const t0 = Date.now(), RETRY_AFTER = 20 * 36e5;
   const pool = [...ctx.data.map.values()].filter(x => x.id && x.website && !x.looked);
@@ -209,7 +209,7 @@ async function jobEnrich(cfg, ctx) {
 async function jobRefresh(cfg, ctx) {
   const rc = cfg.refresh;
   if (cfg.autosearch === false) return { skip: "cari tempat otomatis dimatikan" };
-  if (!rc.on && !ctx.force) return { skip: "mati" };
+  if (!rc.on && !ctx.force) return { skip: "nonaktif" };
   if (!rc.keys.length) return { skip: "belum ada pencarian yang dicentang" };
   const meta = await hgetall(META), now = Date.now(), due = [];
   for (const key of rc.keys) {
@@ -239,7 +239,7 @@ async function jobRefresh(cfg, ctx) {
   const noteSw = sw => { if (sw) switches.push(sw); };
   for (const d of due) {
     if (stop || searches >= rc.maxSearches) break;
-    // Halaman 2-3 hanya diambil kalau seluruh isi halaman sebelumnya baru. Tiap halaman memakai 1 kuota dan dihitung ke "Maks pencarian".
+    // Halaman 2-3 hanya diambil jika seluruh isi halaman sebelumnya baru. Tiap halaman memakai 1 kuota dan dihitung ke "Maks pencarian".
     const pages = d.m.source === "osm" ? 1 : rc.pages;
     let keyAdded = 0, p0ok = false;
     for (let p = 0; p < pages; p++) {
@@ -259,10 +259,10 @@ async function jobRefresh(cfg, ctx) {
       searches++; added += r.added || 0; keyAdded += r.added || 0; if (p > 0) extra++;
       if (p === 0) p0ok = true;
       if (r.acct && tracked[r.acct] !== undefined) tracked[r.acct]--;
-      // Lanjut ke halaman berikutnya hanya kalau halaman ini penuh tempat baru dan Google Maps masih punya halaman lagi
+      // Lanjut ke halaman berikutnya hanya jika halaman ini penuh tempat baru dan Google Maps masih punya halaman lagi
       if (!(r.pageN > 0 && r.added >= r.pageN && r.pageMore)) break;
     }
-    // Halaman pertama berhasil dicari: hitung sebagai "kering" kalau seluruh pencarian ini tidak menambah tempat baru
+    // Halaman pertama berhasil dicari: hitung sebagai "kering" jika seluruh pencarian ini tidak menambah tempat baru
     if (p0ok && rc.dryMax > 0) {
       const prev = dry[d.key] || { n: 0, t: 0 };
       if (keyAdded > 0) delete dry[d.key];
@@ -320,7 +320,7 @@ async function nextCity(cfg, kind, source) {
 async function jobRotate(cfg, ctx) {
   const rc = cfg.rotate;
   if (cfg.autosearch === false) return { skip: "cari tempat otomatis dimatikan" };
-  if (!rc.on) return { skip: "mati" };
+  if (!rc.on) return { skip: "nonaktif" };
   if (!rc.cities.length) return { skip: "daftar kota kosong" };
   const day = M.today();
   let usedRaw = null; try { usedRaw = await cmd(["HGET", AUTO, "rotday"]); } catch (e) { /* anggap 0 */ }
@@ -357,7 +357,7 @@ async function jobRotate(cfg, ctx) {
       searches++; usedToday++; added += r.added || 0; cityAdded += r.added || 0;
       if (left !== null) left--;
       if (p === 0) ok = true;
-      if (!(r.pageN > 0 && r.added >= r.pageN && r.pageMore)) break; // halaman berikutnya hanya kalau halaman ini penuh tempat baru
+      if (!(r.pageN > 0 && r.added >= r.pageN && r.pageMore)) break; // halaman berikutnya hanya jika halaman ini penuh tempat baru
     }
     if (ok || hardErr) { // kombinasi ini dianggap sudah dicoba, jadi putaran maju ke kota berikutnya (walau hasilnya kosong)
       rot[t.ck] = { t: Date.now(), a: cityAdded, e: hardErr ? 1 : 0 };
@@ -382,7 +382,7 @@ async function jobRotate(cfg, ctx) {
 
 // ---- Mail: antrean ----------------------------------------------------------------------------------------
 async function jobQueue(cfg, ctx) {
-  if (!cfg.mail.on && !ctx.force) return { skip: "mati" };
+  if (!cfg.mail.on && !ctx.force) return { skip: "nonaktif" };
   const qraw = await hgetall(QUEUE), queue = {};
   Object.keys(qraw).forEach(k => { const v = parse(qraw[k]); if (v) queue[k] = v; });
   const mraw = await hgetall(M.MAIL), mailed = new Set(Object.keys(mraw)), mailedTo = new Set();
@@ -574,7 +574,7 @@ async function markEmailed(ctx, id, lead) {
 }
 
 async function jobMailSend(cfg, ctx) {
-  if (!cfg.mail.on) return { skip: "mati" };
+  if (!cfg.mail.on) return { skip: "nonaktif" };
   const rc = await M.config();
   if (!rc.key || !/@/.test(rc.from)) return { skip: "Resend belum diisi (API key dan email pengirim)" };
   let used = await M.usedToday();
@@ -691,7 +691,7 @@ async function buildDigest(cfg, base) {
   L.push(row("Bounce", t.bounce, y.bounce), row("Lapor spam", t.spam, y.spam), row("Berhenti langganan", t.unsub, y.unsub));
   L.push("", "Hari ini = sejak pukul 07.00 WIB (awal hari UTC), termasuk jalan otomatis ini.", "");
   L.push("Status");
-  L.push("- Kirim otomatis: " + (cfg.mail.on ? "aktif" : "mati") + (pz ? " (DIJEDA: " + pz.why + ")" : ""));
+  L.push("- Kirim otomatis: " + (cfg.mail.on ? "aktif" : "nonaktif") + (pz ? " (DIJEDA: " + pz.why + ")" : ""));
   L.push("- Menunggu persetujuan: " + pending + " prospek", "- Follow-up berjalan: " + active, "");
   L.push("Kuota");
   L.push("- Resend hari ini: " + used + (M.DAILY > 0 ? " dari " + M.DAILY + " (sisa " + Math.max(M.DAILY - used, 0) + ")" : " (tanpa batas)"));
@@ -700,10 +700,10 @@ async function buildDigest(cfg, base) {
   if (base) L.push("", "Buka halaman: " + base);
   return { subject: "Ringkasan harian " + BRAND.name + ", " + shortDate(), text: L.join("\n") };
 }
-// force = kirim tes (abaikan batas sekali sehari dan pengaturan mati/hidup)
+// force = kirim tes (abaikan batas sekali sehari dan pengaturan aktif/nonaktif)
 async function sendDigest(cfg, base, force) {
   const n = await M.notifyTarget();
-  if (!force && !n.digest) return { skip: "mati" };
+  if (!force && !n.digest) return { skip: "nonaktif" };
   if (!n.to) return { skip: "belum ada email penerima (isi di Pengaturan > Laporan, atau Reply-To di tab Email)" };
   if (!force) { try { if ((await cmd(["HGET", AUTO, "digest"])) === M.today()) return { skip: "sudah terkirim hari ini" }; } catch (e) { /* kirim saja */ } }
   const d = await buildDigest(cfg, base);
@@ -723,8 +723,8 @@ async function notifyAfter(cfg, out, o) {
   if (out.error) errs.push("Pekerjaan gagal: " + out.error);
   for (const k of Object.keys(j)) {
     const e = j[k] && j[k].err; if (!e) continue;
-    if (k === "mail" && /kuota|quota|429|terlalu cepat/i.test(e)) await ping("resend_quota", "Kuota Resend habis atau terlalu cepat", "Pengiriman email berhenti: " + e + "\n\nKuota Resend reset pukul 07.00 WIB. Kalau sering terjadi, naikkan paket Resend lalu isi RESEND_DAILY_LIMIT di Vercel.");
-    else if ((k === "refresh" || k === "rotate") && /SerpApi|kuota|quota|key/i.test(e)) await ping("serp_quota", "Pencarian ulang gagal (SerpApi)", "Pencarian ulang berhenti: " + e + "\n\nCek kuota dan API key SerpApi di Pengaturan. Kalau kuota akun habis, ganti ke akun lain lewat switch di pojok kanan atas.");
+    if (k === "mail" && /kuota|quota|429|terlalu cepat/i.test(e)) await ping("resend_quota", "Kuota Resend habis atau terlalu cepat", "Pengiriman email berhenti: " + e + "\n\nKuota Resend reset pukul 07.00 WIB. Jika sering terjadi, naikkan paket Resend lalu isi RESEND_DAILY_LIMIT di Vercel.");
+    else if ((k === "refresh" || k === "rotate") && /SerpApi|kuota|quota|key/i.test(e)) await ping("serp_quota", "Pencarian ulang gagal (SerpApi)", "Pencarian ulang berhenti: " + e + "\n\nCek kuota dan API key SerpApi di Pengaturan. Jika kuota akun habis, ganti ke akun lain lewat switch di pojok kanan atas.");
     else errs.push((JN[k] || k) + ": " + e);
   }
   if (j.refresh && j.refresh.disabled && j.refresh.disabled.length) await ping("serp_dry", "Pencarian ulang dinonaktifkan otomatis", "Pencarian berikut tidak menghasilkan tempat baru berkali-kali berturut-turut, jadi centang cari ulangnya dimatikan supaya kuota SerpApi tidak terbuang:\n\n- " + j.refresh.disabled.join("\n- ") + "\n\nKalau mau diulang lagi, centang kembali di Pengaturan otomatis > Cari ulang.");
@@ -781,7 +781,7 @@ async function runAuto(opts) {
     await unlock();
   }
   out.ms = Date.now() - t0;
-  // Laporan dan peringatan hanya untuk jalan terjadwal (cron). Tetap dikirim walau sedang dijeda, kalau masih ada waktu.
+  // Laporan dan peringatan hanya untuk jalan terjadwal (cron). Tetap dikirim walau sedang dijeda, jika masih ada waktu.
   if (isCron && cfg && Date.now() - t0 < 50000) {
     try { out.notify = await notifyAfter(cfg, out, { prevCronT, base: opts.base }); } catch (e) { out.notify = { err: e.message }; }
   }

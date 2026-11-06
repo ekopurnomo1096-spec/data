@@ -2,7 +2,7 @@
 // Yang dibuang (hanya dari pencarian yang umurnya melebihi batas hari DAN tidak dicentang untuk cari ulang):
 //   - tempat TANPA KONTAK: tanpa telepon, email, dan WhatsApp, dan websitenya sudah dicek (atau tidak punya website)
 //   - pencarian yang jadi kosong setelah itu
-//   - skor AI dan catatan cek email milik tempat yang dibuang (kalau tidak dipakai pencarian lain)
+//   - skor AI dan catatan cek email milik tempat yang dibuang (jika tidak dipakai pencarian lain)
 //   - cache pengecekan domain email yang sudah kedaluwarsa, dan statistik harian lebih dari 90 hari
 // TIDAK PERNAH dibuang: tempat yang punya status/catatan, pernah dikirimi email, ada di antrean, atau urutan follow-up.
 const { dbConfigured, cmd, hgetall } = require("./_store");
@@ -17,7 +17,7 @@ const arr = v => (Array.isArray(v) ? v : []);
 
 async function pruneData(cfg, ctx) {
   const c = (cfg && cfg.clean) || { on: true, days: 30 };
-  if (!c.on) return { skip: "mati" };
+  if (!c.on) return { skip: "nonaktif" };
   if (!dbConfigured()) return { skip: "database belum terhubung" };
   const now = Date.now();
   let last = null;

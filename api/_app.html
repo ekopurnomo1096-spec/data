@@ -925,7 +925,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <div class="f"><label for="kind">Jenis tempat</label>
       <select id="kind"><option value="salon">Salon rambut</option><option value="wig">Toko wig / beauty supply</option><option value="beauty">Toko kecantikan</option></select></div>
     <div class="f"><label for="source">Sumber data</label>
-      <select id="source"><option value="google">Google Maps (lengkap)</option><option value="osm">OpenStreetMap (gratis, tipis)</option></select></div>
+      <select id="source"><option value="google">Google Maps (lengkap)</option><option value="osm">OpenStreetMap (gratis, data terbatas)</option></select></div>
     <button class="go" id="run"><span id="runtxt">Cari</span></button>
     <label class="chk" id="nxwrap" style="grid-column:1/-1"><input type="checkbox" id="nxcity"> Cari kota baru di negara ini secara bergantian (bukan mengulang kota yang sama)</label>
     <div class="f" id="nxl" style="grid-column:1/-1;display:none"><label>Kota yang akan dicari</label><div class="nxchips" id="nxchips"></div></div>
@@ -988,7 +988,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <details id="emcfg"><summary>Pengaturan email <em class="tn tsk" id="emcn"></em></summary>
   <div class="sf f" id="kf5"><label for="k5">API key Resend</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh5"></span></span><button class="btn" id="kc5" type="button">Ganti</button></div><div class="krow"><input type="password" id="k5" autocomplete="off" placeholder="Tempel key di sini" data-ph="1"><button class="btn" id="kx5" type="button" hidden>Batal</button></div><p class="hint2">Buat di <a class="lk" href="https://resend.com" target="_blank" rel="noopener">resend.com</a>. Dipakai untuk semua pengiriman email.</p></div>
   <div class="sf f" id="kf6"><label for="k6">Email pengirim (untuk Resend)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh6"></span></span><button class="btn" id="kc6" type="button">Ganti</button></div><div class="krow"><input type="text" id="k6" autocomplete="off" placeholder="EMA Hairshop Wholesale &lt;sales@wholesale.emahairshop.com&gt;" data-ph="1"><button class="btn" id="kx6" type="button" hidden>Batal</button></div><p class="hint2">Harus memakai domain yang sudah diverifikasi di Resend. Tidak bisa Gmail atau Yahoo.</p></div>
-  <div class="sf f" id="kf7"><label for="k7">Reply-To (balasan masuk ke sini, opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh7"></span></span><button class="btn" id="kc7" type="button">Ganti</button></div><div class="krow"><input type="text" id="k7" autocomplete="off" placeholder="sales@emahairshop.com" data-ph="1"><button class="btn" id="kx7" type="button" hidden>Batal</button></div><p class="hint2">Email yang kamu baca. Kalau calon pembeli klik Balas, jawabannya masuk ke sini, bukan ke alamat pengirim.</p></div>
+  <div class="sf f" id="kf7"><label for="k7">Reply-To (balasan masuk ke sini, opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh7"></span></span><button class="btn" id="kc7" type="button">Ganti</button></div><div class="krow"><input type="text" id="k7" autocomplete="off" placeholder="sales@emahairshop.com" data-ph="1"><button class="btn" id="kx7" type="button" hidden>Batal</button></div><p class="hint2">Alamat email yang Anda pantau. Jika calon pembeli menekan Balas, jawabannya masuk ke alamat ini, bukan ke alamat pengirim.</p></div>
   <div class="sf f" id="kf8"><label for="k8">Alamat fisik di footer email</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh8"></span></span><button class="btn" id="kc8" type="button">Ganti</button></div><div class="krow"><input type="text" id="k8" autocomplete="off" placeholder="Jl. Contoh No. 1, Kota, Provinsi, 12345, Indonesia" data-ph="1"><button class="btn" id="kx8" type="button" hidden>Batal</button></div><p class="hint2">Alamat pos yang valid (kantor, toko, atau PO Box). Tampil di bagian bawah setiap email sesuai aturan CAN-SPAM.</p></div>
   <div class="sf f" id="kf9"><label for="k9">Keterangan sumber kontak (opsional)</label><div class="ksaved"><span class="kt"><svg class="ck" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><b>Tersimpan</b> <span id="kh9"></span></span><button class="btn" id="kc9" type="button">Ganti</button></div><div class="krow"><input type="text" id="k9" autocomplete="off" placeholder="Kosongkan untuk memakai teks bawaan" data-ph="1"><button class="btn" id="kx9" type="button" hidden>Batal</button></div><p class="hint2">Menjelaskan dari mana alamat email penerima didapat. Bawaan: We found your email address on your business website or public listing.</p></div>
     <label class="chk" id="emksw" style="margin-top:14px"><input type="checkbox" id="emks"> Tampilkan key</label>
@@ -999,8 +999,8 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
   <details class="panel aud emd" id="emwrite">
     <summary>Tulis email</summary>
     <div class="f"><label for="emai">Minta AI menulis</label>
-      <div class="airow"><input type="text" id="emai" maxlength="500" placeholder="Mis. nada santai, tawarkan sampel gratis, maksimal 80 kata"><button class="ghost" id="emaibtn" type="button">Tulis dengan AI</button></div>
-      <p class="hint2">Tulis permintaan kata-katanya, lalu AI mengisi Subjek dan Isi email. Kalau Isi email sudah ada, AI merevisinya sesuai permintaan.</p></div>
+      <div class="airow"><input type="text" id="emai" maxlength="500" placeholder="Contoh: nada ramah, tawarkan sampel gratis, maksimal 80 kata"><button class="ghost" id="emaibtn" type="button">Tulis dengan AI</button></div>
+      <p class="hint2">Tulis permintaan kata-katanya, lalu AI mengisi Subjek dan Isi email. Jika Isi email sudah ada, AI merevisinya sesuai permintaan.</p></div>
     <div class="f"><label for="emsj">Subjek</label><input type="text" id="emsj" maxlength="200" class="skel" readonly></div>
     <div class="sf f"><label for="emtx">Isi email</label><textarea id="emtx" rows="12" class="skel" readonly></textarea>
       <p class="hint2">Sapaan di baris pertama otomatis memakai nama tempat (Hi Nama team!) selama baris itu tetap diawali Hi!</p></div>
@@ -1012,7 +1012,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <summary>Kirim manual</summary>
     <div class="f"><label for="emmt">Alamat email tujuan</label><input type="text" id="emmt" autocomplete="off" placeholder="nama@contoh.com (koma untuk beberapa)"></div>
     <div class="sf f"><label for="emmn">Nama tempat (opsional)</label><input type="text" id="emmn" autocomplete="off" maxlength="80" placeholder="Untuk sapaan, misalnya Salon Ayu"></div>
-    <p class="hint2">Memakai subjek dan isi email di atas. Nama dipakai kalau hanya ada satu alamat. Cocok juga untuk tes kirim ke emailmu sendiri.</p>
+    <p class="hint2">Memakai subjek dan isi email di atas. Nama dipakai jika hanya ada satu alamat. Cocok juga untuk tes kirim ke alamat email Anda sendiri.</p>
     <p class="aiwarn" id="emmerr" hidden></p>
     <div class="eacts"><span class="sp"></span><button class="btn primary" id="emmsend" type="button">Kirim email</button></div>
   </details>
@@ -1021,10 +1021,10 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <div class="tools">
       <input type="search" class="q" id="emq" placeholder="Cari nama, alamat, atau email" aria-label="Cari penerima">
       <select id="emst" class="sortsel" aria-label="Filter status prospek"><option value="baru" selected>Belum dihubungi</option><option value="all">Semua status</option><option value="chat">Sudah dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak cocok</option></select>
-      <label class="chk"><input type="checkbox" id="emhide" checked> Sembunyikan yang sudah dikirimi atau kembar</label>
+      <label class="chk"><input type="checkbox" id="emhide" checked> Sembunyikan yang sudah dikirimi atau duplikat</label>
       <label class="chk"><input type="checkbox" id="emfree" checked> Hanya email Gmail, Yahoo, dll</label>
       <label class="chk"><input type="checkbox" id="emnq"> Hanya yang belum masuk antrean</label>
-      <div class="tbtns"><button class="ghost" id="emall" type="button">Pilih 20 pertama</button><button class="ghost" id="emnone" type="button">Kosongkan pilihan</button><button class="ghost" id="emenq" type="button" title="Masukkan yang dipilih (atau semua yang belum masuk antrean kalau tidak ada yang dipilih) ke Antrean persetujuan">Masukkan ke antrean</button></div>
+      <div class="tbtns"><button class="ghost" id="emall" type="button">Pilih 20 pertama</button><button class="ghost" id="emnone" type="button">Kosongkan pilihan</button><button class="ghost" id="emenq" type="button" title="Masukkan yang dipilih (atau semua yang belum masuk antrean jika tidak ada yang dipilih) ke Antrean persetujuan">Masukkan ke antrean</button></div>
     </div>
     <p class="info" id="eminfo"></p>
     <div class="mlist" id="elist" hidden></div>
@@ -1256,7 +1256,7 @@ function comboAsync(inputId,listId,opts){
   function search(q){
     var mySeq=++seq;
     show("<div class='none'>Mencari…</div>");
-    opts.fetch(q,function(results,cname){if(mySeq===seq)render(results,cname)},function(){if(mySeq===seq)show("<div class='none'>Gagal mencari (cek koneksi), coba lagi</div>")});
+    opts.fetch(q,function(results,cname){if(mySeq===seq)render(results,cname)},function(){if(mySeq===seq)show("<div class='none'>Pencarian gagal. Periksa koneksi internet lalu coba lagi.</div>")});
   }
   function pick(r){inp.value=r.label;cur=r.label;list.hidden=true;if(opts.onPick)opts.onPick(r)}
   function showDefault(){
@@ -1340,7 +1340,7 @@ var WANOTE=/^WA, \d{1,2} [A-Za-z]{3,5}\.?$/;
 // Khusus tab WhatsApp: "sudah/belum dihubungi" dilihat dari catatan "WA, ..." sendiri, bukan status global
 // (status global bisa saja sudah "Sudah dihubungi" gara-gara email terkirim duluan, padahal WA-nya belum).
 function waContacted(x){return noteOf(x).split("\n").some(function(l){return WANOTE.test(l.trim())})}
-// Status yang ditampilkan di tab WhatsApp: "Sudah dihubungi" hanya kalau ada catatan WA; Dibalas/Deal/Tidak cocok tetap global
+// Status yang ditampilkan di tab WhatsApp: "Sudah dihubungi" hanya jika ada catatan WA; Dibalas/Deal/Tidak cocok tetap global
 function waStOf(x){var s=stOf(x);return(s===""||s==="chat")?(waContacted(x)?"chat":""):s}
 function waSel(x,extra){var s=waStOf(x);return"<select class='stsel st-"+(s||"baru")+"'"+(extra||"")+" aria-label='Status WhatsApp'>"+STAT.map(function(p){return"<option value='"+p[0]+"'"+(p[0]===s?" selected":"")+">"+p[1]+"</option>"}).join("")+"</select>"}
 function statusPatch(x,v){
@@ -1418,7 +1418,7 @@ function savedList(){
   if(!SAVED.length)return"<p class='info'>Belum ada pencarian tersimpan. Hasil tiap pencarian disimpan otomatis.</p>";
   return n||SV.found.length?h:"<p class='info'>Tidak ada tempat atau kota tersimpan yang cocok dengan \u201c"+esc(SVQ.trim())+"\u201d.</p>";
 }
-// Cari nama tempat (dan alamat) di semua pencarian tersimpan, bukan cuma nama kota
+// Cari nama tempat (dan alamat) di semua pencarian tersimpan, bukan hanya nama kota
 var SV={found:[]};
 function placeList(){
   var q=SVQ.trim().toLowerCase();SV.found=[];
@@ -1632,9 +1632,9 @@ function nxTodo(){
   var cn=$("country").value.trim(),pl=POPULAR_CITIES[cn];
   if(!cn||!pl)return{cn:cn,pl:null,todo:[]};
   var kd=$("kind").value,sr=$("source").value,ncn=nz(cn);
-  // Sudah dicari = ada di riwayat SEMUA pencarian (jenis dan sumber sama; bukan cuma 40 pencarian terbaru,
+  // Sudah dicari = ada di riwayat SEMUA pencarian (jenis dan sumber sama; bukan hanya 40 pencarian terbaru,
   // supaya kota yang sudah lama dicari tidak disarankan ulang), nama kota sama (tanpa aksen) dan negaranya
-  // cocok kalau tertulis
+  // cocok jika tertulis
   var done=ALLSEARCHED.filter(function(m){return m.kind===kd&&(m.source||"google")===sr}).map(function(m){var p=String(m.city||"").split(",");return{c:nz(p[0]),n:p.length>1?nz(p[p.length-1]):""}});
   var seen={};
   return{cn:cn,pl:pl,todo:pl.filter(function(k){var nk=nz(k);if(seen[nk])return false;seen[nk]=1;return!nxFindSaved(k,cn,kd,sr)})};
@@ -1690,7 +1690,7 @@ async function run(force){
   try{await loadSearches()}catch(_){}
   var t=nxTodo(),cn=t.cn,pl=t.pl,todo=t.todo,kd=$("kind").value;
   ni.hidden=false;
-  if(!cn||!pl){loading(false);nxPreview();return say("err","Pilih negara dulu, lalu tekan Cari.")}
+  if(!cn||!pl){loading(false);nxPreview();return say("err","Pilih negara terlebih dahulu, lalu tekan Cari.")}
   var n=Math.max(1,Math.min(10,parseInt($("nxn").value,10)||3));$("nxn").value=n;
   var pick;
   if(todo.length)pick=todo.slice(0,n);
@@ -1730,7 +1730,7 @@ async function run(force){
 }
 async function runOne(force){
   var city=$("city").value.trim(),kind=$("kind").value;
-  if(!city){say("err","Tulis nama kota dulu, misalnya London atau Purwokerto.");$("city").focus();return"fail"}
+  if(!city){say("err","Isi nama kota terlebih dahulu, misalnya London atau Purwokerto.");$("city").focus();return"fail"}
   loading(true);
   try{
     var r=await fetch("/api/places?city="+encodeURIComponent(city)+"&kind="+kind+"&source="+$("source").value+(force===true?"&refresh=1":""),{}),tx=await r.text(),j;
@@ -1782,7 +1782,7 @@ function sid(key){
   x=x.slice(0,12)+"4"+x.slice(13,16)+"89ab"[parseInt(x.charAt(16),16)&3]+x.slice(17);
   return x.slice(0,8)+"-"+x.slice(8,12)+"-"+x.slice(12,16)+"-"+x.slice(16,20)+"-"+x.slice(20);
 }
-// Pencarian tersimpan yang sedang terbuka di tab Tersimpan (kosong kalau yang tampil daftar atau "Prospek saya").
+// Pencarian tersimpan yang sedang terbuka di tab Tersimpan (kosong jika yang tampil daftar atau "Prospek saya").
 // Dipakai supaya alamat tetap /<uuid> saat pindah menu lalu kembali ke Tersimpan.
 var SVKEY=null;
 function tabPath(n){return"/"+((String(n)==="3"&&SVKEY&&!$("svres").hidden)?sid(SVKEY):(HN[n]||n))}
@@ -1935,9 +1935,9 @@ function ccOf(x){
   if(/^(\(\d{3}\)\s?|[2-9]\d{2}[\s.-])\d{3}[\s.-]\d{4}$/.test(raw)||/,\s*[A-Z]{2}\s+\d{5}(-\d{4})?\b/.test(x.address||""))return"1";
   return"";
 }
-// Nomor WA dari website dianggap meragukan kalau kode negaranya beda dari telepon/negara tempat itu (mis. WA +62 untuk salon di Los Angeles).
+// Nomor WA dari website dianggap meragukan jika kode negaranya beda dari telepon/negara tempat itu (mis. WA +62 untuk salon di Los Angeles).
 function waMismatch(x,n){var cc=ccOf(x);return !!cc&&String(n).indexOf(cc)!==0}
-// Ubah nomor lokal (tanpa +) jadi format internasional memakai kode negara tempat itu. null kalau tidak yakin.
+// Ubah nomor lokal (tanpa +) jadi format internasional memakai kode negara tempat itu. null jika tidak yakin.
 function localToIntl(x,p){
   var cc=ccOf(x),iso=ctxIso(x);if(!cc||!p)return null;
   // Argentina: HP lokal ditulis 0 + area (2-4 digit) + 15 + nomor (total 12 digit setelah 0). WhatsApp memakai 549 + area + nomor, tanpa 0 dan tanpa 15. Telepon rumah (tanpa 15) dilewati.
@@ -1978,13 +1978,13 @@ function openD(x){curX=x;
     +(site?"<a class='btn' href='"+esc(site)+"' target='_blank' rel='noopener'>"+IC.web+"Buka website</a>":"")
     +(x.osm?"<a class='btn' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>"+IC.pin+"Lihat di peta</a>":"")
     +"</div>"
-    +(x.looked&&!x.found?"<p class='dr' style='margin-top:12px'>Sudah dicek di website, tapi tidak ada email atau WhatsApp yang ditemukan.</p>":"");
+    +(x.looked&&!x.found?"<p class='dr' style='margin-top:12px'>Sudah dicek di website, namun tidak ada email atau WhatsApp yang ditemukan.</p>":"");
   $("dx").onclick=function(){$("dlg").close()};
   $("dnt").oninput=function(){pend=x;clearTimeout(ntm);ntm=setTimeout(flushNote,900)};
   $("dnt").onblur=flushNote;
   if(em.length)$("dsend").onclick=function(){openMail([x])};
   if(!$("dlg").open)$("dlg").showModal();
-  $("dx").focus({preventScroll:true}); // biar foto (elemen fokus-able pertama) tidak otomatis kena cincin fokus hijau saat modal dibuka
+  $("dx").focus({preventScroll:true}); // agar foto (elemen fokus-able pertama) tidak otomatis kena cincin fokus hijau saat modal dibuka
 }
 var AI={};
 function aiCls(n){return n>=70?"hi":n>=40?"mid":"lo"}
@@ -2085,7 +2085,7 @@ function markContacted(x,how){
 }
 $("dbody").addEventListener("click",function(e){
   var a=e.target.closest("a[data-act]");
-  // Chat WhatsApp di modal: sama kayak tab WhatsApp, cuma buka chat-nya, status/catatan tidak diubah otomatis
+  // Chat WhatsApp di modal: sama seperti tab WhatsApp, hanya membuka chat-nya, status/catatan tidak diubah otomatis
   if(a&&curX&&a.getAttribute("data-act")==="tel")markContacted(curX,"Telepon");
 });
 $("tb").addEventListener("change",function(e){var sel=e.target.closest("select.stsel");if(!sel)return;var x=rows[+sel.getAttribute("data-ri")];if(!x)return;sel.className="stsel st-"+(sel.value||"baru");var p=statusPatch(x,sel.value);saveLead(x,p);if(p.n!==undefined)render()});
@@ -2304,7 +2304,7 @@ function mailView(){
     return true;
   });
 }
-// Sama ketatnya dengan Antrean persetujuan: alamat yang sudah pernah dikirimi (walau lewat listing lain), bisnis atau email kembar,
+// Sama ketatnya dengan Antrean persetujuan: alamat yang sudah pernah dikirimi (walau lewat listing lain), bisnis atau email duplikat,
 // Daftar berhenti, dan domain email tidak valid disembunyikan. Alasannya dari server (action "why", lihat api/_jobs.js queueWhy).
 var EMBLOCK=/sudah pernah dikirimi|sudah ada di antrean|^bisnis sama|^email sama|Daftar berhenti|tanpa MX/;
 function emBlocked(x){
@@ -2338,7 +2338,7 @@ function renderHist(){
   $("ehclr").onclick=clearHist;
 }
 function clearHist(){
-  if(!confirm("Hapus riwayat kirim dari daftar? Status Sudah dihubungi dan catatan tetap, dan tempat yang sudah dikirimi tetap tercatat, jadi tidak akan terkirim dobel tanpa peringatan. Skor AI dan email tempat tidak berubah."))return;
+  if(!confirm("Hapus riwayat kirim dari daftar? Status Sudah dihubungi dan catatan tetap, dan tempat yang sudah dikirimi tetap tercatat, jadi tidak akan terkirim ganda tanpa peringatan. Skor AI dan email tempat tidak berubah."))return;
   var b=$("ehclr");b.disabled=true;
   fetch("/api/send",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"clearhist"})})
     .then(function(r){if(r.status===401){showLogin("Sesi habis, silakan masuk lagi.");throw 0}return r.json().then(function(j){return{ok:r.ok,j:j}})})
@@ -2362,14 +2362,14 @@ function renderMail(){
   Object.keys(EM.sel).forEach(function(k){if(!vis[k])delete EM.sel[k]});
   selIds().slice(emCap()).forEach(function(k){delete EM.sel[k]});
   if(!v.length){
-    info.textContent=mailPool().length?"Tidak ada tempat yang cocok dengan filter ini.":"Belum ada tempat yang punya email. Cari tempat dulu, lalu tekan Cari email semua di atas tabel.";
+    info.textContent=mailPool().length?"Tidak ada tempat yang cocok dengan filter ini.":"Belum ada tempat yang memiliki email. Cari tempat terlebih dahulu, lalu tekan Cari email semua di atas tabel.";
     info.hidden=false;list.hidden=true;
   }else{
     emWhyLoad();
     var QI=queuedIds(),nq=v.filter(function(x){return QI[x.id]}).length;
     var nn=EM.allN-EM.qN,pt=[EM.allN+" tempat dengan email",EM.qN+" sudah di antrean"];
     pt.push(nn?nn+" belum masuk antrean":"semua sudah masuk antrean");
-    if(EM.hidN)pt.push(EM.hidN+" disembunyikan (alamat sudah dikirimi atau kembar)");
+    if(EM.hidN)pt.push(EM.hidN+" disembunyikan (alamat sudah dikirimi atau duplikat)");
     if($("emnq").checked)pt.push("menampilkan yang belum masuk antrean saja");
     info.textContent=pt.join(" · ");info.hidden=false;
     list.innerHTML=v.map(function(x){
@@ -2388,7 +2388,7 @@ $("emaibtn").onclick=async function(){
   try{
     var j=await aiPost({action:"email",brief:$("emai").value.trim(),subject:$("emsj").value.trim(),text:$("emtx").value});
     $("emsj").value=j.subject;$("emtx").value=j.text;EM.filled=true;emErr("");
-    aidShow("ok","Selesai","Subjek dan isi email sudah diisi. Baca dan sesuaikan dulu sebelum dikirim.",100);
+    aidShow("ok","Selesai","Subjek dan isi email sudah diisi. Periksa dan sesuaikan terlebih dahulu sebelum dikirim.",100);
   }catch(e){
     var m=String(e.message||e);
     if(m==="401"){$("aid").close()}
@@ -2476,7 +2476,7 @@ function emPrevHtml(text,c){
 }
 $("emprevbtn").onclick=function(){
   var sj=$("emsj").value.trim(),tx=$("emtx").value;
-  if(!tx.trim()){emErr("Isi email masih kosong, tulis dulu sebelum pratinjau.");return}
+  if(!tx.trim()){emErr("Isi email masih kosong. Isi terlebih dahulu sebelum membuka pratinjau.");return}
   $("emprevsj").textContent="Subjek: "+(sj||"(kosong)");
   $("emprevfr").srcdoc=emPrevHtml(greet(tx,"Salon Anda"),EM.cfg);
   $("emprevd").showModal();
@@ -2523,7 +2523,7 @@ function emManual(force){
   if(EM.busy)return;
   var seen={},list=[];
   $("emmt").value.split(/[\s,;]+/).forEach(function(t){t=t.trim().toLowerCase();if(t&&!seen[t]){seen[t]=1;list.push(t)}});
-  if(!list.length){emmErr("Isi alamat email tujuan dulu.");return}
+  if(!list.length){emmErr("Isi alamat email tujuan terlebih dahulu.");return}
   var bad=list.filter(function(e){return!EMRE.test(e)});
   if(bad.length){emmErr("Alamat ini tidak valid. "+bad.join(", "));return}
   var cap=emCap();
@@ -2562,7 +2562,7 @@ function emManual(force){
 $("emmsend").onclick=function(){emManual(false)};
 $("emmt").onkeydown=$("emmn").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();emManual(false)}};
 $("emq").oninput=$("emst").onchange=$("emhide").onchange=$("emfree").onchange=$("emnq").onchange=renderMail;
-$("emall").onclick=function(){EM.sel={};var QI=queuedIds();mailView().filter(function(x){return!QI[x.id]}).slice(0,emCap()).forEach(function(x){EM.sel[x.id]=true});renderMail()}; // lewati yang sudah di antrean supaya tidak terkirim dobel
+$("emall").onclick=function(){EM.sel={};var QI=queuedIds();mailView().filter(function(x){return!QI[x.id]}).slice(0,emCap()).forEach(function(x){EM.sel[x.id]=true});renderMail()}; // lewati yang sudah di antrean supaya tidak terkirim ganda
 $("emnone").onclick=function(){EM.sel={};renderMail()};
 $("emenq").onclick=function(){
   var QI=queuedIds(),ids=selIds().filter(function(id){return!QI[id]});
@@ -2589,7 +2589,7 @@ $("elist").addEventListener("change",function(e){
 });
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"]];
 var CUR="1";
-var PG={"7":["Dasbor","Corong prospek, perbandingan variasi email A/B, dan performa per negara dan kota."],"1":["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],"2":["Siapa yang membeli?","Kelompok pembeli yang paling mungkin tertarik pada hair extension."],"3":["Tersimpan","Prospek yang sudah kamu tandai dan pencarian yang pernah disimpan."],"wa":["WhatsApp","Daftar prospek yang punya WhatsApp, buka chat-nya langsung dari sini."],"4":["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],"6":["Riwayat kirim","Semua email yang pernah dikirim lewat aplikasi ini, manual maupun otomatis."],"ringkas":["Status","Status jalan otomatis dan tombol jalankan sekarang."],"antrean":["Antrean persetujuan","Email yang menunggu persetujuanmu sebelum dikirim."],"kirim":["Kirim otomatis","Aturan kirim otomatis, batas harian, dan follow-up."],"warm":["Pemanasan domain","Naikkan batas kirim bertahap untuk domain pengirim baru."],"teks":["Teks email","Isi email pertama dan follow-up yang dikirim otomatis."],"ulang":["Cari ulang","Ulangi pencarian tersimpan secara berkala, hanya tempat baru yang ditambahkan."],"putar":["Putaran kota","Cari kota baru dari daftar secara bergantian."],"cariem":["Cari email","Cek website tempat baru untuk mencari email dan WhatsApp."],"skor":["Skor prospek","Atur bobot skor yang menentukan siapa masuk antrean."],"lapor":["Laporan & peringatan","Ringkasan harian dan peringatan masalah lewat email."],"bersih":["Pembersihan data","Buang data lama otomatis supaya database tetap ringan."],"serp":["Akun SerpApi","Pindah akun otomatis saat kuota akun aktif menipis."],"berhenti":["Daftar berhenti","Alamat yang tidak akan dikirimi email lagi."]};
+var PG={"7":["Dasbor","Corong prospek, perbandingan variasi email A/B, dan performa per negara dan kota."],"1":["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],"2":["Siapa yang membeli?","Kelompok pembeli yang paling mungkin tertarik pada hair extension."],"3":["Tersimpan","Prospek yang sudah Anda tandai dan pencarian yang pernah disimpan."],"wa":["WhatsApp","Daftar prospek yang punya WhatsApp, buka chat-nya langsung dari sini."],"4":["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],"6":["Riwayat kirim","Semua email yang pernah dikirim lewat aplikasi ini, manual maupun otomatis."],"ringkas":["Status","Status jalan otomatis dan tombol jalankan sekarang."],"antrean":["Antrean persetujuan","Email yang menunggu persetujuan Anda sebelum dikirim."],"kirim":["Kirim otomatis","Aturan kirim otomatis, batas harian, dan follow-up."],"teks":["Teks email","Isi email pertama dan follow-up yang dikirim otomatis."],"ulang":["Cari ulang","Ulangi pencarian tersimpan secara berkala, hanya tempat baru yang ditambahkan."],"putar":["Putaran kota","Cari kota baru dari daftar secara bergantian."],"cariem":["Cari email","Cek website tempat baru untuk mencari email dan WhatsApp."],"skor":["Skor prospek","Atur bobot skor yang menentukan siapa masuk antrean."],"lapor":["Laporan & peringatan","Ringkasan harian dan peringatan masalah lewat email."],"bersih":["Pembersihan data","Buang data lama otomatis supaya database tetap ringan."],"serp":["Akun SerpApi","Pindah akun otomatis saat kuota akun aktif menipis."],"berhenti":["Daftar berhenti","Alamat yang tidak akan dikirimi email lagi."]};
 var HN={"7":"dasbor","1":"cari","2":"pembeli","3":"tersimpan","4":"email","6":"riwayat"},HR={};Object.keys(HN).forEach(function(k){HR[HN[k]]=k});
 var AUV=["ringkas","antrean","kirim","teks","ulang","putar","cariem","skor","lapor","bersih","serp","berhenti"];
 var ASEC={kirim:["Kirim otomatis"],teks:["Teks email"],ulang:["Cari ulang"],putar:["Putaran kota"],cariem:["Cari email"],skor:["Skor prospek"],lapor:["Laporan dan peringatan"],bersih:["Pembersihan data"],serp:["Akun SerpApi"]};
@@ -2671,7 +2671,7 @@ function waLoad(force){
     var sel=$("wase"),cur=sel.value;
     sel.innerHTML="<option value=''>Semua pencarian</option>"+SAVED.map(function(m){return"<option value='"+esc(m.key)+"'>"+esc(m.city)+" · "+esc(LABEL&&LABEL[m.kind]||m.kind)+"</option>"}).join("");
     sel.value=cur;waRender();
-  }).catch(function(e){WA.loading=false;if(e===0){showLogin("Sesi habis, silakan masuk lagi.");return}$("wainfo").textContent="Gagal memuat prospek. Coba Muat ulang."});
+  }).catch(function(e){WA.loading=false;if(e===0){showLogin("Sesi habis, silakan masuk lagi.");return}$("wainfo").textContent="Gagal memuat prospek. Silakan muat ulang halaman."});
 }
 function waRender(){
   var q=$("waq").value.trim().toLowerCase(),st=$("wast").value,se=$("wase").value,ph=$("wapn").checked;
@@ -2702,7 +2702,7 @@ $("walist").addEventListener("change",function(e){
   sel.className="stsel st-"+(sel.value||"baru");
   var v=sel.value,cur=noteOf(x),p;
   if(v==="chat"){
-    // Dipilih manual setelah benar-benar kirim pesan: catat "WA, 3 Nov" (tidak dobel di hari yang sama)
+    // Dipilih manual setelah benar-benar kirim pesan: catat "WA, 3 Nov" (tidak ganda di hari yang sama)
     var line="WA, "+new Date().toLocaleDateString("id-ID",{day:"numeric",month:"short"});
     p={s:"chat"};if(cur.indexOf(line)<0)p.n=cur?cur+"\n"+line:line;
   }else if(v===""){
@@ -2779,8 +2779,8 @@ function auLoad(full){
 // ---- Dasbor (menu sendiri, lihat api/dash.js). Dimuat saat menu dibuka atau Segarkan ditekan, membaca seluruh data tersimpan.
 var DS={busy:false,loaded:false};
 function dsPct(a,b){return b?(a/b*100).toFixed(a/b*100<10&&a?1:0)+"%":"-"}
-// Setelah ada perubahan data (simpan, kirim, hapus, balasan, otomatis), Dasbor ditandai kedaluwarsa: kalau sedang
-// terbuka langsung dimuat ulang, kalau tidak dimuat ulang saat menunya dibuka lagi.
+// Setelah ada perubahan data (simpan, kirim, hapus, balasan, otomatis), Dasbor ditandai kedaluwarsa: jika sedang
+// terbuka langsung dimuat ulang, jika tidak dimuat ulang saat menunya dibuka lagi.
 var DST=0;
 function dsDirty(){DS.loaded=false;clearTimeout(DST);DST=setTimeout(function(){if(CUR==="7"&&!$("p7").hidden){if(DS.busy)DS.again=true;else dsLoad()}},500)}
 (function(){var f=window.fetch;window.fetch=function(u,o){var p=f.apply(this,arguments);
@@ -2846,11 +2846,11 @@ function auSwitch(){
   $("audot").className="audot"+(run?" run":(pz?" off":""));
   var sa=(AU.cfg||s.cfg||{}).autosearch!==false,ss=$("ausearch");
   ss.setAttribute("aria-checked",sa?"true":"false");
-  $("aussub").textContent=sa?"Cari ulang dan putaran kota jalan sendiri tiap hari dan memakai kuota SerpApi.":"Mati. Kamu cari manual saja: tempat yang ketemu dicek emailnya lalu langsung masuk Antrean persetujuan.";
-  var rb=$("aurun"),PZMSG="Dijeda. Lanjutkan dulu dengan tombol geser di atas.";
+  $("aussub").textContent=sa?"Cari ulang dan putaran kota berjalan otomatis setiap hari dan memakai kuota SerpApi.":"Nonaktif. Gunakan pencarian manual: tempat yang ditemukan akan dicek emailnya, lalu langsung masuk Antrean persetujuan.";
+  var rb=$("aurun"),PZMSG="Dijeda. Lanjutkan terlebih dahulu dengan tombol geser di atas.";
   rb.disabled=pz||!!AU.busy;rb.title=pz?"Sedang dijeda":"";
   var rm=$("aurunmsg");if(pz&&!AU.busy)rm.textContent=PZMSG;else if(rm.textContent===PZMSG)rm.textContent="";
-  $("ausub").textContent=run?"Tugas otomatis sedang diproses, bisa sampai 1 menit.":(pz?"Kirim, follow-up, dan tugas otomatis berhenti, tapi antrean tetap terisi dari cari manual. Geser ke kanan untuk melanjutkan.":"Jalan otomatis tiap hari sekitar pukul 01.00 WIB. Geser ke kiri untuk menjeda semuanya.");
+  $("ausub").textContent=run?"Tugas otomatis sedang diproses, bisa sampai 1 menit.":(pz?"Kirim, follow-up, dan tugas otomatis berhenti, namun antrean tetap terisi dari pencarian manual. Geser ke kanan untuk melanjutkan.":"Berjalan otomatis setiap hari sekitar pukul 01.00 WIB. Geser ke kiri untuk menjeda semuanya.");
 }
 function auStatus(){
   var s=AU.st,f=s.flags||{},m=s.mail||{},c=s.counts||{},q=s.seq||{},t=[],b=[];
@@ -2869,12 +2869,12 @@ function auStatus(){
   if(m.ready&&!m.addr)b.push(acB("Alamat fisik belum diisi. Isi di tab Email &gt; Pengaturan email sebelum kirim sungguhan."));
   $("aust").innerHTML=(sv.length?"<div><p class='augt'>Layanan</p><div class='aug'>"+sv.join("")+"</div></div>":"")+"<div><p class='augt'>Hari ini</p><div class='aug'>"+cn.join("")+"</div></div>"+(b.length?"<div class='aug'>"+b.join("")+"</div>":"");
   var pz=s.pause,pb=$("aupz");
-  pb.hidden=!pz;if(pz)pb.textContent=(pz.auto?"Dijeda otomatis: ":"Dijeda: ")+pz.why+" ("+fmtDate(pz.t)+"). Semua kirim dan tugas otomatis berhenti sampai kamu melanjutkannya. Antrean persetujuan tetap terisi dari cari manual.";
+  pb.hidden=!pz;if(pz)pb.textContent=(pz.auto?"Dijeda otomatis: ":"Dijeda: ")+pz.why+" ("+fmtDate(pz.t)+"). Semua kirim dan tugas otomatis berhenti sampai Anda melanjutkannya. Antrean persetujuan tetap terisi dari pencarian manual.";
   auSwitch();
   clearTimeout(AU._rt);if(s.running)AU._rt=setTimeout(function(){auLoad(false)},5000); // pantau sampai selesai
   auBadge();
 }
-// Badge antrean di menu: jumlah yang menunggu persetujuan (warna aksen); kalau tidak ada, jumlah yang sudah disetujui
+// Badge antrean di menu: jumlah yang menunggu persetujuan (warna aksen); jika tidak ada, jumlah yang sudah disetujui
 // dan menunggu giliran kirim (warna redup). Tampil juga di grup "Status & antrean" saat menunya dilipat.
 function auBadge(){
   var s=AU.st;if(!s||s.nodb)return;
@@ -2917,7 +2917,7 @@ function auLog(){
 function auQueue(){
   var s=AU.st,q=s.queue||[],cfg=s.cfg,pend=q.filter(function(x){return x.st==="pending"}),ok=q.filter(function(x){return x.st==="ok"}),h="";
   if(!pend.length){
-    h+="<p class='info'>"+(cfg.mail.on?"Tidak ada prospek yang menunggu persetujuan. Antrean terisi setiap kali pekerjaan otomatis berjalan.":"Kirim otomatis belum aktif. Nyalakan di Pengaturan otomatis di bawah.")+"</p>";
+    h+="<p class='info'>"+(cfg.mail.on?"Tidak ada prospek yang menunggu persetujuan. Antrean terisi setiap kali pekerjaan otomatis berjalan.":"Kirim otomatis belum aktif. Aktifkan di Pengaturan otomatis di bawah.")+"</p>";
   }else{
     h+="<div class='mlist aulist'>"+pend.map(function(x){
       return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"' checked>"+thumb({name:x.name||x.to,thumbnail:x.thumbnail})+"<span><b>"+esc(x.name||x.to)+"</b><small>"+esc(x.to)+(x.why&&x.why.length?" · "+esc(x.why.join(", ")):"")+"</small></span><em class='mtag pl sc-"+aiCls(x.sc||0)+"'>skor "+(x.sc||0)+"</em></label>";
@@ -2933,7 +2933,7 @@ function auQueue(){
   $("auq").innerHTML=h;$("auqn").textContent=pend.length?"("+pend.length+" menunggu)":"";
   function ids(){return[].slice.call(document.querySelectorAll("#auq input[data-id]:checked")).map(function(i){return i.getAttribute("data-id")})}
   function setAll(v){[].forEach.call(document.querySelectorAll("#auq input[data-id]"),function(i){i.checked=v})}
-  function act(a){var l=ids();if(!l.length){flash("Pilih dulu prospeknya");return}
+  function act(a){var l=ids();if(!l.length){flash("Pilih prospek terlebih dahulu");return}
     auApi({action:a,ids:l}).then(function(o){if(!o.ok){flash(o.j.error||"Gagal");return}flash((a==="approve"?"Disetujui ":"Ditolak ")+o.j.n+" prospek");auLoad(false)}).catch(function(){})}
   if($("auqall")){$("auqall").onclick=function(){setAll(true)};$("auqnone").onclick=function(){setAll(false)};$("auqok").onclick=function(){act("approve")};$("auqno").onclick=function(){act("reject")}}
 }
@@ -2998,7 +2998,7 @@ function auSteps(steps,openI,openAlt){
   };
 }
 function auPreview(sj,tx){
-  if(!String(tx||"").trim()){flash("Isi email masih kosong, tulis dulu sebelum pratinjau.");return}
+  if(!String(tx||"").trim()){flash("Isi email masih kosong. Isi terlebih dahulu sebelum membuka pratinjau.");return}
   function show(){
     $("emprevsj").textContent="Subjek: "+(String(sj||"").trim()||"(kosong)");
     $("emprevfr").srcdoc=emPrevHtml(greet(tx,"Salon Anda"),EM.cfg);
@@ -3019,17 +3019,17 @@ function auSec(title,badge,body,open){
 }
 function auCfg(){
   var c=AU.cfg,m=c.mail,r=c.refresh,e=c.enrich,se=AU.st.searches||[],L={salon:"Salon",wig:"Toko wig",beauty:"Kecantikan"};
-  var onoff=function(v){return v?"aktif":"mati"};
+  var onoff=function(v){return v?"aktif":"nonaktif"};
   var h="";
   h+=auSec("Kirim otomatis",onoff(m.on),
     "<label class='chk'><input type='checkbox' id='au_mon'"+(m.on?" checked":"")+"> Aktifkan kirim otomatis</label>"
-    +"<label class='chk'><input type='checkbox' id='au_mapp'"+(m.approve?" checked":"")+"> Minta persetujuan dulu (disarankan)</label>"
+    +"<label class='chk'><input type='checkbox' id='au_mapp'"+(m.approve?" checked":"")+"> Minta persetujuan terlebih dahulu (disarankan)</label>"
     +"<label class='chk'><input type='checkbox' id='au_mfo'"+(m.followOn?" checked":"")+"> Kirim follow-up otomatis</label>"
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_msc'>Skor minimal (0-100)</label><input type='number' id='au_msc' min='0' max='100' value='"+m.minScore+"'></div>"
     +"<div class='f'><label for='au_mpd'>Target email / hari</label><input type='number' id='au_mpd' min='1' max='100' value='"+m.perDay+"'></div>"
     +"<div class='f'><label for='au_mbn'>Jeda jika bounce (%)</label><input type='number' id='au_mbn' min='1' max='20' value='"+m.maxBounce+"'></div></div>"
-    +"<p class='hint2'>Tanpa persetujuan, prospek yang lolos langsung dikirimi. Follow-up berhenti sendiri kalau status berubah ke Dibalas, Deal, atau Tidak cocok. Skor dihitung dari kelengkapan data prospek, dan hanya yang berstatus Belum dihubungi yang dikirimi. Alamat di Daftar berhenti selalu dilewati.</p>"
-    +"<p class='hint2'>Jika bounce 3 hari terakhir melewati batas di atas, atau ada 2 laporan spam atau lebih, semua kirim berhenti sampai kamu klik Lanjutkan.</p>",true);
+    +"<p class='hint2'>Tanpa persetujuan, prospek yang lolos langsung dikirimi. Follow-up berhenti sendiri jika status berubah ke Dibalas, Deal, atau Tidak cocok. Skor dihitung dari kelengkapan data prospek, dan hanya yang berstatus Belum dihubungi yang dikirimi. Alamat di Daftar berhenti selalu dilewati.</p>"
+    +"<p class='hint2'>Jika bounce 3 hari terakhir melewati batas di atas, atau ada 2 laporan spam atau lebih, semua kirim berhenti sampai Anda menekan Lanjutkan.</p>",true);
   var sd=AU.st.scoreDefs||[],sw=m.weights||{};
   if(sd.length){
     var chg=sd.filter(function(d){return sw[d.k]!=null&&sw[d.k]!==d.d}).length;
@@ -3049,21 +3049,21 @@ function auCfg(){
   var nt=c.notify||{digest:true,alerts:true,to:""},cl=c.clean||{on:true,days:30},to=(AU.st.notify||{}).to||"",pr=AU.st.clean;
   h+=auSec("Laporan dan peringatan",onoff(nt.digest||nt.alerts),
     "<label class='chk'><input type='checkbox' id='au_ndg'"+(nt.digest?" checked":"")+"> Kirim ringkasan harian lewat email</label>"
-    +"<label class='chk'><input type='checkbox' id='au_nal'"+(nt.alerts?" checked":"")+"> Kirim peringatan kalau ada masalah</label>"
+    +"<label class='chk'><input type='checkbox' id='au_nal'"+(nt.alerts?" checked":"")+"> Kirim peringatan jika ada masalah</label>"
     +"<div class='f' style='margin-top:10px'><label for='au_nto'>Kirim ke email</label><input type='text' id='au_nto' maxlength='120' autocomplete='off' placeholder='Kosongkan untuk memakai Reply-To' value='"+esc(nt.to||"")+"'></div>"
     +"<p class='hint2'>"+(to?"Saat ini dikirim ke <b>"+esc(to)+"</b>.":"Belum ada penerima. Isi email di atas, atau isi Reply-To di tab Email.")+"</p>"
     +"<div class='eacts' style='margin-top:10px'><button class='ghost' id='au_ntest' type='button'>Kirim tes ringkasan</button><span class='hint2' id='au_ntm' style='margin:0'></span></div>"
-    +"<p class='hint2'>Ringkasan berisi prospek baru, email terkirim, bounce, serta sisa kuota SerpApi dan Resend. Terkirim setelah jalan otomatis harian. Peringatan dikirim untuk jadwal yang gagal atau terlewat, kuota habis, dan jeda otomatis karena bounce atau spam. Tiap jenis peringatan maksimal sekali sehari, kecuali jeda otomatis yang selalu dikirim. Simpan pengaturan dulu sebelum kirim tes.</p>");
+    +"<p class='hint2'>Ringkasan berisi prospek baru, email terkirim, bounce, serta sisa kuota SerpApi dan Resend. Terkirim setelah jalan otomatis harian. Peringatan dikirim untuk jadwal yang gagal atau terlewat, kuota habis, dan jeda otomatis karena bounce atau spam. Tiap jenis peringatan maksimal sekali sehari, kecuali jeda otomatis yang selalu dikirim. Simpan pengaturan terlebih dahulu sebelum kirim tes.</p>");
   h+=auSec("Pembersihan data",onoff(cl.on),
     "<label class='chk'><input type='checkbox' id='au_con'"+(cl.on?" checked":"")+"> Bersihkan data lama otomatis</label>"
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_cd'>Umur data (hari)</label><input type='number' id='au_cd' min='7' max='365' value='"+cl.days+"'></div></div>"
-    +"<p class='hint2'>Jaga ukuran database tetap kecil. Dari pencarian lama (yang tidak dicentang cari ulang), cuma tempat tanpa kontak sama sekali yang dibuang; yang punya status, catatan, pernah dikirimi email, atau ada di antrean aman. Cache dan statistik lama ikut dibersihkan. Jalan sekali sehari.</p>"
+    +"<p class='hint2'>Jaga ukuran database tetap kecil. Dari pencarian lama (yang tidak dicentang cari ulang), hanya tempat tanpa kontak sama sekali yang dihapus; yang punya status, catatan, pernah dikirimi email, atau ada di antrean aman. Cache dan statistik lama ikut dibersihkan. Berjalan sekali sehari.</p>"
     +(pr&&pr.t?"<p class='hint2'>Terakhir: "+esc(fmtDate(pr.t))+" · "+(pr.places||0)+" tempat, "+(pr.searches||0)+" pencarian, "+(pr.mx||0)+" cache domain, "+(pr.stats||0)+" statistik.</p>":""));
   var sp=c.serp||{auto:true,below:20};
   h+=auSec("Akun SerpApi",onoff(sp.auto),
-    "<label class='chk'><input type='checkbox' id='au_sa'"+(sp.auto?" checked":"")+"> Pindah akun otomatis kalau sisa kuota akun aktif menipis</label>"
-    +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_sb'>Pindah kalau sisa di bawah</label><input type='number' id='au_sb' min='0' max='1000' value='"+sp.below+"'></div></div>"
-    +"<p class='hint2'>Berlaku untuk pencarian manual dan cari ulang otomatis, dan hanya kalau Akun 1 dan Akun 2 sama-sama sudah diisi. Sebelum tiap pencarian, sisa kuota akun aktif dicek (gratis, tidak memakai kuota). Kalau di bawah angka ini dan akun lain punya sisa lebih banyak, akun aktif dipindah (sama dengan switch di pojok kanan atas). Kalau SerpApi menolak karena kuota habis, pencarian diulang sekali dengan akun lain. Pindah akun lewat jadwal harian dikabari lewat email peringatan.</p>");
+    "<label class='chk'><input type='checkbox' id='au_sa'"+(sp.auto?" checked":"")+"> Pindah akun otomatis jika sisa kuota akun aktif menipis</label>"
+    +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_sb'>Pindah jika sisa di bawah</label><input type='number' id='au_sb' min='0' max='1000' value='"+sp.below+"'></div></div>"
+    +"<p class='hint2'>Berlaku untuk pencarian manual dan cari ulang otomatis, dan hanya jika Akun 1 dan Akun 2 sama-sama sudah diisi. Sebelum tiap pencarian, sisa kuota akun aktif dicek (gratis, tidak memakai kuota). Jika di bawah angka ini dan akun lain punya sisa lebih banyak, akun aktif dipindah (sama dengan switch di pojok kanan atas). Jika SerpApi menolak karena kuota habis, pencarian diulang sekali dengan akun lain. Pindah akun lewat jadwal harian dikabari lewat email peringatan.</p>");
   h+=auSec("Cari ulang",onoff(r.on),
     "<label class='chk'><input type='checkbox' id='au_ron'"+(r.on?" checked":"")+"> Ulangi pencarian tersimpan secara berkala (hanya tempat baru yang ditambahkan)</label>"
     +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_rd'>Ulangi setiap (hari)</label><input type='number' id='au_rd' min='1' max='60' value='"+r.everyDays+"'></div>"
@@ -3071,10 +3071,10 @@ function auCfg(){
     +"<div class='f'><label for='au_rr'>Sisakan kuota SerpApi</label><input type='number' id='au_rr' min='0' max='1000' value='"+r.reserve+"'></div>"
     +"<div class='f'><label for='au_rp'>Halaman / pencarian (1-3)</label><input type='number' id='au_rp' min='1' max='3' value='"+r.pages+"'></div>"
     +"<div class='f'><label for='au_rdy'>Matikan setelah kosong (kali)</label><input type='number' id='au_rdy' min='0' max='10' value='"+(r.dryMax==null?3:r.dryMax)+"'></div></div>"
-    +"<p class='hint2'>Tiap halaman Google Maps (20 tempat) memakai 1 kuota SerpApi dan dihitung ke \"Maks pencarian per hari\". Halaman 2 dan 3 hanya diambil kalau seluruh isi halaman sebelumnya tempat baru; isi 1 kalau hanya mau halaman pertama. Pencarian dilewati kalau sisa kuota di bawah angka yang disisakan. Pencarian yang beberapa kali berturut-turut tidak menambah tempat baru dimatikan sendiri centangnya (isi 0 untuk menonaktifkan aturan ini; dihitung paling banyak sekali per hari, dan Anda dikabari lewat email peringatan). Pilih pencarian yang mau diulang:</p>"
+    +"<p class='hint2'>Tiap halaman Google Maps (20 tempat) memakai 1 kuota SerpApi dan dihitung ke \"Maks pencarian per hari\". Halaman 2 dan 3 hanya diambil jika seluruh isi halaman sebelumnya tempat baru; isi 1 jika hanya mau halaman pertama. Pencarian dilewati jika sisa kuota di bawah angka yang disisakan. Pencarian yang beberapa kali berturut-turut tidak menambah tempat baru dimatikan sendiri centangnya (isi 0 untuk menonaktifkan aturan ini; dihitung paling banyak sekali per hari, dan Anda dikabari lewat email peringatan). Pilih pencarian yang mau diulang:</p>"
     +(se.length?"<div class='mlist aulist' id='au_rk'>"+se.map(function(x){
       return"<label class='mrow'><input type='checkbox' data-k='"+esc(x.key)+"'"+(r.keys.indexOf(x.key)>-1?" checked":"")+"><span><b>"+esc(x.city)+" · "+esc(L[x.kind]||x.kind)+"</b><small>"+(x.source==="osm"?"OpenStreetMap":"Google Maps")+" · "+x.n+" tempat"+((AU.st.dry||{})[x.key]?" · "+AU.st.dry[x.key].n+"x berturut-turut tanpa tempat baru":"")+"</small></span></label>";
-    }).join("")+"</div>":"<p class='info'>Belum ada pencarian tersimpan. Lakukan pencarian di tab Cari tempat dulu.</p>"));
+    }).join("")+"</div>":"<p class='info'>Belum ada pencarian tersimpan. Lakukan pencarian di tab Cari tempat terlebih dahulu.</p>"));
   var ro=c.rotate||{on:false,maxSearches:2,reserve:30,pages:1,kinds:["salon"],cities:[]},rt=AU.st.rot;
   h+=auSec("Putaran kota",onoff(ro.on),
     "<label class='chk'><input type='checkbox' id='au_xon'"+(ro.on?" checked":"")+"> Cari kota baru dari daftar secara bergantian (bukan mengulang kota yang sama)</label>"
@@ -3083,7 +3083,7 @@ function auCfg(){
     +"<div class='f'><label for='au_xp'>Halaman / kota (1-3)</label><input type='number' id='au_xp' min='1' max='3' value='"+ro.pages+"'></div></div>"
     +"<div class='aurow' style='margin-top:10px'>"+["salon","wig","beauty"].map(function(k){return"<label class='chk'><input type='checkbox' class='au_xk' value='"+k+"'"+(ro.kinds.indexOf(k)>-1?" checked":"")+"> "+L[k]+"</label>"}).join("")+"</div>"
     +"<div class='f' style='margin-top:10px'><label for='au_xc'>Daftar kota (Kota, Negara / baris)</label><textarea id='au_xc' rows='8' spellcheck='false'>"+esc((ro.cities||[]).join("\n"))+"</textarea></div>"
-    +"<p class='hint2'>"+(rt?"Progres: <b>"+(rt.total-rt.left)+" dari "+rt.total+"</b> kombinasi kota dan jenis sudah dicari"+(rt.left&&rt.next&&rt.next.length?". Berikutnya: "+esc(rt.next.join(", ")):(rt.left?"":". Semua sudah dicari, tambahkan kota baru di daftar."))+".":"Simpan pengaturan dulu untuk melihat progres.")+"</p>"
+    +"<p class='hint2'>"+(rt?"Progres: <b>"+(rt.total-rt.left)+" dari "+rt.total+"</b> kombinasi kota dan jenis sudah dicari"+(rt.left&&rt.next&&rt.next.length?". Berikutnya: "+esc(rt.next.join(", ")):(rt.left?"":". Semua sudah dicari, tambahkan kota baru di daftar."))+".":"Simpan pengaturan terlebih dahulu untuk melihat progres.")+"</p>"
     +"<p class='hint2'>Tiap jalan mengambil kota berikutnya yang belum dicari dan hanya menambah tempat baru. Memakai 1 kuota SerpApi per halaman (terpisah dari Cari ulang) dan dilewati jika sisa kuota di bawah batas. Halaman 2 dan 3 hanya diambil jika halaman sebelumnya semuanya tempat baru. Daftar kota bisa diubah. Tanpa centang jenis tempat, putaran tidak jalan.</p>");
   h+=auSec("Cari email",onoff(e.on),
     "<label class='chk'><input type='checkbox' id='au_eon'"+(e.on?" checked":"")+"> Cek website tempat baru untuk mencari email dan WhatsApp</label>"
@@ -3140,7 +3140,7 @@ function auCollect(){
 $("ausave").onclick=function(){
   if(!AU.cfg)return;
   var c=auCollect();auErr("");
-  if(c.mail.on&&!(AU.st.mail||{}).ready){auErr("Resend belum diisi. Isi dulu di tab Email > Pengaturan email, baru nyalakan kirim otomatis.");return}
+  if(c.mail.on&&!(AU.st.mail||{}).ready){auErr("Resend belum diisi. Isi terlebih dahulu di tab Email > Pengaturan email, lalu aktifkan kirim otomatis.");return}
   var b=this;b.disabled=true;
   auApi({action:"cfg",cfg:c}).then(function(o){
     b.disabled=false;
@@ -3157,7 +3157,7 @@ $("aurun").onclick=function(){
     if(!o.ok&&!o.j.jobs){$("aurunmsg").textContent=o.j.error||"Gagal menjalankan";return}
     $("aurunmsg").textContent=o.j.paused?"Tidak berjalan: "+o.j.paused:"Selesai dalam "+Math.round((o.j.ms||0)/1000)+" detik.";
     auLoad(false);refreshAll();
-  }).catch(function(e){AU.busy=false;b.disabled=false;auSwitch();b.setAttribute("aria-busy","false");if(e!==0)$("aurunmsg").textContent="Tidak bisa menghubungi server. Cek lagi riwayat sebentar lagi."});
+  }).catch(function(e){AU.busy=false;b.disabled=false;auSwitch();b.setAttribute("aria-busy","false");if(e!==0)$("aurunmsg").textContent="Tidak dapat menghubungi server. Periksa riwayat beberapa saat lagi."});
 };
 $("ausearch").onclick=function(){
   if(!AU.cfg)return;
@@ -3165,7 +3165,7 @@ $("ausearch").onclick=function(){
   auApi({action:"cfg",cfg:Object.assign({},AU.cfg,{autosearch:next})}).then(function(o){
     b.disabled=false;
     if(!o.ok){flash(o.j.error||"Gagal");return}
-    AU.cfg=o.j.cfg;auSwitch();flash(next?"Cari tempat otomatis dinyalakan":"Cari tempat otomatis dimatikan");
+    AU.cfg=o.j.cfg;auSwitch();flash(next?"Cari tempat otomatis diaktifkan":"Cari tempat otomatis dinonaktifkan");
   }).catch(function(){b.disabled=false});
 };
 $("aupause").onclick=function(){

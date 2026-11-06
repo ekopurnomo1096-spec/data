@@ -10,7 +10,7 @@ const DAYK = "hairleads:mailday"; // hitungan email terkirim per hari (UTC), fie
 const SUPP = "hairleads:supp";    // alamat yang tidak boleh dikirimi: {alamat: {r:"unsub|bounce|spam|manual", t}}
 const MAX = 20;
 // Batas harian. Akun gratis Resend 100 email per hari (reset tengah malam UTC = 07.00 WIB).
-// Ganti lewat RESEND_DAILY_LIMIT di Vercel. Isi 0 kalau akun berbayar tanpa batas harian.
+// Ganti lewat RESEND_DAILY_LIMIT di Vercel. Isi 0 jika akun berbayar tanpa batas harian.
 const DAILY = (() => { const v = process.env.RESEND_DAILY_LIMIT; if (v === undefined || v === "") return 100; const n = parseInt(v, 10); return n >= 0 ? n : 100; })();
 const today = () => new Date().toISOString().slice(0, 10);
 const EMAIL = /^[^\s@<>"]+@[^\s@<>"]+\.[A-Za-z]{2,}$/;
@@ -64,8 +64,8 @@ function tokenOk(email, t) {
   const a = Buffer.from(String(t || ""));
   return unsubKeys().some(k => { const b = Buffer.from(sign(k, email)); return a.length === b.length && crypto.timingSafeEqual(a, b); });
 }
-// Alamat situs ini sendiri (untuk tautan di dalam email). Dari permintaan kalau ada, kalau tidak dari env Vercel.
-// PUBLIC_URL (kalau diisi di Vercel) diutamakan, supaya tautan selalu memakai domain sendiri, termasuk saat dipanggil cron.
+// Alamat situs ini sendiri (untuk tautan di dalam email). Dari permintaan jika ada, jika tidak dari env Vercel.
+// PUBLIC_URL (jika diisi di Vercel) diutamakan, supaya tautan selalu memakai domain sendiri, termasuk saat dipanggil cron.
 function baseUrl(req) {
   const norm = e => (/^https?:\/\//i.test(e) ? e : "https://" + e).replace(/\/+$/, "");
   if (process.env.PUBLIC_URL) return norm(process.env.PUBLIC_URL);
@@ -81,7 +81,7 @@ const unsubUrl = (base, email) => base ? base + "/api/mailhook?a=unsub&e=" + enc
 // email tidak terasa seperti pesan WA yang disalin-tempel. Paragraf dipisah baris kosong;
 // baris yang diawali "•" atau "-" otomatis jadi daftar bertitik.
 const escHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-// Kalau satu paragraf terlalu panjang (banyak kalimat jadi satu blok), pecah otomatis
+// Jika satu paragraf terlalu panjang (banyak kalimat jadi satu blok), pecah otomatis
 // setiap 2 kalimat jadi paragraf sendiri supaya tidak terasa seperti satu kalimat raksasa.
 function splitLong(line) {
   if (line.length <= 200) return [line];
@@ -147,7 +147,7 @@ async function config() {
   return { key, from, addr, srcn, replyTo: EMAIL.test(rt) || /<[^<>@\s]+@[^<>\s]+>$/.test(rt) ? rt : "" };
 }
 
-// Kirim satu batch (maksimal MAX) lewat Resend. items: [{to, subject, text}]. Melempar Error berpesan jelas kalau gagal.
+// Kirim satu batch (maksimal MAX) lewat Resend. items: [{to, subject, text}]. Melempar Error berpesan jelas jika gagal.
 async function sendBatch(cfg, items, base) {
   const payload = items.map(i => {
     const u = unsubUrl(base, i.to);
@@ -207,7 +207,7 @@ async function stat(metric, n) {
 }
 // Mengembalikan [{d:"YYYY-MM-DD", sent, fu, bounce, spam, unsub, added, found, queued, v:{s0v0:n,...}, rv:{r0v0:n,...}}], terbaru dulu
 // v = jumlah TERKIRIM per tahap+variasi (metrik "s{tahap}v{variasi}"); rv = jumlah DIBALAS per tahap+variasi (metrik "r{tahap}v{variasi}"),
-// supaya reply rate per variasi bisa dibandingkan (bukan cuma jumlah kirim).
+// supaya reply rate per variasi bisa dibandingkan (bukan hanya jumlah kirim).
 async function getStats(days) {
   if (!dbConfigured()) return [];
   const raw = (await cmd(["HGETALL", STATK])) || [], by = {};
@@ -231,7 +231,7 @@ async function getPause() {
 }
 async function setPause(why, auto) {
   await cmd(["HSET", AUTOK, "pause", JSON.stringify({ t: Date.now(), why: clean(why, 200) || "dijeda", auto: !!auto })]);
-  if (auto) { // jeda karena bounce/spam: selalu diberi tahu lewat email (kalau Resend dan penerima laporan sudah ada)
+  if (auto) { // jeda karena bounce/spam: selalu diberi tahu lewat email (jika Resend dan penerima laporan sudah ada)
     try {
       await alertNotice("pause", "Kirim email dijeda otomatis",
         "Semua kirim email dan pekerjaan otomatis dihentikan.\n\nAlasan: " + clean(why, 200) +
@@ -241,7 +241,7 @@ async function setPause(why, auto) {
 }
 
 // ---- Laporan dan peringatan lewat email ----------------------------------------------------------------------
-// Penerima: pengaturan notify.to di tab Otomatis, kalau kosong memakai alamat Reply-To. Dikirim lewat Resend yang sama,
+// Penerima: pengaturan notify.to di tab Otomatis, jika kosong memakai alamat Reply-To. Dikirim lewat Resend yang sama,
 // langsung (bukan lewat batch kirim prospek), jadi tidak ikut meter "email hari ini" dan tidak diberi tautan berhenti.
 async function notifyTarget() {
   let n = {};
@@ -268,7 +268,7 @@ async function sendNotice(to, subject, text) {
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error("Resend: " + String(j.message || j.error || r.status));
 }
-// Peringatan: sekali sehari per jenis (kind), kecuali every=true. Mengembalikan true kalau terkirim.
+// Peringatan: sekali sehari per jenis (kind), kecuali every=true. Mengembalikan true jika terkirim.
 async function alertNotice(kind, subject, text, every) {
   if (!dbConfigured()) return false;
   const n = await notifyTarget();
@@ -286,8 +286,8 @@ async function clearPause() {
   await cmd(["HDEL", AUTOK, "pause"]);
 }
 const windowTotals = st => st.reduce((a, x) => ({ sent: a.sent + x.sent + x.fu, bounce: a.bounce + x.bounce, spam: a.spam + x.spam }), { sent: 0, bounce: 0, spam: 0 });
-// Cek 3 hari terakhir: bounce >= batas % (minimal 20 email terkirim), atau spam >= 2 dan >= 0,3%. Kalau terlewati, kirim otomatis dijeda.
-// Mengembalikan alasan (string) kalau baru saja dijeda atau sudah dijeda, "" kalau aman.
+// Cek 3 hari terakhir: bounce >= batas % (minimal 20 email terkirim), atau spam >= 2 dan >= 0,3%. Jika terlewati, kirim otomatis dijeda.
+// Mengembalikan alasan (string) jika baru saja dijeda atau sudah dijeda, "" jika aman.
 async function checkHealth() {
   if (!dbConfigured()) return "";
   const pz = await getPause();

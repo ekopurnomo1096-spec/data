@@ -20,7 +20,7 @@ https://emahairshop.com/
 Looking forward to working with you!`;
 
 // Data brand dipakai untuk header/footer HTML email (lihat send.js) dan sebagai fakta
-// yang boleh dipakai AI saat menulis email (lihat ai.js). Ubah di sini kalau datanya berubah.
+// yang boleh dipakai AI saat menulis email (lihat ai.js). Ubah di sini jika datanya berubah.
 const BRAND = {
   name: "EMAHAIRSHOP",
   tagline: "Human hair supplier from Indonesia",

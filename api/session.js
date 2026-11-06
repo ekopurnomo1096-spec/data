@@ -10,7 +10,7 @@ const LOGINFAIL = "hairleads:loginfail:";
 const MAX_FREE = 5;        // percobaan gratis sebelum mulai dikunci
 const BASE_LOCK = 5;       // detik, lama kunci pertama setelah lewat batas gratis
 const MAX_LOCK = 15 * 60;  // detik, batas atas lama kunci
-const WINDOW = 3600;       // detik, TTL catatan gagal (reset sendiri kalau tidak ada percobaan baru selama ini)
+const WINDOW = 3600;       // detik, TTL catatan gagal (reset sendiri jika tidak ada percobaan baru selama ini)
 const parse = v => { try { return JSON.parse(v); } catch (e) { return null; } };
 
 function clientIp(req) {
@@ -18,7 +18,7 @@ function clientIp(req) {
   if (xf) return String(xf).split(",")[0].trim();
   return (req.socket && req.socket.remoteAddress) || "unknown";
 }
-// Mengembalikan sisa detik kalau sedang dikunci, null kalau tidak.
+// Mengembalikan sisa detik jika sedang dikunci, null jika tidak.
 async function checkLock(ip) {
   if (!dbConfigured()) return null;
   try {

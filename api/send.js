@@ -32,7 +32,7 @@ module.exports = async (req, res) => {
     }
     if (req.method !== "POST") return res.status(405).json({ error: "metode tidak didukung" });
 
-    // Hapus riwayat kirim: hanya disembunyikan dari tampilan (h:1). Status, catatan, dan catatan "sudah dikirimi" tetap, jadi tidak terkirim dobel
+    // Hapus riwayat kirim: hanya disembunyikan dari tampilan (h:1). Status, catatan, dan catatan "sudah dikirimi" tetap, jadi tidak terkirim ganda
     if (req.body && (req.body.action === "clearhist" || (typeof req.body === "string" && /clearhist/.test(req.body)))) {
       if (!dbConfigured()) return res.status(200).json({ ok: true, hidden: [] });
       const all = await hgetall(M.MAIL), hidden = [], args = [];
@@ -46,7 +46,7 @@ module.exports = async (req, res) => {
     if (dbConfigured()) {
       let why = "";
       try { why = await M.checkHealth(); } catch (e) { /* abaikan */ }
-      if (why) return res.status(423).json({ error: "Pengiriman sedang dijeda: " + why + ". Lanjutkan di tab Otomatis kalau sudah aman.", paused: true });
+      if (why) return res.status(423).json({ error: "Pengiriman sedang dijeda: " + why + ". Lanjutkan di tab Otomatis jika sudah aman.", paused: true });
     }
     if (!key) return res.status(500).json({ error: "API key Resend belum diisi. Buka Pengaturan lalu masukkan key-nya" });
     if (!/@/.test(from)) return res.status(500).json({ error: "Alamat pengirim belum diisi. Buka Pengaturan lalu isi email pengirim (harus dari domain yang sudah diverifikasi di Resend)" });

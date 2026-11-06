@@ -10,7 +10,7 @@ const MAXHOPS = 6;  // paling banyak loncatan redirect yang diikuti per halaman
 function blocked(host) {
   return /^(localhost|.*\.local|.*\.internal)$/i.test(host) || /^\d+\.\d+\.\d+\.\d+$/.test(host) || host.includes(":");
 }
-// true kalau alamat IP ini privat/loopback/link-local/tidak boleh dijangkau dari luar (cegah SSRF ke jaringan internal).
+// true jika alamat IP ini privat/loopback/link-local/tidak boleh dijangkau dari luar (cegah SSRF ke jaringan internal).
 function ipBlocked(ip) {
   const fam = isIP(ip);
   if (fam === 4) {
@@ -31,9 +31,9 @@ function ipBlocked(ip) {
   }
   return true; // bukan IP yang dikenali: lebih aman dianggap diblokir
 }
-// Cek nama host sebelum DIHUBUNGI (bukan cuma sebelum dipakai di URL): resolve DNS-nya dan pastikan semua alamat
+// Cek nama host sebelum DIHUBUNGI (bukan hanya sebelum dipakai di URL): resolve DNS-nya dan pastikan semua alamat
 // hasil resolve itu bukan IP privat. Mencegah situs yang domainnya sengaja/kebetulan diarahkan ke jaringan internal
-// (DNS rebinding) ikut lolos cuma karena nama hostnya terlihat normal.
+// (DNS rebinding) ikut lolos hanya karena nama hostnya terlihat normal.
 async function hostBlocked(host) {
   if (blocked(host)) return true;
   try {
@@ -52,9 +52,9 @@ function tidyEmail(e) {
   return (t.trim().split(/\s+/).pop() || "").toLowerCase().replace(/^[^a-z0-9]+/, "").replace(/[^a-z0-9]+$/, "");
 }
 
-// Mengembalikan {html, err}. err = true kalau situs gagal dijangkau (timeout, jaringan, 5xx, 429). 404 dan sejenisnya bukan kegagalan.
+// Mengembalikan {html, err}. err = true jika situs gagal dijangkau (timeout, jaringan, 5xx, 429). 404 dan sejenisnya bukan kegagalan.
 // Redirect DIIKUTI MANUAL (bukan redirect:"follow"), supaya tiap loncatan dicek dulu hostname DAN hasil resolve DNS-nya:
-// situs awal yang aman tetap bisa dipakai menyelinap ke jaringan internal lewat redirect kalau ini tidak dicek ulang tiap hop.
+// situs awal yang aman tetap bisa dipakai menyelinap ke jaringan internal lewat redirect jika ini tidak dicek ulang tiap hop.
 async function grab(url) {
   let cur = url;
   for (let hop = 0; hop < MAXHOPS; hop++) {
@@ -94,8 +94,8 @@ function contactLinks(html, base) {
   return out;
 }
 
-// Mengembalikan {emails, whatsapp, failed}. failed = halaman utama gagal dijangkau (boleh dicoba ulang). Melempar Error dengan properti status (400) kalau alamatnya tidak valid / tidak diizinkan.
-// deadline (ms epoch, opsional): berhenti memeriksa halaman lain kalau sudah lewat, supaya fungsi tidak melewati batas waktu.
+// Mengembalikan {emails, whatsapp, failed}. failed = halaman utama gagal dijangkau (boleh dicoba ulang). Melempar Error dengan properti status (400) jika alamatnya tidak valid / tidak diizinkan.
+// deadline (ms epoch, opsional): berhenti memeriksa halaman lain jika sudah lewat, supaya fungsi tidak melewati batas waktu.
 async function findContacts(url, deadline) {
   let u = String(url || "").trim();
   const fail = m => { const e = new Error(m); e.status = 400; return e; };

@@ -162,7 +162,7 @@ function cacheKey(city, kind, source) {
 
 // Buang tempat yang place_id-nya (Google/OSM) sama dengan tempat yang sudah "dimiliki" pencarian kota
 // lain, untuk kombinasi jenis+sumber yang sama. Tanpa ini, dedupe() di atas hanya bekerja di dalam satu
-// kota saja, jadi tempat yang sama bisa nampak dobel kalau kebetulan muncul di dua kota berbeda (misal
+// kota saja, jadi tempat yang sama bisa tampil ganda jika kebetulan muncul di dua kota berbeda (misal
 // cabang dekat perbatasan kota, atau Google menandainya masuk dua kota). Kota yang lebih dulu mencari
 // dan menemukan sebuah tempat tetap "memilikinya"; kota berikutnya yang menemukan tempat yang sama
 // tidak menampilkannya lagi. Tempat tanpa place_id asli (id-nya ditebak dari nama+alamat) dilewati,
@@ -194,7 +194,7 @@ async function crossCityDedupe(list, kind, source, ckey) {
 
 // Inti pencarian, dipakai rute di bawah dan pekerjaan otomatis (_jobs.js).
 // q: {city, kind, source:"google"|"osm", start, refresh}. opts.merge: pencarian baru digabung ke hasil tersimpan (bukan menggantikan).
-// Melempar Error (dengan properti status kalau perlu) kalau gagal.
+// Melempar Error (dengan properti status jika perlu) jika gagal.
 async function searchCore(q, opts) {
   opts = opts || {};
   const city = String(q.city || "").trim();
@@ -235,7 +235,7 @@ async function searchCore(q, opts) {
     results = key ? await geoSearch(pt, kind, key) : await overpassSearch(pt, kind);
   } else {
     // Akun dipilih lewat _serp.js: akun aktif (switch di pojok kanan atas), dan pindah otomatis
-    // kalau sisa kuotanya di bawah batas (Pengaturan otomatis > Akun SerpApi).
+    // jika sisa kuotanya di bawah batas (Pengaturan otomatis > Akun SerpApi).
     const sp = await pickSerp();
     if (!sp) throw fail("API key SerpApi belum diisi. Buka Pengaturan lalu masukkan key-nya");
     const two = !!sp.other || !!sp.switched;
@@ -244,7 +244,7 @@ async function searchCore(q, opts) {
       const sr = await serpSearch(city, kind, sp.key, start, ll);
       results = sr.list; more = sr.more; ll = sr.ll; pageMore = sr.more;
     } catch (e) {
-      // Kuota akun ini habis atau key bermasalah: coba sekali dengan akun lain (kalau pindah otomatis menyala)
+      // Kuota akun ini habis atau key bermasalah: coba sekali dengan akun lain (jika pindah otomatis menyala)
       if (sp.auto && sp.other && EXHAUSTED.test(e.message)) {
         try {
           const sr = await serpSearch(city, kind, sp.other.key, start, ll);
@@ -273,7 +273,7 @@ async function searchCore(q, opts) {
   let next = more ? (start || 0) + 20 : 0;
   // Gabung tanpa memuat halaman lanjutan: penunjuk "Muat 20 lagi" tetap seperti semula
   if (opts.merge && !start && hit) { more = !!hit.more; next = hit.next || 0; ll = hit.ll || ll; }
-  // Gabung halaman 2-3 saat cari ulang otomatis: jangan memundurkan penunjuk kalau halaman lebih jauh sudah pernah dimuat
+  // Gabung halaman 2-3 saat cari ulang otomatis: jangan memundurkan penunjuk jika halaman lebih jauh sudah pernah dimuat
   if (opts.merge && start > 0 && hit && (hit.next || 0) > next) { more = !!hit.more; next = hit.next; }
   let saved = false;
   if (results.length && dbConfigured()) {

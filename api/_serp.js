@@ -1,5 +1,5 @@
 // Pemilih akun SerpApi. Memilih akun yang dipakai untuk satu pencarian, dan pindah otomatis ke akun lain
-// kalau sisa kuota akun aktif di bawah batas (pengaturan cfg.serp di hairleads:auto).
+// jika sisa kuota akun aktif di bawah batas (pengaturan cfg.serp di hairleads:auto).
 // Cek kuota memakai Account API SerpApi (gratis, tidak mengurangi kuota pencarian).
 const { getKey, getActive, setActive, cmd, dbConfigured } = require("./_store");
 
@@ -22,7 +22,7 @@ async function getSerpCfg() {
   } catch (e) { return { ...DEFAULT }; }
 }
 
-// Sisa kuota satu akun, atau null kalau tidak bisa dicek
+// Sisa kuota satu akun, atau null jika tidak bisa dicek
 async function leftOf(key) {
   try {
     const r = await fetch("https://serpapi.com/account.json?api_key=" + encodeURIComponent(key),
@@ -40,7 +40,7 @@ async function logSwitch(from, to, why, left) {
   return info;
 }
 
-// Mengembalikan null kalau tidak ada key sama sekali. Selain itu:
+// Mengembalikan null jika tidak ada key sama sekali. Selain itu:
 // {n, key, left, auto, other: {n, key} | null, switched: {from, to, why, left} | null}
 async function pickSerp() {
   const [k1, k2, act, cfg] = await Promise.all([getKey("serp"), getKey("serp2"), getActive(), getSerpCfg()]);
@@ -54,7 +54,7 @@ async function pickSerp() {
   if (!cfg.auto) { out.left = await leftOf(cur.key); return out; }
   const [lc, lo] = await Promise.all([leftOf(cur.key), leftOf(other.key)]);
   out.left = lc;
-  // Pindah hanya kalau akun aktif terbaca dan di bawah batas, dan akun lain terbaca dan lebih banyak sisanya
+  // Pindah hanya jika akun aktif terbaca dan di bawah batas, dan akun lain terbaca dan lebih banyak sisanya
   if (lc !== null && lc < cfg.below && lo !== null && lo > lc) {
     out.switched = await logSwitch(cur.n, other.n, "kuota", lc);
     try { await setActive(String(other.n)); } catch (e) { /* tetap pakai akun lain untuk pencarian ini */ }

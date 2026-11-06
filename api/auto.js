@@ -51,7 +51,7 @@ async function state(req) {
       const d = await J.loadData();
       out.queue.forEach(v => { const x = d.map.get(v.id); if (x && x.thumbnail) v.thumbnail = x.thumbnail; });
     }
-  } catch (e) { /* tanpa foto kalau gagal, daftar tetap tampil */ }
+  } catch (e) { /* tanpa foto jika gagal, daftar tetap tampil */ }
   out.counts = { pending: 0, ok: 0, no: 0 };
   Object.keys(q).forEach(k => { const v = parse(q[k]); if (v && out.counts[v.st] != null) out.counts[v.st]++; });
   const seq = await hgetall(J.SEQ);
@@ -105,7 +105,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, ...(await J.scorePreview(b.cfg)) });
     }
     if (b.action === "enqueue") { // masukkan tempat yang belum masuk antrean (termasuk yang pernah ditolak)
-      if (!ids.length) return res.status(400).json({ error: "pilih tempat dulu" });
+      if (!ids.length) return res.status(400).json({ error: "Pilih tempat terlebih dahulu." });
       return res.status(200).json({ ok: true, ...(await J.enqueue(ids)) });
     }
     if (b.action === "approve" || b.action === "reject") {

@@ -1,5 +1,5 @@
 // Penyimpanan API key di Upstash Redis (lewat REST, tanpa dependensi). Nilai dienkripsi AES-256-GCM.
-// Kunci enkripsi diturunkan dari APP_PASSWORD. Kalau APP_PASSWORD diganti, key harus diisi ulang.
+// Kunci enkripsi diturunkan dari APP_PASSWORD. Jika APP_PASSWORD diganti, key harus diisi ulang.
 // Database boleh dipakai bersama project lain: semua data di sini berawalan "hairleads:".
 const crypto = require("crypto");
 const HASH = "hairleads:keys";
@@ -47,7 +47,7 @@ function decrypt(s) {
   } catch (e) { return ""; }
 }
 
-// name: "serp" | "geo". Mengembalikan "" kalau belum ada / tidak bisa dibaca.
+// name: "serp" | "geo". Mengembalikan "" jika belum ada / tidak bisa dibaca.
 async function getKey(name) {
   if (!dbConfigured()) return "";
   try {

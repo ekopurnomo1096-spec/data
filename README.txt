@@ -25,14 +25,14 @@ ISI
 2) Project > Settings > Environment Variables, tambahkan APP_PASSWORD = kata sandi untuk masuk
    ke halaman ini (pilih yang panjang dan unik). Centang Production, Preview, Development.
 3) Tambahkan juga LOGIN_PATH = teks rahasia bebas tanpa garis miring (contoh: masuk-x7q2). Ini
-   alamat satu-satunya tempat halaman login muncul (setelah login, alamat di browser otomatis jadi "/" saja): https://domainmu.com/masuk-x7q2 - domain tanpa
+   alamat satu-satunya tempat halaman login muncul (setelah login, alamat di browser otomatis jadi "/" saja): https://domainanda.com/masuk-x7q2 - domain tanpa
    alamat ini (termasuk "/" polos) sengaja menampilkan halaman 404 (api/_404.html), supaya orang lain yang iseng buka domainnya
-   tidak nemu form login sama sekali. Ganti LOGIN_PATH kapan saja kalau alamatnya kebagi ke orang
-   yang salah (sesi yang sudah login tidak kena pengaruh, cuma alamat masuk pertama kali yang beda).
+   tidak akan menemukan form login sama sekali. Ganti LOGIN_PATH kapan saja jika alamatnya diketahui orang
+   yang tidak berwenang (sesi yang sudah login tidak kena pengaruh, hanya alamat untuk masuk pertama kali yang berbeda).
    Lalu Deployments > titik tiga di deploy terbaru > Redeploy.
-4) Buka https://domainmu.com/<LOGIN_PATH>, masuk, klik "Pengaturan", isi API key SerpApi (dan
+4) Buka https://domainanda.com/<LOGIN_PATH>, masuk, klik "Pengaturan", isi API key SerpApi (dan
    Geoapify, opsional). Key disimpan terenkripsi di Redis (hairleads:keys), berlaku di semua
-   browser dan perangkat. Kalau APP_PASSWORD diganti, key harus diisi ulang.
+   browser dan perangkat. Jika APP_PASSWORD diganti, key harus diisi ulang.
 
 Progress bar kuota SerpApi tampil di pojok kanan atas, diambil dari Account API SerpApi
 (tidak mengurangi kuota).
@@ -57,11 +57,11 @@ Untuk fitur Otomatis (disarankan semua)
                           tidak tercatat. Lihat bagian 7.
   UNSUB_SECRET            Teks acak panjang untuk tanda tangan link berhenti berlangganan. Isi SEKALI
                           dan jangan diganti lagi. Link di email lama tetap berlaku.
-  PUBLIC_URL (opsional)   https://DOMAINMU, supaya link berhenti berlangganan selalu memakai
+  PUBLIC_URL (opsional)   https://DOMAINANDA, supaya link berhenti berlangganan selalu memakai
                           domain sendiri.
 
 Opsional
-  SERPAPI_KEY, GEOAPIFY_KEY            Cadangan kalau belum ada key tersimpan di halaman.
+  SERPAPI_KEY, GEOAPIFY_KEY            Cadangan jika belum ada key tersimpan di halaman.
   RESEND_API_KEY, RESEND_FROM,
   RESEND_REPLY_TO                      Cadangan untuk pengaturan email di halaman.
   RESEND_DAILY_LIMIT                   Batas email per hari. Bawaan 100 (akun gratis Resend).
@@ -108,15 +108,15 @@ Persiapan
   2. Di halaman: tab Email > "Pengaturan email", isi:
        API key Resend
        Email pengirim   contoh: EMA Hairshop Wholesale <sales@wholesale.emahairshop.com>
-       Reply-To         email yang kamu baca (opsional tapi disarankan)
+       Reply-To         alamat email yang Anda pantau (opsional, disarankan)
        Alamat fisik di footer email, dan "Keterangan sumber kontak" (lihat bagian 7)
 
 Cara kirim
-  - Satu tempat: buka detail tempat > Kirim email. Isi bisa diedit dulu.
+  - Satu tempat: buka detail tempat > Kirim email. Isi dapat diedit terlebih dahulu.
   - Massal: tombol "Kirim email" di atas tabel. Hanya tempat berstatus Belum dihubungi yang punya
     email, maksimal 20 sekali kirim. Daftar bisa dicentang.
   - Manual: tab Email, ketik satu atau beberapa alamat (pisahkan koma), lalu kirim dengan subjek
-    dan isi di tab itu. Dipakai juga untuk tes kirim ke emailmu sendiri.
+    dan isi di tab itu. Dipakai juga untuk tes kirim ke alamat email Anda sendiri.
 
 Isi dan catatan
   - Isi memakai template di api/_template.js (sama dengan draf WA). Sapaan diganti nama tempat.
@@ -153,7 +153,7 @@ queue, seq, supp.
 
 6.3 Skor prospek (api/_score.js, 0-100)
   Menambah
-    email +30 (+5 kalau bukan Gmail dkk) · website +10 · WhatsApp +5 · telepon +5
+    email +30 (+5 jika bukan Gmail dkk) · website +10 · WhatsApp +5 · telepon +5
     rating 4,5+ +10 / 4+ +6 / 3,5+ +3
     ulasan 100+ +10 / 30+ +7 / 10+ +4
     nama wig/extension/weave/beauty supply/wholesale +15
@@ -163,7 +163,7 @@ queue, seq, supp.
     bukan bisnis rambut (barber, nail, spa, tattoo, klinik, sekolah, lash) -15
     email tidak dibaca orang (noreply, abuse, privacy, legal dll) -15
     rating di bawah 3,0 dengan 10+ ulasan -10
-    ada rating tapi ulasan kurang dari 3 -3
+    ada rating namun ulasan kurang dari 3 -3
     website hanya Facebook/Instagram dll -5
   Cara mengubah
     - Tab Otomatis > Skor prospek. Bobot tersimpan di cfg.mail.weights (tanpa deploy ulang).
@@ -198,7 +198,7 @@ queue, seq, supp.
 
 6.5 Follow-up dan variasi email
   - Follow-up dikirim hari ke-N sejak email pertama (bawaan hari ke-4 dan ke-10).
-  - Berhenti sendiri kalau status jadi Dibalas / Deal / Tidak cocok, atau alamatnya masuk Daftar
+  - Berhenti sendiri jika status jadi Dibalas / Deal / Tidak cocok, atau alamatnya masuk Daftar
     berhenti.
   - Tiap tahap (email pertama dan tiap follow-up) bisa punya sampai 2 variasi tambahan (A, B, C).
     Penerima berurutan mendapat A, B, C, A, ... per tahap. Follow-up bawaan sudah punya 1 variasi
@@ -209,14 +209,14 @@ queue, seq, supp.
 
 6.6 Cari ulang
   - Hanya pencarian yang dicentang. 1 halaman Google Maps (20 tempat) = 1 kuota SerpApi.
-  - Halaman 2 dan 3 hanya diambil kalau seluruh isi halaman sebelumnya tempat baru (bisa diatur
+  - Halaman 2 dan 3 hanya diambil jika seluruh isi halaman sebelumnya tempat baru (bisa diatur
     1-3 di "Halaman per pencarian"). Tiap halaman dihitung ke "Maks pencarian per hari".
-  - Dilewati kalau sisa kuota di bawah "Sisakan kuota SerpApi".
+  - Dilewati jika sisa kuota di bawah "Sisakan kuota SerpApi".
   - Tempat lama tidak berubah, hanya yang baru ditambahkan.
-  - Nonaktifkan pencarian kosong: kalau satu pencarian yang dicentang berturut-turut tidak
+  - Nonaktifkan pencarian kosong: jika satu pencarian yang dicentang berturut-turut tidak
     menambah tempat baru sebanyak "Matikan setelah kosong" (bawaan 3, isi 0 untuk mematikan
-    aturan), centangnya dimatikan sendiri dan kamu dikabari lewat email peringatan (maks sekali
-    sehari). Kalau ada tempat baru, hitungan kembali ke nol. Satu pencarian dihitung paling
+    aturan), centangnya dimatikan sendiri dan Anda diberi tahu lewat email peringatan (maks sekali
+    sehari). Jika ada tempat baru, hitungan kembali ke nol. Satu pencarian dihitung paling
     banyak sekali per 20 jam. Hitungan ada di hairleads:auto, field dry. Untuk mengaktifkan lagi,
     centang kembali pencariannya.
 
@@ -229,30 +229,30 @@ queue, seq, supp.
   - Daftar bawaan: kota besar AS, Inggris, Kanada, Nigeria, Afrika Selatan, Ghana, dan Kenya.
   - Batas: "Maks pencarian per hari" (bawaan 2, per hari UTC), "Sisakan kuota SerpApi" (bawaan 30),
     halaman per kota (bawaan 1). Hitungan terpisah dari "Cari ulang".
-  - Hanya jalan kalau dicentang, juga saat "Jalankan sekarang".
+  - Hanya jalan jika dicentang, juga saat "Jalankan sekarang".
   - Progres tampil di Pengaturan (mis. "12 dari 28 kombinasi sudah dicari"). Data di
     hairleads:auto, field rot dan rotday.
-  - Kota yang sudah dicari tidak otomatis ikut Cari ulang; centang manual kalau mau.
+  - Kota yang sudah dicari tidak otomatis ikut Cari ulang; centang manual jika mau.
 
 6.8 Cari email dari website
   - Maksimal 60 website per jalan (bisa diubah). Sisanya dilanjutkan di jalan berikutnya.
   - Halaman yang dicek: /contact, /about, /pages/contact (pola Shopify), /contact-us, /kontak,
     dan tautan "Contact/Kontak" di halaman utama (maks 6 halaman per website).
   - Website yang gagal dijangkau (timeout, error server) TIDAK langsung ditandai selesai: dicoba
-    ulang SEKALI, paling cepat 20 jam kemudian. Website yang terbuka tapi tanpa email tetap final.
+    ulang SEKALI, paling cepat 20 jam kemudian. Website yang terbuka namun tanpa email tetap final.
     Hasil jalan menampilkan "retry" dan "waiting".
 
 6.9 Pindah akun SerpApi otomatis
-  - Berlaku kalau Akun 1 dan Akun 2 sama-sama diisi.
+  - Berlaku jika Akun 1 dan Akun 2 sama-sama diisi.
   - Sebelum tiap pencarian Google Maps (manual maupun otomatis), sisa kuota akun aktif dicek lewat
-    Account API SerpApi (gratis). Kalau di bawah "Pindah kalau sisa di bawah" (bawaan 20) dan
+    Account API SerpApi (gratis). Jika di bawah "Pindah jika sisa di bawah" (bawaan 20) dan
     akun lain punya sisa lebih banyak, akun aktif dipindah. Sama dengan switch di pojok kanan atas,
     jadi pilihan manual tetap bisa diganti kapan saja.
-  - Kalau SerpApi menolak pencarian karena kuota habis / key bermasalah, pencarian diulang sekali
+  - Jika SerpApi menolak pencarian karena kuota habis / key bermasalah, pencarian diulang sekali
     dengan akun lain dan akun aktif dipindah.
   - Pindah lewat jadwal harian dikabari lewat email peringatan (maks sekali sehari).
   - Pengaturan di cfg.serp {auto, below}. Pindah terakhir di hairleads:auto, field serpsw.
-    Matikan kotaknya kalau mau memilih akun murni manual.
+    Matikan kotaknya jika mau memilih akun murni manual.
 
 
 7. KEAMANAN PENGIRIMAN
@@ -267,18 +267,18 @@ Berhenti berlangganan
     Otomatis.
 
 Bounce dan spam (webhook Resend)
-  - Di Resend > Webhooks, tambahkan webhook ke https://DOMAINMU/api/mailhook?a=resend dengan event
+  - Di Resend > Webhooks, tambahkan webhook ke https://DOMAINANDA/api/mailhook?a=resend dengan event
     email.bounced dan email.complained. Isi RESEND_WEBHOOK_SECRET di Vercel.
   - Bounce permanen dan laporan spam otomatis masuk Daftar berhenti. Bounce sementara (kotak
     penuh dll) tidak.
   - Bounce, laporan spam, dan berhenti berlangganan juga mengubah status prospek jadi "Tidak
-    cocok" + catatan, hanya kalau statusnya masih Belum dihubungi / Sudah dihubungi.
+    cocok" + catatan, hanya jika statusnya masih Belum dihubungi / Sudah dihubungi.
     Dibalas/Deal tidak diubah.
 
 Jeda
   - Tombol "Jeda semua" (kill switch) di bagian Status: menghentikan kirim otomatis, follow-up,
     semua pekerjaan cron, DAN kirim manual dari tab Email sampai klik Lanjutkan.
-  - Jeda otomatis: kalau bounce 3 hari terakhir >= batas (bawaan 4%, minimal 20 email terkirim)
+  - Jeda otomatis: jika bounce 3 hari terakhir >= batas (bawaan 4%, minimal 20 email terkirim)
     atau ada 2+ laporan spam (>= 0,3%), sistem menjeda sendiri. Dicek tiap webhook bounce/spam
     masuk dan tiap pekerjaan berjalan.
   - Setelah Lanjutkan, hitungan bounce yang ada dijadikan titik nol supaya tidak langsung terjeda
@@ -287,7 +287,7 @@ Jeda
 Footer email (alamat fisik dan sumber kontak)
   - Tab Email > Pengaturan email > isi "Alamat fisik di footer email" (kantor, toko, atau PO Box).
     Tampil di bawah SETIAP email (otomatis dan manual), di versi HTML maupun teks.
-  - "Keterangan sumber kontak" opsional. Kalau kosong, memakai teks bawaan: We found your email
+  - "Keterangan sumber kontak" opsional. Jika kosong, memakai teks bawaan: We found your email
     address on your business website or public listing.
   - Isi dua kolom ini SEBELUM kirim sungguhan. Tab Otomatis menampilkan peringatan merah selama
     alamat fisik belum diisi. Pengiriman tidak diblokir.
@@ -304,9 +304,9 @@ Ringkasan harian
     berhenti langganan (hari ini dan kemarin), status kirim otomatis, jumlah menunggu
     persetujuan, sisa kuota Resend dan SerpApi tiap akun.
   - "Hari ini" di ringkasan = sejak 07.00 WIB (awal hari UTC), termasuk jalan otomatis itu.
-  - Penerima: isi "Kirim ke email". Kalau kosong, memakai Reply-To dari tab Email. Dikirim dari
+  - Penerima: isi "Kirim ke email". Jika kosong, memakai Reply-To dari tab Email. Dikirim dari
     alamat pengirim Resend yang sama.
-  - Tombol "Kirim tes ringkasan" mengirim sekarang (simpan pengaturan dulu).
+  - Tombol "Kirim tes ringkasan" mengirim sekarang (simpan pengaturan terlebih dahulu).
 
 Peringatan (email terpisah, "[Peringatan] ...")
   Hanya dari jalan terjadwal dan webhook, maksimal sekali sehari per jenis:
@@ -316,10 +316,10 @@ Peringatan (email terpisah, "[Peringatan] ...")
     - kuota Resend habis atau terlalu cepat
     - pencarian ulang gagal karena SerpApi, atau dilewati karena sisa kuota di bawah batas
     - pindah akun SerpApi, dan pencarian kosong dinonaktifkan
-  Batas: kalau cron Vercel tidak jalan sama sekali, tidak ada kode yang berjalan untuk memberi
+  Batas: jika cron Vercel tidak jalan sama sekali, tidak ada kode yang berjalan untuk memberi
   tahu. Peringatan "terlewat" baru terkirim saat jalan berikutnya. Untuk jaga-jaga, pasang monitor
   uptime eksternal.
-  Email laporan tidak ikut meter "email hari ini", tapi tetap memakai kuota Resend yang sebenarnya.
+  Email laporan tidak ikut meter "email hari ini", namun tetap memakai kuota Resend yang sebenarnya.
 
 Pembersihan data
   - Berjalan di akhir "Jalankan sekarang" dan jadwal harian, paling banyak sekali per 20 jam
@@ -328,12 +328,12 @@ Pembersihan data
     untuk cari ulang.
   - Dibuang: tempat tanpa telepon, email, dan WhatsApp, setelah websitenya dicek (atau tanpa
     website). Pencarian yang jadi kosong ikut dihapus.
-  - Ikut dibersihkan: skor AI dan catatan cek email milik tempat itu (kalau tidak dipakai
+  - Ikut dibersihkan: skor AI dan catatan cek email milik tempat itu (jika tidak dipakai
     pencarian lain), cache domain email yang kedaluwarsa, statistik harian lebih dari 90 hari.
   - TIDAK PERNAH dibuang: tempat yang punya status atau catatan, pernah dikirimi email, ada di
     antrean, atau urutan follow-up, serta tempat yang websitenya belum dicek.
   - Hasilnya tampil di Riwayat jalan dan bagian Pembersihan data. Data yang dibuang tidak
-    diarsipkan, tapi pencarian yang sama bisa diulang kapan saja (memakai kuota SerpApi).
+    diarsipkan, namun pencarian yang sama bisa diulang kapan saja (memakai kuota SerpApi).
 
 
 9. DASBOR (menu Analisis > Dasbor)
@@ -347,7 +347,7 @@ Isi
   - Corong (seluruh data tersimpan):
       Ditemukan > Punya kontak (email atau WA) > Dikirimi (riwayat kirim, urutan follow-up, atau
       sudah berstatus) > Dibalas (status Dibalas/Deal) > Deal.
-  - Variasi A/B per tahap: terkirim, dibalas, tingkat balasan. Pemenang hanya ditandai kalau tiap
+  - Variasi A/B per tahap: terkirim, dibalas, tingkat balasan. Pemenang hanya ditandai jika tiap
     variasi sudah terkirim minimal 30 kali dan selisihnya lolos uji dua proporsi (sekitar 90%
     yakin). Selain itu tampil "belum cukup data" atau "belum ada pemenang". Batas 30 ada di
     MIN_SENT pada api/dash.js. Hanya kiriman lewat jalur Otomatis yang bertanda variasi.
@@ -374,21 +374,21 @@ Isi
 ------------------------------
   - Paket Hobby Vercel: cron sekali sehari (jam bisa bergeser sampai satu jam), tiap fungsi
     maksimal 60 detik (vercel.json).
-  - Resend gratis: 100 email per hari. Atur RESEND_DAILY_LIMIT kalau akun berbayar.
+  - Resend gratis: 100 email per hari. Atur RESEND_DAILY_LIMIT jika akun berbayar.
   - Gmail/Yahoo tidak bisa jadi pengirim, dan antrean otomatis hanya untuk alamat Gmail/Yahoo dkk.
   - Mengganti APP_PASSWORD mematikan key tersimpan (isi ulang di Pengaturan). Link berhenti
-    berlangganan baru tidak terpengaruh kalau UNSUB_SECRET sudah diisi.
+    berlangganan baru tidak terpengaruh jika UNSUB_SECRET sudah diisi.
 
 
 CATATAN BATAS VERCEL HOBBY
 --------------------------
 Paket Hobby maksimal 12 Serverless Function (setiap file api/*.js tanpa awalan "_" dihitung satu).
 Sekarang 11, masih ada satu slot kosong. Jangan menambah file baru di api/ tanpa menggabungkan yang lain. Pencarian
-email/WhatsApp (dulu api/email.js) sekarang ada di api/usage.js lewat ?a=email.
+email/WhatsApp (sebelumnya api/email.js) sekarang ada di api/usage.js lewat ?a=email.
 
 
 ALAMAT HALAMAN
 --------------
 Setelah login, aplikasi memakai alamat biasa tanpa "#": /dasbor, /cari, /riwayat, dst, dan
-/<uuid> untuk pencarian tersimpan. Link lama berbentuk #nama masih dibaca. Kalau belum login, semua
+/<uuid> untuk pencarian tersimpan. Link lama berbentuk #nama masih dibaca. Jika belum login, semua
 alamat selain LOGIN_PATH menampilkan halaman 404.
