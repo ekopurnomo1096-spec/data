@@ -65,6 +65,8 @@ input[type=text],input[type=search],input[type=password],select{width:100%;heigh
 .pwtoggle{position:absolute;top:50%;right:10px;transform:translateY(-50%);background:none;border:0;padding:4px 2px;font:inherit;font-size:.8rem;font-weight:600;color:var(--acc);cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none}
 .pwtoggle:focus,.pwtoggle:focus-visible{outline:none}
 input::placeholder{color:var(--mute);opacity:.8}
+#nxn{width:100%;height:42px;font:inherit;font-size:.92rem;color:var(--ink);background-color:var(--inp,var(--bg));border:1px solid var(--line);border-radius:8px;padding:0 12px}
+#city[readonly]{background-color:var(--bg);cursor:default}
 .go{align-self:end;height:42px;background:var(--acc);color:var(--onacc);border:0;border-radius:8px;padding:0 22px;font:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px}
 .go[disabled]{opacity:.7;cursor:not-allowed}
 .go[disabled][aria-busy="true"]{cursor:progress}
@@ -882,16 +884,14 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <div class="f combo"><label for="citysel">Pilih kota</label>
       <input type="text" id="citysel" autocomplete="off" placeholder="Ketik nama kota">
       <div class="combo-list" id="cityselList" hidden></div></div>
+    <div class="f" id="nxf" style="display:none"><label for="nxn">Jumlah kota sekali cari</label><input type="number" id="nxn" min="1" max="10" value="3" inputmode="numeric"></div>
     <div class="f"><label for="city">Kota yang dicari</label><input type="text" id="city" placeholder="Contoh: London, Houston USA, Purwokerto"></div>
     <div class="f"><label for="kind">Jenis tempat</label>
       <select id="kind"><option value="salon">Salon rambut</option><option value="wig">Toko wig / beauty supply</option><option value="beauty">Toko kecantikan</option></select></div>
     <div class="f"><label for="source">Sumber data</label>
       <select id="source"><option value="google">Google Maps (lengkap)</option><option value="osm">OpenStreetMap (gratis, tipis)</option></select></div>
     <button class="go" id="run"><span id="runtxt">Cari</span></button>
-    <div style="grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center">
-      <label class="chk" id="nxwrap"><input type="checkbox" id="nxcity"> Cari kota baru di negara ini secara bergantian (bukan mengulang kota yang sama)</label>
-      <label class="chk" id="nxnwrap" style="display:none">Jumlah kota sekali cari <input type="number" id="nxn" min="1" max="10" value="3" style="width:70px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surf);font:inherit;color:inherit"></label>
-    </div>
+    <label class="chk" id="nxwrap" style="grid-column:1/-1"><input type="checkbox" id="nxcity"> Cari kota baru di negara ini secara bergantian (bukan mengulang kota yang sama)</label>
     <p class="hint2" id="nxinfo" style="grid-column:1/-1;margin:0" hidden></p>
   </div>
   </div>
@@ -1270,6 +1270,7 @@ function comboAsync(inputId,listId,opts){
 (function initPicker(){
   var cityAsync;
   var countryCombo=combo("country","countryList",{onPick:function(){
+    if($("nxcity").checked){nxPreview();return}
     if(!cityAsync)return;
     $("citysel").focus();
     cityAsync.showDefault();
@@ -1519,30 +1520,48 @@ function render(){
 }
 var BATCH=false;
 function nz(t){return String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim()}
-$("nxcity").addEventListener("change",function(){
-  $("nxnwrap").style.display=this.checked?"flex":"none";
-  var ni=$("nxinfo");ni.hidden=!this.checked;
-  if(this.checked)ni.textContent="Tiap kota memakai 1 kuota SerpApi (Google Maps). Kota diambil berurutan dari daftar kota populer negara yang dipilih, yang belum pernah dicari.";
-});
-async function run(force){
-  if(!$("nxcity").checked||force===true)return runOne(force);
-  if(BATCH)return;
-  var ni=$("nxinfo"),cn=$("country").value.trim(),pl=POPULAR_CITIES[cn];
-  ni.hidden=false;
-  if(!cn||!pl){ni.textContent="Pilih negara dulu (yang punya daftar kota populer).";return say("err","Pilih negara dulu, lalu tekan Cari.")}
-  loading(true);
-  try{await loadSearches()}catch(_){}
+// Kota berikutnya yang belum dicari, dari daftar kota populer negara yang dipilih
+function nxTodo(){
+  var cn=$("country").value.trim(),pl=POPULAR_CITIES[cn];
+  if(!cn||!pl)return{cn:cn,pl:null,todo:[]};
   var kd=$("kind").value,sr=$("source").value,ncn=nz(cn);
   // Sudah dicari = ada di Pencarian tersimpan (jenis dan sumber sama), nama kota sama (tanpa aksen) dan negaranya cocok kalau tertulis
   var done=SAVED.filter(function(m){return m.kind===kd&&(m.source||"google")===sr}).map(function(m){var p=String(m.city||"").split(",");return{c:nz(p[0]),n:p.length>1?nz(p[p.length-1]):""}});
-  var todo=pl.filter(function(k){var nk=nz(k);return!done.some(function(d){return d.c===nk&&(!d.n||d.n===ncn)})});
-  if(!todo.length){loading(false);ni.textContent="Semua "+pl.length+" kota populer di "+cn+" sudah pernah dicari untuk jenis dan sumber ini.";return say("info","Semua kota populer di "+esc(cn)+" sudah pernah dicari. Ketik kota lain di kolom Kota yang dicari (matikan centang), atau pilih negara atau jenis tempat lain.")}
+  return{cn:cn,pl:pl,todo:pl.filter(function(k){var nk=nz(k);return!done.some(function(d){return d.c===nk&&(!d.n||d.n===ncn)})})};
+}
+function nxCount(){return Math.max(1,Math.min(10,parseInt($("nxn").value,10)||3))}
+// Kolom "Kota yang dicari" menampilkan semua kota yang akan dicari sekarang (bukan satu)
+function nxPreview(){
+  var on=$("nxcity").checked;
+  $("nxf").style.display=on?"":"none";
+  var cs=$("citysel").closest(".f");if(cs)cs.style.display=on?"none":"";
+  var c=$("city"),ni=$("nxinfo");c.readOnly=on;
+  if(!on){ni.hidden=true;return}
+  var t=nxTodo();ni.hidden=false;
+  if(!t.cn||!t.pl){c.value="";c.placeholder="Pilih negara dulu";ni.textContent="Pilih negara yang punya daftar kota populer, nanti kota yang akan dicari muncul di sini.";return}
+  var n=nxCount();
+  if(!t.todo.length){c.value="";c.placeholder="Semua kota sudah dicari";ni.textContent="Semua "+t.pl.length+" kota populer di "+t.cn+" sudah pernah dicari untuk jenis dan sumber ini.";return}
+  c.value=t.todo.slice(0,n).join(", ");
+  ni.textContent="Akan dicari "+Math.min(n,t.todo.length)+" kota (1 kuota SerpApi per kota). Sisa "+t.todo.length+" dari "+t.pl.length+" kota populer di "+t.cn+" yang belum dicari.";
+}
+$("nxcity").addEventListener("change",function(){if(!this.checked)$("city").value="";nxPreview();if(this.checked){var r=loadSearches();if(r&&r.then)r.then(function(){if($("nxcity").checked&&!BATCH)nxPreview()})}});
+["country","kind","source","nxn"].forEach(function(id){["input","change"].forEach(function(ev){$(id).addEventListener(ev,function(){if($("nxcity").checked&&!BATCH)nxPreview()})})});
+async function run(force){
+  if(!$("nxcity").checked||force===true)return runOne(force);
+  if(BATCH)return;
+  var ni=$("nxinfo");
+  loading(true);
+  try{await loadSearches()}catch(_){}
+  var t=nxTodo(),cn=t.cn,pl=t.pl,todo=t.todo,kd=$("kind").value;
+  ni.hidden=false;
+  if(!cn||!pl){loading(false);nxPreview();return say("err","Pilih negara dulu, lalu tekan Cari.")}
+  if(!todo.length){loading(false);nxPreview();return say("info","Semua kota populer di "+esc(cn)+" sudah pernah dicari. Matikan centang lalu ketik kota lain, atau pilih negara atau jenis tempat lain.")}
   var n=Math.max(1,Math.min(10,parseInt($("nxn").value,10)||3));$("nxn").value=n;
   var pick=todo.slice(0,n),acc=[],seen={},okc=0,names=[],stopped="";
   BATCH=true;
   try{
     for(var i=0;i<pick.length;i++){
-      $("city").value=pick[i]+", "+cn;
+      $("city").value=pick[i]+", "+cn;$("city").readOnly=true;
       ni.textContent="Mencari kota "+(i+1)+" dari "+pick.length+": "+pick[i]+"…";
       var st=await runOne(false);
       if(st==="fail"){stopped=pick[i];break}
@@ -1555,7 +1574,9 @@ async function run(force){
     rows=acc;lastQ=LABEL[kd]+" di "+names.join(", ")+" ("+cn+")";lastCountry=cn;sKey="";sDir=1;MORE=false;
     $("cinfo").hidden=true;$("status").innerHTML="";render();
   }
-  ni.textContent=(stopped?"Berhenti di "+stopped+" karena gagal. ":"")+"Selesai: "+names.length+" kota ("+names.join(", ")+"). Sisa "+Math.max(todo.length-names.length,0)+" dari "+pl.length+" kota populer di "+cn+". Tekan Cari lagi untuk kota berikutnya.";
+  try{await loadSearches()}catch(_){}
+  var msg=(stopped?"Berhenti di "+stopped+" karena gagal. ":"")+"Selesai: "+names.length+" kota ("+names.join(", ")+"). ";
+  nxPreview();ni.textContent=msg+ni.textContent;
 }
 async function runOne(force){
   var city=$("city").value.trim(),kind=$("kind").value;
