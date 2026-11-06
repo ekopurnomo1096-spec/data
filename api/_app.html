@@ -159,6 +159,11 @@ svg{flex:none;width:15px;height:15px;vertical-align:-2px;margin-right:6px;color:
 .sc.s0{opacity:.55}
 .sc.s3{color:var(--acc);font-weight:600}
 tbody tr.clk{cursor:pointer}
+tbody tr.grp,tbody tr.grp:hover{background:var(--soft);cursor:default}
+tbody tr.grp td{padding:10px 14px;font-size:.82rem;letter-spacing:.02em;border-bottom:1px solid var(--line)}
+tbody tr.grp{padding:0;margin:0 0 8px}
+tbody tr.grp td b{color:var(--acc);font-size:.92rem;margin-right:10px}
+tbody tr.grp td span{color:var(--mute)}
 dialog{width:min(520px,calc(100vw - 24px));max-height:calc(100vh - 40px);background:var(--surf);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:0;box-shadow:0 24px 60px rgba(0,0,0,.28)}
 dialog::backdrop{background:rgba(20,25,22,.5)}
 #dbody{padding:20px}
@@ -1528,14 +1533,27 @@ function render(){
     var p=n?Math.round(s[1]/n*100):0;
     return"<div class='stat'><small>"+s[0]+"</small><b>"+s[1]+"</b>"+(i?"<span>"+p+"% dari total</span><div class='meter'><i style='width:"+p+"%'></i></div>":"<span>"+esc(lastQ)+"</span>")+"</div>";
   }).join("");
-  $("shown").textContent="Menampilkan "+r.length+" dari "+n+" tempat."+(lastDupes?" "+lastDupes+" duplikat dibuang.":"")+" Klik baris untuk lihat detail.";
+  $("shown").textContent="Menampilkan "+r.length+" dari "+n+" tempat"+(r.some(function(x){return x.grp})?" di "+r.reduce(function(a,x){if(x.grp&&a.indexOf(x.grp)<0)a.push(x.grp);return a},[]).length+" kota":"")+"."+(lastDupes?" "+lastDupes+" duplikat dibuang.":"")+" Klik baris untuk lihat detail.";
   $("copied").hidden=true;
   document.querySelectorAll("th[data-k]").forEach(function(th){
     th.setAttribute("aria-sort",th.getAttribute("data-k")===sKey?(sDir>0?"ascending":"descending"):"none");
   });
+  // Hasil cari beberapa kota sekaligus dipisah per kota (urutan kota = urutan dicari; urutan di dalam kota ikut sortir)
+  var grouped=r.some(function(x){return x.grp}),gl=[],gm={};
+  if(grouped){
+    r.forEach(function(x){var g=x.grp||"Lainnya";if(!gm[g]){gm[g]=[];gl.push(g)}gm[g].push(x)});
+    r=[].concat.apply([],gl.map(function(g){return gm[g]}));
+  }
+  var lastG=null;
+  function gHead(x){
+    if(!grouped)return"";
+    var g=x.grp||"Lainnya";if(g===lastG)return"";
+    lastG=g;
+    return"<tr class='grp'><td colspan='8'><b>"+esc(g)+"</b><span>"+gm[g].length+" tempat</span></td></tr>";
+  }
   $("tb").innerHTML=r.length?r.map(function(x){
     var ph=x.phone?x.phone.split(/[;,]/)[0].trim():"",site=x.website?href(x.website):"",sc=score(x);
-    return"<tr class='clk' tabindex='0' data-i='"+rows.indexOf(x)+"'><td class='nm'><div class='nmw'>"+thumb(x)+"<div><b>"+esc(x.name)+aiBadge(x)+"</b><small>"+(x.address?esc(x.address):"Alamat belum diisi")+"</small>"+noteLine(x)+"</div></div></td>"
+    return gHead(x)+"<tr class='clk' tabindex='0' data-i='"+rows.indexOf(x)+"'><td class='nm'><div class='nmw'>"+thumb(x)+"<div><b>"+esc(x.name)+aiBadge(x)+"</b><small>"+(x.address?esc(x.address):"Alamat belum diisi")+"</small>"+noteLine(x)+"</div></div></td>"
       +stCell(x)
       +"<td class='num' data-l='Rating'>"+(x.rating?IC.star+esc(x.rating):IC.star+NA)+"</td>"
       +"<td class='num' data-l='Ulasan'>"+(x.reviews?IC.rev+esc(x.reviews):IC.rev+NA)+"</td>"
@@ -1608,7 +1626,7 @@ async function run(force){
       if(chs[i]){chs[i].classList.remove("cur");chs[i].classList.add(st==="fail"?"bad":"ok");if(st!=="fail")chs[i].firstChild.textContent="\u2713"}
       if(st==="fail"){stopped=pick[i];break}
       names.push(pick[i]);
-      if(st==="ok"){okc++;rows.forEach(function(x){var k=x.id||(x.name+"|"+x.address);if(!seen[k]){seen[k]=1;acc.push(x)}})}
+      if(st==="ok"){okc++;rows.forEach(function(x){var k=x.id||(x.name+"|"+x.address);if(!seen[k]){seen[k]=1;x.grp=pick[i];acc.push(x)}})}
     }
   }finally{BATCH=false;loading(false)}
   // Hasil semua kota digabung di satu tabel (tiap kota juga tersimpan sendiri di Pencarian tersimpan)
@@ -1698,8 +1716,9 @@ document.querySelectorAll("th[data-k] button").forEach(function(b){b.onclick=fun
   render();
 }});
 function csv(){
-  return"nama,alamat,telepon,whatsapp,website,email,rating,ulasan,status,catatan\n"+view().map(function(x){
-    return[x.name,x.address,x.phone,waOf(x)?"+"+waOf(x).n:"",x.website,emailsOf(x).join("; "),x.rating||"",x.reviews||"",stLabel(stOf(x)),noteOf(x)].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(",");
+  var vw=view(),gc=vw.some(function(x){return x.grp});
+  return"nama,alamat,telepon,whatsapp,website,email,rating,ulasan,status,catatan"+(gc?",kota":"")+"\n"+vw.map(function(x){
+    return[x.name,x.address,x.phone,waOf(x)?"+"+waOf(x).n:"",x.website,emailsOf(x).join("; "),x.rating||"",x.reviews||"",stLabel(stOf(x)),noteOf(x)].concat(gc?[x.grp||""]:[]).map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(",");
   }).join("\n");
 }
 function done(t){$("copied").textContent=t;$("copied").hidden=false}
