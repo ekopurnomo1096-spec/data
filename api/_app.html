@@ -1333,7 +1333,7 @@ function comboAsync(inputId,listId,opts){
   });
 })();
 var rows=[],timer=null,sKey="",sDir=1,lastQ="",lastCountry="",lastDupes=0,MORE=false,NEXT=0,mCity="",mKind="";
-var LS={},SAVED=[],pend=null,ntm=null,toastT=null,curX=null;
+var LS={},SAVED=[],ALLSEARCHED=[],pend=null,ntm=null,toastT=null,curX=null;
 var STAT=[["","Belum dihubungi"],["chat","Sudah dihubungi"],["balas","Dibalas"],["deal","Deal"],["tidak","Tidak cocok"]];
 var STORD={"":0,chat:1,balas:2,deal:3,tidak:4};
 function stOf(x){var r=LS[x.id];return r&&r.s||""}
@@ -1450,10 +1450,10 @@ function keepScroll(fn){
 function svSearch(){var a=$("svp"),b=$("svl");if(!a||!b)return;keepScroll(function(){a.innerHTML=placeList();b.innerHTML=savedList()})}
 $("svbox").addEventListener("input",function(e){if(e.target.id!=="svq")return;SVQ=e.target.value;svSearch()});
 function loadLeads(){
-  return fetch("/api/leads").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){LS=j.items||{};SAVED=j.searches||[];renderSaved();try{if(CUR==="4"||CUR==="6")renderMail()}catch(_){}}).catch(function(e){if(e===0)return;$("t3n").classList.remove("tsk");$("svbox").innerHTML="<p class='info'>Gagal memuat data tersimpan. Muat ulang halaman.</p>"});
+  return fetch("/api/leads").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){LS=j.items||{};SAVED=j.searches||[];ALLSEARCHED=j.allSearched||[];renderSaved();try{if(CUR==="4"||CUR==="6")renderMail()}catch(_){}}).catch(function(e){if(e===0)return;$("t3n").classList.remove("tsk");$("svbox").innerHTML="<p class='info'>Gagal memuat data tersimpan. Muat ulang halaman.</p>"});
 }
 function loadSearches(){
-  return fetch("/api/leads?part=searches").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){SAVED=j.searches||[];renderSaved()}).catch(function(){});
+  return fetch("/api/leads?part=searches").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){SAVED=j.searches||[];ALLSEARCHED=j.allSearched||[];renderSaved()}).catch(function(){});
 }
 function showMine(){
   SVKEY=null;
@@ -1555,8 +1555,10 @@ function nxTodo(){
   var cn=$("country").value.trim(),pl=POPULAR_CITIES[cn];
   if(!cn||!pl)return{cn:cn,pl:null,todo:[]};
   var kd=$("kind").value,sr=$("source").value,ncn=nz(cn);
-  // Sudah dicari = ada di Pencarian tersimpan (jenis dan sumber sama), nama kota sama (tanpa aksen) dan negaranya cocok kalau tertulis
-  var done=SAVED.filter(function(m){return m.kind===kd&&(m.source||"google")===sr}).map(function(m){var p=String(m.city||"").split(",");return{c:nz(p[0]),n:p.length>1?nz(p[p.length-1]):""}});
+  // Sudah dicari = ada di riwayat SEMUA pencarian (jenis dan sumber sama; bukan cuma 40 pencarian terbaru,
+  // supaya kota yang sudah lama dicari tidak disarankan ulang), nama kota sama (tanpa aksen) dan negaranya
+  // cocok kalau tertulis
+  var done=ALLSEARCHED.filter(function(m){return m.kind===kd&&(m.source||"google")===sr}).map(function(m){var p=String(m.city||"").split(",");return{c:nz(p[0]),n:p.length>1?nz(p[p.length-1]):""}});
   var seen={};
   return{cn:cn,pl:pl,todo:pl.filter(function(k){var nk=nz(k);if(seen[nk])return false;seen[nk]=1;return!done.some(function(d){return d.c===nk&&(!d.n||d.n===ncn)})})};
 }

@@ -17,8 +17,12 @@ module.exports = async (req, res) => {
       const out = {};
       if (part !== "items") {
         const m = await hgetall(META);
-        out.searches = Object.keys(m).map(k => { const v = parse(m[k]); return v && { key: k, ...v }; })
-          .filter(Boolean).sort((a, b) => b.at - a.at).slice(0, 40);
+        const all = Object.keys(m).map(k => { const v = parse(m[k]); return v && { key: k, ...v }; }).filter(Boolean);
+        out.searches = all.slice().sort((a, b) => b.at - a.at).slice(0, 40);
+        // Semua kota yang pernah dicari (ringkas: kota+jenis+sumber saja, tanpa batas 40), dipakai "Cari kota
+        // baru secara bergantian" supaya tidak menyarankan ulang kota yang sudah lama dicari tapi sudah
+        // tergeser dari 40 pencarian terbaru di atas.
+        out.allSearched = all.map(v => ({ city: v.city, kind: v.kind, source: v.source }));
       }
       if (part !== "searches") {
         const l = await hgetall(LEADS);
