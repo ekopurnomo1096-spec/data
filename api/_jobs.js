@@ -44,7 +44,6 @@ function defaultCfg() {
     mail: {
       on: false, approve: true, minScore: 40, perDay: 20, followOn: true, maxBounce: 4,
       weights: { ...DEFAULT_W }, // bobot skor prospek (positif dan negatif), lihat _score.js
-      warm: { on: true, start: 10, add: 5, everyDays: 3 }, // pemanasan: batas harian mulai dari "start", naik "add" tiap "everyDays" hari sampai perDay
       steps: [
         { days: 0, subject: "Human hair extension supplier from Indonesia", text: TEMPLATE },
         { days: 4, subject: "Following up: human hair extension supplier", text: FU1, alts: [{ subject: "Quick follow-up: hair extension supplier", text: FU1B }] },
@@ -73,7 +72,6 @@ function sanitizeCfg(c) {
     },
     mail: { on: bool(m.on, false), approve: bool(m.approve, true), minScore: num(m.minScore, 0, 100, 40), perDay: num(m.perDay, 1, 100, 20), followOn: bool(m.followOn, true),
       maxBounce: num(m.maxBounce, 1, 20, 4), weights: normWeights(m.weights),
-      warm: { on: bool((m.warm || {}).on, true), start: num((m.warm || {}).start, 1, 100, 10), add: num((m.warm || {}).add, 1, 100, 5), everyDays: num((m.warm || {}).everyDays, 1, 30, 3) },
       steps: [] }
   };
   const nt = c.notify || {}, cl = c.clean || {}, nto = M.clean(nt.to, 120).toLowerCase();
@@ -122,16 +120,6 @@ async function pushLog(entry) {
   const arr = await getLog();
   arr.unshift(entry);
   await cmd(["HSET", AUTO, "log", JSON.stringify(arr.slice(0, 20))]);
-}
-
-// Batas kirim hari ini menurut pemanasan: mulai dari warm.start, naik warm.add tiap warm.everyDays hari sejak email pertama terkirim, sampai perDay
-async function warmInfo(cfg) {
-  const target = cfg.mail.perDay, w = cfg.mail.warm;
-  if (!w.on) return { on: false, eff: target, target, day: 0 };
-  let first = 0;
-  try { first = Number(await cmd(["HGET", AUTO, "first"])) || 0; } catch (e) { /* hari ke-0 */ }
-  const day = first ? Math.floor((Date.now() - first) / DAY) : 0;
-  return { on: true, eff: Math.min(target, w.start + Math.floor(day / w.everyDays) * w.add), target, day };
 }
 
 // ---- Data -------------------------------------------------------------------------------------------------
@@ -590,10 +578,9 @@ async function jobMailSend(cfg, ctx) {
   const rc = await M.config();
   if (!rc.key || !/@/.test(rc.from)) return { skip: "Resend belum diisi (API key dan email pengirim)" };
   let used = await M.usedToday();
-  const wi = await warmInfo(cfg);
-  // perDay (setelah pemanasan) adalah batas TOTAL per hari, termasuk email yang sudah terkirim hari ini
-  const cap = Math.min(Math.max(wi.eff - used, 0), M.DAILY > 0 ? Math.max(M.DAILY - used, 0) : Infinity);
-  if (cap <= 0) return { skip: (M.DAILY > 0 && used >= M.DAILY ? "kuota email hari ini habis" : "batas harian tercapai (" + used + " dari " + wi.eff + (wi.on && wi.eff < wi.target ? ", pemanasan hari ke-" + (wi.day + 1) : "") + ")") };
+  // perDay adalah batas TOTAL per hari, termasuk email yang sudah terkirim hari ini
+  const cap = Math.min(Math.max(cfg.mail.perDay - used, 0), M.DAILY > 0 ? Math.max(M.DAILY - used, 0) : Infinity);
+  if (cap <= 0) return { skip: (M.DAILY > 0 && used >= M.DAILY ? "kuota email hari ini habis" : "batas harian tercapai (" + used + " dari " + cfg.mail.perDay + ")") };
   const steps = cfg.mail.steps, now = Date.now();
 
   const seqRaw = await hgetall(SEQ), qRaw = await hgetall(QUEUE);
@@ -802,4 +789,4 @@ async function runAuto(opts) {
   return out;
 }
 
-module.exports = { queueWhy, enqueue, scorePreview, rotInfo, nextCity, QUEUE, SEQ, AUTO, LOCK, warmInfo, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, notifyAfter };
+module.exports = { queueWhy, enqueue, scorePreview, rotInfo, nextCity, QUEUE, SEQ, AUTO, LOCK, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, notifyAfter };

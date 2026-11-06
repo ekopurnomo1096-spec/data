@@ -192,7 +192,6 @@ async function recordSent(items, used) {
       const per = {};
       for (const i of items) if (i.v !== undefined) { const k = "s" + (i.n || 0) + "v" + i.v; per[k] = (per[k] || 0) + 1; }
       for (const k of Object.keys(per)) await stat(k, per[k]);
-      await cmd(["HSETNX", AUTOK, "first", String(t)]); // tanggal kirim pertama, dasar pemanasan (warm-up)
     } catch (e) { /* statistik gagal tidak boleh menggagalkan hasil */ }
     try { return await cmd(["HINCRBY", DAYK, today(), items.length]); } catch (e) { return used + items.length; }
   }
@@ -201,7 +200,7 @@ async function recordSent(items, used) {
 
 // ---- Statistik harian, jeda (kill switch), dan batas bounce ----------------------------------------------
 const STATK = "hairleads:stats"; // field "YYYY-MM-DD:metrik" (UTC). Metrik: sent, fu, bounce, spam, unsub, added, found, queued, reply, s{tahap}v{variasi}
-const AUTOK = "hairleads:auto";  // sama dengan AUTO di _jobs.js (field cfg, log, first, pause, pbase)
+const AUTOK = "hairleads:auto";  // sama dengan AUTO di _jobs.js (field cfg, log, pause, pbase)
 async function stat(metric, n) {
   if (!dbConfigured() || !n) return;
   try { await cmd(["HINCRBY", STATK, today() + ":" + metric, Math.round(n)]); } catch (e) { /* abaikan */ }

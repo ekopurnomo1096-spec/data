@@ -34,7 +34,6 @@ async function state(req) {
   out.mail = { ready: !!(rc.key && /@/.test(rc.from)), addr: !!rc.addr, used: await M.usedToday(), limit: M.DAILY };
   out.pause = await M.getPause();
   try { out.running = (await cmd(["EXISTS", J.LOCK])) === 1; } catch (e) { out.running = false; }
-  out.warm = await J.warmInfo(cfg);
   out.stats = await M.getStats(14);
   out.flags = { cron: !!process.env.CRON_SECRET, webhook: !!process.env.RESEND_WEBHOOK_SECRET, publicUrl: M.baseUrl(req) };
   const q = await hgetall(J.QUEUE);

@@ -895,7 +895,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <button class="tab" type="button" id="t6" data-v="6" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M3 3v18h18'/><path d='M7 15l4-6 4 3 4-7'/></svg><span>Riwayat kirim</span></button>
     <div class="ngl">Otomatis</div>
     <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M9 11l3 3L22 4'/><path d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/></svg><span>Status & antrean</span><em class="tn" id="t5g"></em></summary><div class="ngi"><button class="tab tsub" type="button" data-v="ringkas" aria-selected="false"><span>Status</span></button><button class="tab tsub" type="button" data-v="antrean" aria-selected="false"><span>Antrean persetujuan</span><em class="tn" id="t5n"></em></button></div></details>
-    <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z'/></svg><span>Kirim email</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="kirim" aria-selected="false"><span>Kirim otomatis</span></button><button class="tab tsub" type="button" data-v="warm" aria-selected="false"><span>Pemanasan domain</span></button><button class="tab tsub" type="button" data-v="teks" aria-selected="false"><span>Teks email</span></button></div></details>
+    <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z'/></svg><span>Kirim email</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="kirim" aria-selected="false"><span>Kirim otomatis</span></button><button class="tab tsub" type="button" data-v="teks" aria-selected="false"><span>Teks email</span></button></div></details>
     <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2'/></svg><span>Cari prospek</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="ulang" aria-selected="false"><span>Cari ulang</span></button><button class="tab tsub" type="button" data-v="putar" aria-selected="false"><span>Putaran kota</span></button><button class="tab tsub" type="button" data-v="cariem" aria-selected="false"><span>Cari email</span></button></div></details>
     <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><ellipse cx='12' cy='5' rx='9' ry='3'/><path d='M3 5v14a9 3 0 0 0 18 0V5M3 12a9 3 0 0 0 18 0'/></svg><span>Sistem</span></summary><div class="ngi"><button class="tab tsub" type="button" data-v="skor" aria-selected="false"><span>Skor prospek</span></button><button class="tab tsub" type="button" data-v="lapor" aria-selected="false"><span>Laporan & peringatan</span></button><button class="tab tsub" type="button" data-v="bersih" aria-selected="false"><span>Pembersihan data</span></button><button class="tab tsub" type="button" data-v="serp" aria-selected="false"><span>Akun SerpApi</span></button><button class="tab tsub" type="button" data-v="berhenti" aria-selected="false"><span>Daftar berhenti</span></button></div></details>
   </nav>
@@ -1075,7 +1075,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <summary>Antrean persetujuan <em class="tn" id="auqn"></em></summary>
     <div id="auq"></div>
   </details>
-  <div class="panel aup" id="aucfgwrap" data-g="kirim warm teks ulang putar cariem skor lapor bersih serp">
+  <div class="panel aup" id="aucfgwrap" data-g="kirim teks ulang putar cariem skor lapor bersih serp">
     <div class="svh" id="aucfgh" hidden>Pengaturan</div>
     <div id="aucfg"></div>
     <p class="aiwarn" id="auerr" hidden></p>
@@ -2591,8 +2591,8 @@ var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari da
 var CUR="1";
 var PG={"7":["Dasbor","Corong prospek, perbandingan variasi email A/B, dan performa per negara dan kota."],"1":["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],"2":["Siapa yang membeli?","Kelompok pembeli yang paling mungkin tertarik pada hair extension."],"3":["Tersimpan","Prospek yang sudah kamu tandai dan pencarian yang pernah disimpan."],"wa":["WhatsApp","Daftar prospek yang punya WhatsApp, buka chat-nya langsung dari sini."],"4":["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],"6":["Riwayat kirim","Semua email yang pernah dikirim lewat aplikasi ini, manual maupun otomatis."],"ringkas":["Status","Status jalan otomatis dan tombol jalankan sekarang."],"antrean":["Antrean persetujuan","Email yang menunggu persetujuanmu sebelum dikirim."],"kirim":["Kirim otomatis","Aturan kirim otomatis, batas harian, dan follow-up."],"warm":["Pemanasan domain","Naikkan batas kirim bertahap untuk domain pengirim baru."],"teks":["Teks email","Isi email pertama dan follow-up yang dikirim otomatis."],"ulang":["Cari ulang","Ulangi pencarian tersimpan secara berkala, hanya tempat baru yang ditambahkan."],"putar":["Putaran kota","Cari kota baru dari daftar secara bergantian."],"cariem":["Cari email","Cek website tempat baru untuk mencari email dan WhatsApp."],"skor":["Skor prospek","Atur bobot skor yang menentukan siapa masuk antrean."],"lapor":["Laporan & peringatan","Ringkasan harian dan peringatan masalah lewat email."],"bersih":["Pembersihan data","Buang data lama otomatis supaya database tetap ringan."],"serp":["Akun SerpApi","Pindah akun otomatis saat kuota akun aktif menipis."],"berhenti":["Daftar berhenti","Alamat yang tidak akan dikirimi email lagi."]};
 var HN={"7":"dasbor","1":"cari","2":"pembeli","3":"tersimpan","4":"email","6":"riwayat"},HR={};Object.keys(HN).forEach(function(k){HR[HN[k]]=k});
-var AUV=["ringkas","antrean","kirim","warm","teks","ulang","putar","cariem","skor","lapor","bersih","serp","berhenti"];
-var ASEC={kirim:["Kirim otomatis"],warm:["Pemanasan domain"],teks:["Teks email"],ulang:["Cari ulang"],putar:["Putaran kota"],cariem:["Cari email"],skor:["Skor prospek"],lapor:["Laporan dan peringatan"],bersih:["Pembersihan data"],serp:["Akun SerpApi"]};
+var AUV=["ringkas","antrean","kirim","teks","ulang","putar","cariem","skor","lapor","bersih","serp","berhenti"];
+var ASEC={kirim:["Kirim otomatis"],teks:["Teks email"],ulang:["Cari ulang"],putar:["Putaran kota"],cariem:["Cari email"],skor:["Skor prospek"],lapor:["Laporan dan peringatan"],bersih:["Pembersihan data"],serp:["Akun SerpApi"]};
 function applyAuto(){
   if(AUV.indexOf(CUR)<0)return;
   [].forEach.call(document.querySelectorAll("#p5 > [data-g]"),function(el){
@@ -2853,14 +2853,13 @@ function auSwitch(){
   $("ausub").textContent=run?"Tugas otomatis sedang diproses, bisa sampai 1 menit.":(pz?"Kirim, follow-up, dan tugas otomatis berhenti, tapi antrean tetap terisi dari cari manual. Geser ke kanan untuk melanjutkan.":"Jalan otomatis tiap hari sekitar pukul 01.00 WIB. Geser ke kiri untuk menjeda semuanya.");
 }
 function auStatus(){
-  var s=AU.st,f=s.flags||{},m=s.mail||{},c=s.counts||{},q=s.seq||{},w=s.warm||{},t=[],b=[];
-  var lim=w.on?w.eff:(w.target||0),warming=w.on&&w.eff<w.target;
+  var s=AU.st,f=s.flags||{},m=s.mail||{},c=s.counts||{},q=s.seq||{},t=[],b=[];
   var sv=[],cn=[];
   sv.push(m.ready?acOk("Resend"):"");
   sv.push(f.cron?acOk("Jadwal harian"):"");
   sv.push(f.webhook?acOk("Webhook bounce"):"");
   cn.push(acT("Email hari ini",(m.used||0)+(m.limit?" / "+m.limit:"")));
-  cn.push(acT("Batas hari ini"+(warming?" · pemanasan hari ke-"+(w.day+1):""),warming?lim+" dari "+w.target:lim));
+  cn.push(acT("Batas hari ini",(s.cfg&&s.cfg.mail&&s.cfg.mail.perDay)||0));
   cn.push(acT("Menunggu persetujuan",c.pending||0));
   cn.push(acT("Follow-up berjalan",q.active||0));
   sv=sv.filter(Boolean);
@@ -3044,12 +3043,6 @@ function auCfg(){
       +"<div class='sct' id='au_scres'></div>"
       +"<p class='hint2'>\"Uji bobot\" menghitung ulang prospek yang ada (belum dihubungi, punya email, belum pernah dikirimi) dengan bobot di atas tanpa menyimpan. Klik Simpan pengaturan supaya dipakai. Nama yang memuat wig/extension/weave dan sejenisnya tidak pernah dikurangi sebagai bukan bisnis rambut.</p>");
   }
-  h+=auSec("Pemanasan domain",onoff(m.warm.on),
-    "<label class='chk'><input type='checkbox' id='au_won'"+(m.warm.on?" checked":"")+"> Naikkan batas kirim bertahap (disarankan untuk domain pengirim baru)</label>"
-    +"<div class='aurow' style='margin-top:10px'><div class='f'><label for='au_wst'>Mulai dari (email/hari)</label><input type='number' id='au_wst' min='1' max='100' value='"+m.warm.start+"'></div>"
-    +"<div class='f'><label for='au_wad'>Naik sebanyak</label><input type='number' id='au_wad' min='1' max='100' value='"+m.warm.add+"'></div>"
-    +"<div class='f'><label for='au_wev'>Setiap (hari)</label><input type='number' id='au_wev' min='1' max='30' value='"+m.warm.everyDays+"'></div></div>"
-    +"<p class='hint2'>Dihitung sejak email pertama terkirim, sampai mencapai target per hari. Batas ini berlaku untuk total email hari itu, termasuk follow-up dan kirim manual.</p>");
   h+=auSec("Teks email","<span id='aus_n'></span>",
     "<div id='austeps'></div><div class='eacts'><button class='ghost' id='auadd' type='button'>+ Tambah follow-up</button></div>"
     +"<p class='hint2'>Baris pertama yang diawali Hi! otomatis menjadi Hi Nama team!. Tautan berhenti berlangganan, alamat fisik, dan keterangan sumber kontak ditambahkan otomatis di bagian bawah.</p>");
@@ -3141,7 +3134,7 @@ function auCollect(){
       keys:[].map.call(document.querySelectorAll("#au_rk input:checked"),function(i){return i.getAttribute("data-k")})},
     rotate:{on:$("au_xon").checked,maxSearches:+$("au_xm").value,reserve:+$("au_xr").value,pages:+$("au_xp").value,
       kinds:[].map.call(document.querySelectorAll(".au_xk:checked"),function(i){return i.value}),cities:$("au_xc").value.split(/\r?\n/)},
-    mail:{on:$("au_mon").checked,approve:$("au_mapp").checked,followOn:$("au_mfo").checked,minScore:+$("au_msc").value,weights:auReadW(),perDay:+$("au_mpd").value,maxBounce:+$("au_mbn").value,warm:{on:$("au_won").checked,start:+$("au_wst").value,add:+$("au_wad").value,everyDays:+$("au_wev").value},steps:auReadSteps()}
+    mail:{on:$("au_mon").checked,approve:$("au_mapp").checked,followOn:$("au_mfo").checked,minScore:+$("au_msc").value,weights:auReadW(),perDay:+$("au_mpd").value,maxBounce:+$("au_mbn").value,steps:auReadSteps()}
   };
 }
 $("ausave").onclick=function(){

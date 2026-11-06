@@ -81,7 +81,7 @@ Hubungi
   Riwayat kirim            Semua email yang pernah dikirim.
 Otomatis
   Status & antrean         Status (jalan otomatis, "Jalankan sekarang", jeda) dan Antrean persetujuan.
-  Kirim email              Kirim otomatis, Pemanasan domain, Teks email.
+  Kirim email              Kirim otomatis, Teks email.
   Cari prospek             Cari ulang, Putaran kota, Cari email.
   Sistem                   Skor prospek, Laporan & peringatan, Pembersihan data, Akun SerpApi,
                            Daftar berhenti.
@@ -207,14 +207,7 @@ queue, seq, supp.
     (metrik s{tahap}v{variasi}). Yang dibalas dicatat sebagai r{tahap}v{variasi}.
     Perbandingannya tampil di Dasbor.
 
-6.6 Pemanasan domain (warm-up)
-  - Batas harian mulai dari 10, naik 5 tiap 3 hari sampai target (bawaan 20), dihitung dari hari
-    email pertama terkirim.
-  - Batas ini TOTAL per hari (otomatis + follow-up + kirim manual), jadi menekan "Jalankan
-    sekarang" berkali-kali tidak melewatinya.
-  - Matikan di Pengaturan otomatis kalau domain sudah lama dipakai.
-
-6.7 Cari ulang
+6.6 Cari ulang
   - Hanya pencarian yang dicentang. 1 halaman Google Maps (20 tempat) = 1 kuota SerpApi.
   - Halaman 2 dan 3 hanya diambil kalau seluruh isi halaman sebelumnya tempat baru (bisa diatur
     1-3 di "Halaman per pencarian"). Tiap halaman dihitung ke "Maks pencarian per hari".
@@ -227,7 +220,7 @@ queue, seq, supp.
     banyak sekali per 20 jam. Hitungan ada di hairleads:auto, field dry. Untuk mengaktifkan lagi,
     centang kembali pencariannya.
 
-6.8 Putaran kota
+6.7 Putaran kota
   - Daftar kota (satu per baris, "Kota, Negara") x jenis (salon / toko wig / kecantikan).
   - Tiap jalan mengambil kombinasi BERIKUTNYA yang belum pernah dicari, jadi kuota SerpApi dipakai
     untuk kota baru, bukan mengulang. Kombinasi yang sudah ada di pencarian tersimpan dilewati.
@@ -241,7 +234,7 @@ queue, seq, supp.
     hairleads:auto, field rot dan rotday.
   - Kota yang sudah dicari tidak otomatis ikut Cari ulang; centang manual kalau mau.
 
-6.9 Cari email dari website
+6.8 Cari email dari website
   - Maksimal 60 website per jalan (bisa diubah). Sisanya dilanjutkan di jalan berikutnya.
   - Halaman yang dicek: /contact, /about, /pages/contact (pola Shopify), /contact-us, /kontak,
     dan tautan "Contact/Kontak" di halaman utama (maks 6 halaman per website).
@@ -249,7 +242,7 @@ queue, seq, supp.
     ulang SEKALI, paling cepat 20 jam kemudian. Website yang terbuka tapi tanpa email tetap final.
     Hasil jalan menampilkan "retry" dan "waiting".
 
-6.10 Pindah akun SerpApi otomatis
+6.9 Pindah akun SerpApi otomatis
   - Berlaku kalau Akun 1 dan Akun 2 sama-sama diisi.
   - Sebelum tiap pencarian Google Maps (manual maupun otomatis), sisa kuota akun aktif dicek lewat
     Account API SerpApi (gratis). Kalau di bawah "Pindah kalau sisa di bawah" (bawaan 20) dan
