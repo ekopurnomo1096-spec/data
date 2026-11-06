@@ -420,16 +420,6 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .aup textarea{height:auto;min-height:84px;padding:10px 12px;resize:vertical;line-height:1.45}
 .aup textarea:focus-visible,.aup input[type=number]:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .aup+.aup{margin-top:16px}
-.rpc{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:8px;background:var(--bg)}
-.rpc.done{opacity:.6}
-.rpc .rh{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.86rem}
-.rpc .rh b{min-width:0;overflow:hidden;text-overflow:ellipsis}
-.rpt{font-size:.72rem;font-weight:600;border-radius:99px;padding:2px 9px;border:1px solid var(--line);color:var(--mute);white-space:nowrap}
-.rpt.interested,.rpt.question{border-color:var(--acc);color:var(--acc)}
-.rpt.not_interested,.rpt.unsubscribe{color:var(--err)}
-.rpc p{margin:6px 0 0;font-size:.86rem}
-.rpc pre{white-space:pre-wrap;font:inherit;font-size:.84rem;background:var(--surf);border:1px solid var(--soft);border-radius:6px;padding:8px 10px;margin:6px 0 0}
-.rpc .eacts{margin-top:8px}
 .aurow{display:flex;gap:12px;flex-wrap:wrap}
 .aurow .f{flex:1 1 130px;min-width:0}
 .scw{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr));gap:0 36px;margin-top:4px}
@@ -659,7 +649,7 @@ h1{font-weight:650;letter-spacing:-.02em}
 .stat b{font-weight:650;letter-spacing:-.02em}
 .meter{height:5px}
 .seg .n{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--accsoft);color:var(--acc);font-size:1rem}
-.rpc,.austep,.ac,.mlist{border-radius:12px}
+.austep,.ac,.mlist{border-radius:12px}
 .mlist{background:var(--surf)}
 .mrow:hover{background:var(--soft)}
 .err{border:1px solid color-mix(in srgb,var(--err) 22%,transparent);border-radius:var(--r)}
@@ -708,7 +698,6 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
  tbody tr:hover{background:color-mix(in srgb,var(--accsoft) 45%,transparent)}
 }
 @media (min-width:901px){main.wrap{padding:36px 40px 80px}}
-.rpc .rh .th{width:36px;height:36px;font-size:.9rem}
 /* Pencarian tersimpan: desktop satu baris (judul, jumlah tempat, jenis, tanggal). HP: jenis dan tanggal di bawah judul */
 @media (min-width:761px){
  .svc .sm:has(.svt){display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px}
@@ -796,8 +785,6 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
 .pagehead{margin-bottom:24px}
 .svc{padding:14px 18px}
 .mrow{padding:10px 14px}
-.rpc{padding:12px 14px}
-.rpc+.rpc{margin-top:10px}
 
 /* Dialog: judul dan tombol lebih lega */
 #dbody,#sbody,#mbody,#emprevbody{padding:22px}
@@ -905,7 +892,6 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <div class="ngl">Hubungi</div>
     <button class="tab" type="button" id="t4" data-v="4" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><rect x='2' y='4' width='20' height='16' rx='2'/><path d='M22 7l-10 6L2 7'/></svg><span>Email</span></button>
     <button class="tab" type="button" id="twa" data-v="wa" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='currentColor' aria-hidden='true'><path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z'/></svg><span>WhatsApp</span></button>
-    <button class="tab" type="button" id="tbalas" data-v="balas" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg><span>Balasan</span><em class="tn" id="rpnav"></em></button>
     <button class="tab" type="button" id="t6" data-v="6" aria-selected="false"><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M3 3v18h18'/><path d='M7 15l4-6 4 3 4-7'/></svg><span>Riwayat kirim</span></button>
     <div class="ngl">Otomatis</div>
     <details class="ng"><summary><svg class='ni' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M9 11l3 3L22 4'/><path d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/></svg><span>Status & antrean</span><em class="tn" id="t5g"></em></summary><div class="ngi"><button class="tab tsub" type="button" data-v="ringkas" aria-selected="false"><span>Status</span></button><button class="tab tsub" type="button" data-v="antrean" aria-selected="false"><span>Antrean persetujuan</span><em class="tn" id="t5n"></em></button></div></details>
@@ -1088,17 +1074,6 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
   <details class="panel aup aud" data-g="antrean" open>
     <summary>Antrean persetujuan <em class="tn" id="auqn"></em></summary>
     <div id="auq"></div>
-  </details>
-  <details class="panel aup aud" id="rpp" data-g="balas" open>
-    <summary>Balasan masuk <em class="tn" id="rpn"></em></summary>
-    <p class="hint2" style="margin:0 0 10px">Balasan calon pembeli dibaca AI: dikelompokkan (tertarik, bertanya, menolak, minta berhenti, balasan otomatis), status prospek diubah sendiri (Dibalas / Tidak cocok) sehingga follow-up berhenti, dan disiapkan draf balasan. Draf tidak pernah terkirim otomatis.</p>
-    <div id="rplist"></div>
-    <details class="aud2" style="margin-top:12px"><summary>Tempel balasan manual</summary>
-      <div class="aurow" style="margin-top:8px"><div class="f" style="margin-top:0"><label for="rpfrom">Email pengirim</label><input type="text" id="rpfrom" placeholder="nama@contoh.com" autocomplete="off"></div><div class="f" style="margin-top:0"><label for="rpsub">Subjek (opsional)</label><input type="text" id="rpsub" maxlength="200" autocomplete="off"></div></div>
-      <div class="sf f"><label for="rptx">Isi balasan</label><textarea id="rptx" rows="5" placeholder="Tempel isi balasan dari kotak masukmu"></textarea></div>
-      <div class="eacts"><span class="hint2" id="rpmsg" style="margin:0"></span><span class="sp"></span><button class="btn primary" id="rpgo" type="button">Baca dengan AI</button></div>
-    </details>
-    <details class="aud2" style="margin-top:8px"><summary>Cara balasan masuk otomatis</summary><div id="rpsetup"></div></details>
   </details>
   <div class="panel aup" id="aucfgwrap" data-g="kirim warm teks ulang putar cariem skor lapor bersih serp">
     <div class="svh" id="aucfgh" hidden>Pengaturan</div>
@@ -2091,7 +2066,7 @@ $("tb").onclick=function(e){var z=e.target.closest(".th.zoom");if(z){openPhoto(z
 $("tb").addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches(".th.zoom")){e.preventDefault();e.stopPropagation();openPhoto(e.target)}},true);
 $("auq").addEventListener("click",function(e){var z=e.target.closest(".th.zoom");if(z){e.preventDefault();openPhoto(z)}});
 $("auq").addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches(".th.zoom")){e.preventDefault();e.stopPropagation();openPhoto(e.target)}},true);
-["elist","ehist","ausupp","rplist","svbox"].forEach(function(id){var b=$(id);b.addEventListener("click",function(e){var z=e.target.closest(".th.zoom");if(z){e.preventDefault();openPhoto(z)}});b.addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches(".th.zoom")){e.preventDefault();e.stopPropagation();openPhoto(e.target)}},true)});
+["elist","ehist","ausupp","svbox"].forEach(function(id){var b=$(id);b.addEventListener("click",function(e){var z=e.target.closest(".th.zoom");if(z){e.preventDefault();openPhoto(z)}});b.addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches(".th.zoom")){e.preventDefault();e.stopPropagation();openPhoto(e.target)}},true)});
 $("tb").onkeydown=function(e){if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr[data-i]")){e.preventDefault();openD(rows[+e.target.getAttribute("data-i")])}};
 $("dlg").onclick=function(e){if(e.target===this)this.close()};
 $("dlg").addEventListener("close",flushNote);
@@ -2614,9 +2589,9 @@ $("elist").addEventListener("change",function(e){
 });
 var SEG=[["Salon yang memasang hair extension","Memakai extension setiap hari dan butuh pasokan stabil.","salon"],["Toko wig dan beauty supply","Membeli rutin untuk dijual lagi.","wig"],["Toko kecantikan","Cocok untuk titip jual extension clip-in.","beauty"]];
 var CUR="1";
-var PG={"7":["Dasbor","Corong prospek, perbandingan variasi email A/B, dan performa per negara dan kota."],"1":["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],"2":["Siapa yang membeli?","Kelompok pembeli yang paling mungkin tertarik pada hair extension."],"3":["Tersimpan","Prospek yang sudah kamu tandai dan pencarian yang pernah disimpan."],"wa":["WhatsApp","Daftar prospek yang punya WhatsApp, buka chat-nya langsung dari sini."],"4":["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],"6":["Riwayat kirim","Semua email yang pernah dikirim lewat aplikasi ini, manual maupun otomatis."],"ringkas":["Status","Status jalan otomatis dan tombol jalankan sekarang."],"antrean":["Antrean persetujuan","Email yang menunggu persetujuanmu sebelum dikirim."],"balas":["Balasan","Balasan calon pembeli dibaca AI, lalu status prospek diperbarui."],"kirim":["Kirim otomatis","Aturan kirim otomatis, batas harian, dan follow-up."],"warm":["Pemanasan domain","Naikkan batas kirim bertahap untuk domain pengirim baru."],"teks":["Teks email","Isi email pertama dan follow-up yang dikirim otomatis."],"ulang":["Cari ulang","Ulangi pencarian tersimpan secara berkala, hanya tempat baru yang ditambahkan."],"putar":["Putaran kota","Cari kota baru dari daftar secara bergantian."],"cariem":["Cari email","Cek website tempat baru untuk mencari email dan WhatsApp."],"skor":["Skor prospek","Atur bobot skor yang menentukan siapa masuk antrean."],"lapor":["Laporan & peringatan","Ringkasan harian dan peringatan masalah lewat email."],"bersih":["Pembersihan data","Buang data lama otomatis supaya database tetap ringan."],"serp":["Akun SerpApi","Pindah akun otomatis saat kuota akun aktif menipis."],"berhenti":["Daftar berhenti","Alamat yang tidak akan dikirimi email lagi."]};
+var PG={"7":["Dasbor","Corong prospek, perbandingan variasi email A/B, dan performa per negara dan kota."],"1":["Cari tempat","Temukan salon dan toko wig di kota mana pun, lengkap dengan alamat dan kontaknya."],"2":["Siapa yang membeli?","Kelompok pembeli yang paling mungkin tertarik pada hair extension."],"3":["Tersimpan","Prospek yang sudah kamu tandai dan pencarian yang pernah disimpan."],"wa":["WhatsApp","Daftar prospek yang punya WhatsApp, buka chat-nya langsung dari sini."],"4":["Email","Tulis email penawaran, lalu kirim ke prospek satu per satu atau sekaligus."],"6":["Riwayat kirim","Semua email yang pernah dikirim lewat aplikasi ini, manual maupun otomatis."],"ringkas":["Status","Status jalan otomatis dan tombol jalankan sekarang."],"antrean":["Antrean persetujuan","Email yang menunggu persetujuanmu sebelum dikirim."],"kirim":["Kirim otomatis","Aturan kirim otomatis, batas harian, dan follow-up."],"warm":["Pemanasan domain","Naikkan batas kirim bertahap untuk domain pengirim baru."],"teks":["Teks email","Isi email pertama dan follow-up yang dikirim otomatis."],"ulang":["Cari ulang","Ulangi pencarian tersimpan secara berkala, hanya tempat baru yang ditambahkan."],"putar":["Putaran kota","Cari kota baru dari daftar secara bergantian."],"cariem":["Cari email","Cek website tempat baru untuk mencari email dan WhatsApp."],"skor":["Skor prospek","Atur bobot skor yang menentukan siapa masuk antrean."],"lapor":["Laporan & peringatan","Ringkasan harian dan peringatan masalah lewat email."],"bersih":["Pembersihan data","Buang data lama otomatis supaya database tetap ringan."],"serp":["Akun SerpApi","Pindah akun otomatis saat kuota akun aktif menipis."],"berhenti":["Daftar berhenti","Alamat yang tidak akan dikirimi email lagi."]};
 var HN={"7":"dasbor","1":"cari","2":"pembeli","3":"tersimpan","4":"email","6":"riwayat"},HR={};Object.keys(HN).forEach(function(k){HR[HN[k]]=k});
-var AUV=["ringkas","antrean","balas","kirim","warm","teks","ulang","putar","cariem","skor","lapor","bersih","serp","berhenti"];
+var AUV=["ringkas","antrean","kirim","warm","teks","ulang","putar","cariem","skor","lapor","bersih","serp","berhenti"];
 var ASEC={kirim:["Kirim otomatis"],warm:["Pemanasan domain"],teks:["Teks email"],ulang:["Cari ulang"],putar:["Putaran kota"],cariem:["Cari email"],skor:["Skor prospek"],lapor:["Laporan dan peringatan"],bersih:["Pembersihan data"],serp:["Akun SerpApi"]};
 function applyAuto(){
   if(AUV.indexOf(CUR)<0)return;
@@ -2797,7 +2772,7 @@ function auLoad(full){
     try{if(EM.loaded&&$("emq"))renderMail()}catch(e){} // samakan bobot skor dengan pengaturan server
     if(o.j.nodb){$("aust").innerHTML="<span class='bad'>Database belum terhubung. Hubungkan Upstash Redis di Vercel lalu Redeploy.</span>";return}
     if(full||!AU.cfg)AU.cfg=o.j.cfg;
-    auStatus();auQueue();auSupp();auLog();rpLoad();
+    auStatus();auQueue();auSupp();auLog();
     if(full)auCfg();
   }).catch(function(e){if(e!==0)$("aust").innerHTML="<span class='bad'>Tidak bisa menghubungi server.</span>"});
 }
@@ -2809,7 +2784,7 @@ function dsPct(a,b){return b?(a/b*100).toFixed(a/b*100<10&&a?1:0)+"%":"-"}
 var DST=0;
 function dsDirty(){DS.loaded=false;clearTimeout(DST);DST=setTimeout(function(){if(CUR==="7"&&!$("p7").hidden){if(DS.busy)DS.again=true;else dsLoad()}},500)}
 (function(){var f=window.fetch;window.fetch=function(u,o){var p=f.apply(this,arguments);
-  try{if(o&&o.method&&o.method!=="GET"&&/^\/api\/(leads|send|auto|replies|ai)(\?|$)/.test(String(u)))p.then(function(r){if(r&&r.ok)dsDirty()},function(){})}catch(e){}
+  try{if(o&&o.method&&o.method!=="GET"&&/^\/api\/(leads|send|auto|ai)(\?|$)/.test(String(u)))p.then(function(r){if(r&&r.ok)dsDirty()},function(){})}catch(e){}
   return p}})();
 function refreshAll(){loadLeads().then(function(){render();renderSaved();if($("emq"))renderMail()});try{if(!$("p4").hidden||!$("p6").hidden)loadMailTab()}catch(e){}}
 function dsLoad(){
@@ -2857,62 +2832,10 @@ function dsRender(j){
   h+="</tbody></table></div><p class='hint2'>Tanggal memakai UTC (ganti hari pukul 07.00 WIB), sama seperti kuota Resend. Bounce dan spam tercatat saat webhook Resend masuk.</p>";
   if(mx){h+="<p class='dsh'>Tren harian</p><div class='dst'>"+j.trend.map(function(x){
       return"<div title='"+esc(x.d)+": "+x.tot+" terkirim, "+x.reply+" balasan, "+x.bounce+" bounce'><u style='height:"+(x.reply/mx*100)+"%'></u><i style='height:"+(x.tot/mx*100)+"%'></i></div>"}).join("")+"</div><p class='hint2'>Hijau = terkirim (termasuk follow-up), oranye = balasan. Arahkan kursor ke batang untuk rinciannya. Tanggal memakai UTC.</p>"}
-  var ck=Object.keys(j.cats||{});
-  if(ck.length){var L={interested:"Tertarik",question:"Bertanya",not_interested:"Menolak",unsubscribe:"Minta berhenti",auto_reply:"Balasan otomatis",other:"Lainnya"};
-    h+="<p class='dsh'>Jenis balasan</p><p class='hint2' style='margin:0'>"+ck.map(function(k){return(L[k]||k)+": "+j.cats[k]}).join(" · ")+"</p>"}
   return h;
 }
 $("dsgo").onclick=dsLoad;$("dsdays").onchange=dsLoad;
 
-// ---- Balasan (AI): lihat api/_reply.js dan api/replies.js
-var RP={items:[],cfg:{}};
-function rpApi(body){
-  return fetch("/api/replies",body?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:undefined)
-    .then(function(r){return r.json().catch(function(){return{}}).then(function(j){if(r.status===401){showLogin("Sesi habis, silakan masuk lagi.");throw 0}return{ok:r.ok,j:j}})});
-}
-var RPL={interested:"Tertarik",question:"Bertanya",not_interested:"Menolak",unsubscribe:"Minta berhenti",auto_reply:"Balasan otomatis",other:"Lainnya"};
-var RPS={"":"Belum dihubungi",chat:"Sudah dihubungi",balas:"Dibalas",deal:"Deal",tidak:"Tidak cocok"};
-function rpLoad(){
-  return rpApi().then(function(o){
-    if(!o.ok)return;
-    RP.items=o.j.items||[];RP.cfg=o.j.cfg||{};rpRender();
-  }).catch(function(){});
-}
-function rpRender(){
-  var it=RP.items,open=it.filter(function(x){return!x.done}).length;
-  $("rpn").textContent=it.length?"("+(open?open+" baru":it.length)+")":"";if($("rpnav"))$("rpnav").textContent=open?String(open):"";
-  $("rplist").innerHTML=it.length?it.map(function(x,i){
-    return"<div class='rpc"+(x.done?" done":"")+"'><div class='rh'>"+thumb({name:x.name||x.fn||x.from,thumbnail:(function(){var l=x.id&&((LS[x.id]&&LS[x.id].lead)||rows.filter(function(y){return y.id===x.id})[0]);return l&&l.thumbnail})()})+"<span class='rpt "+esc(x.cat)+"'>"+esc(RPL[x.cat]||x.cat)+"</span><b>"+esc(x.name||x.fn||x.from)+"</b><small class='hint2' style='margin:0'>"+esc(x.from)+" · "+esc(fmtDate(x.t))+"</small></div>"+
-      (x.sub?"<p><b>"+esc(x.sub)+"</b></p>":"")+
-      "<p>"+esc(x.sum||"")+(x.why?" <small class='hint2'>("+esc(x.why)+(x.ai?"":", tanpa AI")+")</small>":"")+"</p>"+
-      (x.id?(x.st!==x.sf?"<p class='hint2'>Status: "+esc(RPS[x.sf]||"Belum dihubungi")+" → <b>"+esc(RPS[x.st]||"")+"</b></p>":"<p class='hint2'>Status tetap: "+esc(RPS[x.st]||"")+"</p>"):"<p class='hint2'>Pengirim tidak cocok dengan prospek mana pun, status tidak diubah.</p>")+
-      (x.draft?"<pre>"+esc(x.draft)+"</pre>":"")+
-      "<div class='eacts'>"+(x.draft?"<button class='btn' type='button' data-a='copy' data-i='"+i+"'>Salin draf</button>":"")+
-      "<button class='ghost' type='button' data-a='done' data-i='"+i+"'>"+(x.done?"Buka lagi":"Tandai selesai")+"</button><button class='ghost' type='button' data-a='del' data-i='"+i+"'>Hapus</button></div></div>";
-  }).join(""):"<p class='info'>Belum ada balasan.</p>";
-  [].forEach.call(document.querySelectorAll("#rplist button[data-a]"),function(b){b.onclick=function(){
-    var x=RP.items[+b.getAttribute("data-i")],a=b.getAttribute("data-a");
-    if(a==="copy"){(navigator.clipboard?navigator.clipboard.writeText(x.draft):Promise.reject()).then(function(){flash("Draf disalin")},function(){flash("Tidak bisa menyalin, salin manual")});return}
-    if(a==="del"&&!confirm("Hapus balasan ini dari daftar? Status prospek tidak berubah."))return;
-    rpApi(a==="done"?{action:"done",rid:x.rid,on:!x.done}:{action:"del",rid:x.rid}).then(function(o){if(!o.ok){flash(o.j.error||"Gagal");return}rpLoad()}).catch(function(){});
-  }});
-  var c=RP.cfg||{},base=c.base||"https://DOMAINMU";
-  $("rpsetup").innerHTML="<p class='hint2'><b>1. Resend Receiving (disarankan).</b> Di Resend aktifkan Receiving untuk domain pengirim (tambah record MX yang diminta), lalu di Webhooks tambahkan event <code>email.received</code> ke webhook yang sama ("+esc(base)+"/api/mailhook?a=resend). Lalu isi <b>Reply-To</b> (tab Email &gt; Pengaturan email) dengan alamat di domain itu, mis. <code>reply@domainmu.com</code>. "+(c.webhook?"<b>Webhook sudah aktif.</b>":"<span class='bad'>RESEND_WEBHOOK_SECRET belum diisi di Vercel.</span>")+"</p>"+
-    "<p class='hint2'><b>2. Jalur umum.</b> Isi <code>INBOUND_SECRET</code> di Vercel, lalu teruskan balasan dari Gmail (Apps Script), Zapier, atau Cloudflare Email Worker dengan POST JSON <code>{from, subject, text}</code> ke "+esc(base)+"/api/mailhook?a=inbound&amp;k=SECRET. "+(c.inbound?"<b>Aktif.</b>":"Belum diisi.")+"</p>"+
-    "<p class='hint2'><b>3. Manual.</b> Tempel balasan di atas; hasilnya diperlakukan sama.</p>";
-}
-$("rpgo").onclick=function(){
-  var b=$("rpgo"),from=$("rpfrom").value.trim(),tx=$("rptx").value.trim();
-  if(!from||!tx){$("rpmsg").textContent="Isi email pengirim dan isi balasan.";return}
-  b.disabled=true;$("rpmsg").textContent="Membaca…";
-  rpApi({action:"analyze",from:from,subject:$("rpsub").value.trim(),text:tx}).then(function(o){
-    b.disabled=false;
-    if(!o.ok){$("rpmsg").textContent=o.j.error||"Gagal";return}
-    $("rpmsg").textContent=o.j.dup?"Balasan ini sudah pernah dibaca.":"Selesai: "+(RPL[o.j.reply.cat]||"");
-    if(!o.j.dup){$("rptx").value="";$("rpsub").value=""}
-    rpLoad();auLoad(false);if(!o.j.dup)refreshAll();
-  }).catch(function(){b.disabled=false});
-};
 function acT(l,v){return"<div class='ac'><small>"+l+"</small><b>"+v+"</b></div>"}
 function acOk(l){return"<div class='ac ok'><small>"+l+"</small><b>Aktif</b></div>"}
 function acB(t){return"<div class='ac bad'>"+t+"</div>"}

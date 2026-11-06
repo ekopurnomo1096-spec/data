@@ -5,7 +5,6 @@ const { isAuthed } = require("./_auth");
 const { dbConfigured, hgetall } = require("./_store");
 const M = require("./_mail");
 const J = require("./_jobs");
-const R = require("./_reply");
 
 const MIN_SENT = 30; // di bawah ini, variasi dianggap belum cukup data
 
@@ -69,19 +68,11 @@ async function build(days) {
   const data = await J.loadData();
   const mail = await hgetall(M.MAIL);
   const seq = await hgetall(J.SEQ);
-  const replies = await R.listReplies(2000);
   const meta = await hgetall("hairleads:cmeta"); // nama kota asli (kunci cache disimpan huruf kecil)
   const cityName = key => {
     const m = M.parse(meta[key]);
     return m && m.city ? String(m.city).replace(/\s+/g, " ").trim() : titleCase(String(key).split("|").slice(2).join("|"));
   };
-
-  const repById = {}, cats = {};
-  const since = Date.now() - days * 864e5;
-  replies.forEach(r => {
-    if (r.t >= since) cats[r.cat] = (cats[r.cat] || 0) + 1;
-    if (r.id && r.cat !== "auto_reply" && r.cat !== "unsubscribe") repById[r.id] = 1;
-  });
 
   const total = blank(), byCity = {}, byCountry = {}, seen = new Set();
   for (const e of data.entries) {
@@ -92,7 +83,7 @@ async function build(days) {
       const x = data.map.get(r.id) || r, st = (data.leads[r.id] && data.leads[r.id].s) || "";
       const contact = !!(emailOf(x) || x.wa);
       const emailed = !!(mail[r.id] || seq[r.id] || st);
-      const replied = !!(repById[r.id] || st === "balas" || st === "deal");
+      const replied = !!(st === "balas" || st === "deal");
       const deal = st === "deal";
       [total, byCity[city] || (byCity[city] = blank()), byCountry[country] || (byCountry[country] = blank())].forEach(o => {
         o.found++; if (contact) o.contact++; if (emailed) o.emailed++; if (replied) o.replied++; if (deal) o.deal++;
@@ -106,7 +97,7 @@ async function build(days) {
   const win = stats.reduce((a, x) => ({ sent: a.sent + x.sent + x.fu, reply: a.reply + x.reply, bounce: a.bounce + x.bounce, spam: a.spam + x.spam, unsub: a.unsub + x.unsub }), { sent: 0, reply: 0, bounce: 0, spam: 0, unsub: 0 });
 
   return {
-    days, minSent: MIN_SENT, funnel: total, window: win, cats,
+    days, minSent: MIN_SENT, funnel: total, window: win,
     countries: rank(byCountry).slice(0, 15), cities: rank(byCity).slice(0, 30), cityCount: Object.keys(byCity).length,
     variants: variants(stats), trend
   };

@@ -12,11 +12,10 @@ ISI
   5. Kirim email manual
   6. Otomatis (kirim, follow-up, cari ulang)
   7. Keamanan pengiriman
-  8. Pembaca balasan (AI)
-  9. Ringkasan harian, peringatan, pembersihan data
- 10. Dasbor
- 11. Data di Redis
- 12. Batas yang perlu diketahui
+  8. Ringkasan harian, peringatan, pembersihan data
+  9. Dasbor
+ 10. Data di Redis
+ 11. Batas yang perlu diketahui
 
 
 1. PASANG PERTAMA KALI (sekali saja)
@@ -67,20 +66,18 @@ Opsional
   RESEND_REPLY_TO                      Cadangan untuk pengaturan email di halaman.
   RESEND_DAILY_LIMIT                   Batas email per hari. Bawaan 100 (akun gratis Resend).
                                        Isi 0 untuk tanpa batas, atau angka sendiri.
-  INBOUND_SECRET                       Untuk jalur umum balasan masuk (bagian 8).
 
 
 3. PETA MENU
 ------------
 Analisis
-  Dasbor                   Corong, variasi A/B, statistik harian, per negara/kota (bagian 10).
+  Dasbor                   Corong, variasi A/B, statistik harian, per negara/kota (bagian 9).
 Cari pembeli
   Cari tempat              Cari salon/toko di kota mana pun.
   Siapa yang membeli?      Panduan kelompok pembeli.
   Tersimpan                Prospek bertanda dan pencarian tersimpan.
 Hubungi
   Email                    Kirim email manual.
-  Balasan                  Balasan calon pembeli yang dibaca AI.
   Riwayat kirim            Semua email yang pernah dikirim.
 Otomatis
   Status & antrean         Status (jalan otomatis, "Jalankan sekarang", jeda) dan Antrean persetujuan.
@@ -304,51 +301,7 @@ Footer email (alamat fisik dan sumber kontak)
   - Disimpan terenkripsi di Redis bersama key lain (field addr dan srcn di hairleads:keys).
 
 
-8. PEMBACA BALASAN (AI)
------------------------
-Tab Otomatis > Balasan (AI). Balasan calon pembeli dibaca Gemini (key yang sama dengan fitur AI
-lain) lalu dikelompokkan: Tertarik, Bertanya, Menolak, Minta berhenti, Balasan otomatis, Lainnya.
-
-Efek ke prospek (api/_reply.js)
-  Tertarik / Bertanya / Lainnya   -> status Dibalas
-  Menolak                         -> Tidak cocok
-  Minta berhenti                  -> Tidak cocok + masuk Daftar berhenti
-  Balasan otomatis (di luar kantor) -> status tidak berubah
-  Deal tidak pernah diturunkan. Dibalas / Tidak cocok menghentikan follow-up sendiri.
-  Catatan prospek ditambah "Balasan email, 4 Nov: ...".
-
-Lain-lain
-  - Pengirim dicocokkan dengan prospek lewat alamat yang pernah dikirimi (riwayat kirim / urutan
-    follow-up / email hasil cari website); kalau tidak ada, lewat domain email milik sendiri yang
-    sama (bukan Gmail dkk). Tidak cocok = balasan tetap disimpan tapi status tidak berubah.
-  - AI juga menulis DRAF balasan (bahasa sama dengan pengirim, hanya memakai fakta brand). Draf
-    TIDAK pernah dikirim otomatis: salin dan kirim sendiri. Isi balasan dianggap data, bukan
-    perintah; keluaran AI divalidasi.
-  - Kalau key Gemini kosong atau Gemini gagal, dipakai pengelompokan kata kunci sederhana
-    (ditandai "tanpa AI").
-  - Tertarik / Bertanya mengirim email peringatan ke penerima laporan.
-  - Balasan yang sama (id pesan sama) hanya dihitung sekali. Setelah balasan masuk, buka ulang
-    halaman supaya status di daftar tempat ikut ter-update.
-  - Data di hairleads:replies; hitungan harian di statistik (metrik reply).
-
-Cara balasan masuk (pilih salah satu atau semuanya)
-  1. Resend Receiving
-     - Di Resend aktifkan Receiving untuk domain pengirim (tambah record MX).
-     - Tambahkan event email.received ke webhook yang sama (/api/mailhook?a=resend,
-       RESEND_WEBHOOK_SECRET sama).
-     - Isi Reply-To (tab Email > Pengaturan email) dengan alamat di domain itu, mis.
-       reply@domainmu.com. Isi email diambil lewat API Resend.
-     - Catatan: kalau Reply-To dipakai untuk kotak masuk pribadi, balasan tidak lewat Resend.
-       Pakai jalur 2 atau 3.
-  2. Jalur umum
-     - Isi INBOUND_SECRET di Vercel, lalu teruskan balasan dari Gmail (Apps Script), Zapier, Make,
-       atau Cloudflare Email Worker dengan POST JSON {from, subject, text} ke
-       https://DOMAINMU/api/mailhook?a=inbound&k=INBOUND_SECRET (atau header x-inbound-key).
-  3. Manual
-     - Tab Otomatis > Balasan (AI) > Tempel balasan manual.
-
-
-9. RINGKASAN HARIAN, PERINGATAN, PEMBERSIHAN DATA
+8. RINGKASAN HARIAN, PERINGATAN, PEMBERSIHAN DATA
 -------------------------------------------------
 Tab Otomatis > Pengaturan > Laporan & peringatan.
 
@@ -390,8 +343,8 @@ Pembersihan data
     diarsipkan, tapi pencarian yang sama bisa diulang kapan saja (memakai kuota SerpApi).
 
 
-10. DASBOR (menu Analisis > Dasbor)
-------------------------------------
+9. DASBOR (menu Analisis > Dasbor)
+-----------------------------------
 Menu sendiri, hanya baca (api/dash.js). Dimuat saat menu dibuka atau tombol Segarkan ditekan,
 karena membaca seluruh pencarian tersimpan. Tidak memakai kuota SerpApi maupun Resend.
 Jendela waktu: 7 / 14 / 30 / 90 hari (statistik harian disimpan 90 hari).
@@ -400,8 +353,7 @@ Isi
   - Ringkasan: tempat tersimpan, email terkirim, balasan, tingkat balasan, bounce.
   - Corong (seluruh data tersimpan):
       Ditemukan > Punya kontak (email atau WA) > Dikirimi (riwayat kirim, urutan follow-up, atau
-      sudah berstatus) > Dibalas (balasan manusia, bukan balasan otomatis atau permintaan berhenti;
-      atau status Dibalas/Deal) > Deal.
+      sudah berstatus) > Dibalas (status Dibalas/Deal) > Deal.
   - Variasi A/B per tahap: terkirim, dibalas, tingkat balasan. Pemenang hanya ditandai kalau tiap
     variasi sudah terkirim minimal 30 kali dan selisihnya lolos uji dua proporsi (sekitar 90%
     yakin). Selain itu tampil "belum cukup data" atau "belum ada pemenang". Batas 30 ada di
@@ -410,10 +362,10 @@ Isi
     tempat dihitung sekali, di pencarian pertama yang memuatnya.
   - Statistik harian: email, follow-up, bounce, spam, berhenti, balasan, tempat baru, ada kontak.
     Tanggal UTC (ganti hari pukul 07.00 WIB), sama seperti kuota Resend.
-  - Tren harian dan jenis balasan (Tertarik, Bertanya, dst).
+  - Tren harian.
 
 
-11. DATA DI REDIS (semua berawalan "hairleads:")
+10. DATA DI REDIS (semua berawalan "hairleads:")
 ------------------------------------------------
   keys       API key dan alamat footer (terenkripsi)
   cache      Hasil pencarian tersimpan        cmeta    Ringkasan tiap pencarian (kota, jenis)
@@ -423,16 +375,14 @@ Isi
   queue      Antrean persetujuan              seq      Urutan follow-up
   auto       Pengaturan, log, jeda, progres   autolock Kunci agar dua jalan tidak bentrok
   stats      Statistik harian (field "YYYY-MM-DD:metrik", UTC)
-  replies    Balasan masuk yang sudah dibaca AI
 
 
-12. BATAS YANG PERLU DIKETAHUI
+11. BATAS YANG PERLU DIKETAHUI
 ------------------------------
   - Paket Hobby Vercel: cron sekali sehari (jam bisa bergeser sampai satu jam), tiap fungsi
     maksimal 60 detik (vercel.json).
   - Resend gratis: 100 email per hari. Atur RESEND_DAILY_LIMIT kalau akun berbayar.
   - Gmail/Yahoo tidak bisa jadi pengirim, dan antrean otomatis hanya untuk alamat Gmail/Yahoo dkk.
-  - Draf balasan AI tidak pernah dikirim otomatis.
   - Mengganti APP_PASSWORD mematikan key tersimpan (isi ulang di Pengaturan). Link berhenti
     berlangganan baru tidak terpengaruh kalau UNSUB_SECRET sudah diisi.
 
@@ -440,12 +390,12 @@ Isi
 CATATAN BATAS VERCEL HOBBY
 --------------------------
 Paket Hobby maksimal 12 Serverless Function (setiap file api/*.js tanpa awalan "_" dihitung satu).
-Sekarang tepat 12. Jangan menambah file baru di api/ tanpa menggabungkan yang lain. Pencarian
+Sekarang 11, masih ada satu slot kosong. Jangan menambah file baru di api/ tanpa menggabungkan yang lain. Pencarian
 email/WhatsApp (dulu api/email.js) sekarang ada di api/usage.js lewat ?a=email.
 
 
 ALAMAT HALAMAN
 --------------
-Setelah login, aplikasi memakai alamat biasa tanpa "#": /dasbor, /cari, /balas, /riwayat, dst, dan
+Setelah login, aplikasi memakai alamat biasa tanpa "#": /dasbor, /cari, /riwayat, dst, dan
 /<uuid> untuk pencarian tersimpan. Link lama berbentuk #nama masih dibaca. Kalau belum login, semua
 alamat selain LOGIN_PATH menampilkan halaman 404.
