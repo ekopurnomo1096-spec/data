@@ -166,11 +166,11 @@ function shortDate() { // "3 Nov" dalam WIB, sama dengan catatan otomatis di hal
 }
 
 // ---- Enrich -----------------------------------------------------------------------------------------------
-// "Tanpa kontak": tidak ada WhatsApp dari website, dan tidak ada email yang valid (format benar dan domainnya punya MX). Nomor telepon tidak dihitung.
+// "Tanpa kontak": tidak ada WhatsApp dari website, dan tidak ada email Gmail/Yahoo dkk yang valid (format benar dan domainnya punya MX). Nomor telepon dan email domain sendiri tidak dihitung.
 // MX yang belum bisa dipastikan (undefined) tidak dianggap gagal, jadi dicoba lagi di jalan berikutnya.
 async function noContact(l, deadline) {
   if (l.wa) return false;
-  const mails = [...(l.emails || []), l.email].map(tidyEmail).filter(e => M.EMAIL.test(e));
+  const mails = [...(l.emails || []), l.email].map(tidyEmail).filter(e => M.EMAIL.test(e) && FREE.test(e));
   if (!mails.length) return true;
   const mx = await M.mxCheck(mails.map(M.domainOf), deadline);
   return mails.every(e => mx.get(M.domainOf(e)) === false);
