@@ -1408,6 +1408,10 @@ function fillQueue(job){
   return auApi({action:"run",job:job||"queue"}).then(function(o){
     var q=o.j&&o.j.jobs&&o.j.jobs.queue;
     if(q&&q.added){flash(q.added+" prospek masuk Antrean persetujuan");if(AU.st)auLoad(false)}
+    var en=o.j&&o.j.jobs&&o.j.jobs.enrich;
+    if(en&&en.empty)return fetch("/api/leads?part=items").then(function(r){return r.json()}).then(function(j){ // yang baru ditandai Tanpa kontak langsung hilang dari tabel
+      if(!j.items)return;LS=j.items;hydrate(rows);if(!$("res").hidden)render();flash(en.empty+" tempat tanpa kontak disembunyikan");
+    });
   }).catch(function(){});
 }
 function stCell(x){return"<td data-l='Status'>"+IC.st+stSel(x,"","  data-ri='"+rows.indexOf(x)+"'")+"</td>"}
@@ -2067,9 +2071,7 @@ $("aids").onclick=function(){$("aid").close();openSet()};
 $("findall").onclick=async function(){
   var b=this,all=view(),list=all.filter(function(x){return x.id&&x.website&&!x.looked});
   var T="Cari Email & Whatsapp";
-  if(!list.length){
-    var nw=all.filter(function(x){return!x.website}).length,ck=all.length-nw;
-    aidShow("info",T,!all.length?"Tidak ada tempat untuk dicek.":!nw?"Semua "+ck+" tempat di tampilan ini sudah dicek websitenya.":!ck?"Tidak ada yang bisa dicek: "+nw+" tempat di tampilan ini tidak punya website.":ck+" tempat sudah dicek websitenya, "+nw+" tidak punya website.",0);return}
+  if(!list.length){aidShow("info",T,all.length?"Semua tempat di tampilan ini sudah dicek emailnya, atau tidak punya website.":"Tidak ada tempat untuk dicek.",0);return}
   b.disabled=true;b.setAttribute("aria-busy","true");
   var tot=list.length,done=0,got=0,idx=0,stop=false,pend=[];
   function upd(){aidShow("run",T,"Mengecek "+done+" dari "+tot+" website…",done/tot*100)}

@@ -176,7 +176,7 @@ async function noContact(l, deadline) {
   return mx.get(M.domainOf(to)) === false;
 }
 async function jobEnrich(cfg, ctx) {
-  if (!cfg.enrich.on) return { skip: "nonaktif" };
+  if (!cfg.enrich.on && !ctx.intake) return { skip: "nonaktif" }; // setelah cari manual (intake) tetap jalan walau dimatikan, supaya "Tanpa kontak" terisi
   // Yang gagal dijangkau dicoba ulang SEKALI, paling cepat 20 jam kemudian (retry=1). Setelah itu ditandai sudah dicek.
   const t0 = Date.now(), RETRY_AFTER = 20 * 36e5;
   const pool = [...ctx.data.map.values()].filter(x => x.id && x.website && !x.looked);
@@ -841,7 +841,7 @@ async function runAuto(opts) {
     const fillOnly = opts.jobs === "intake" || opts.jobs === "queue"; // mengisi antrean setelah cari manual tetap jalan saat dijeda (tidak mengirim apa pun)
     if (why && !fillOnly) out.paused = why;
     else {
-      const ctx = { softEnd: t0 + budget, hardEnd: t0 + budget + 6000, base: opts.base || "", force: opts.src === "manual", data: await loadData() };
+      const ctx = { softEnd: t0 + budget, hardEnd: t0 + budget + 6000, base: opts.base || "", force: opts.src === "manual", intake: opts.jobs === "intake", data: await loadData() };
       const want = j => opts.jobs === "all" || opts.jobs === j || (opts.jobs === "intake" && (j === "enrich" || j === "queue")); // intake = cari email lalu isi antrean (dipakai setelah cari manual)
       const guard = async (name, fn) => { try { out.jobs[name] = await fn(); } catch (e) { out.jobs[name] = { err: e.message }; } };
       if (want("mail")) await guard("mail", () => jobMailSend(cfg, ctx));
