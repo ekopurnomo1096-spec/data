@@ -1092,7 +1092,6 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
       <input type="search" class="q" id="waq" placeholder="Cari berdasarkan nama atau alamat..." aria-label="Cari prospek">
       <select id="wast" class="sortsel" aria-label="Filter status prospek"><option value="baru" selected>Belum Dihubungi</option><option value="all">Semua Status</option><option value="chat">Sudah Dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak Cocok</option></select>
       <select id="wase" class="sortsel" aria-label="Filter pencarian"><option value="">Semua Pencarian</option></select>
-      <label class="chk" title="Nomor telepon berformat internasional yang dapat digunakan untuk WhatsApp"><input type="checkbox" id="wapn"> Sertakan nomor telepon internasional</label>
       <div class="tbtns"><button class="ghost" id="warefresh" type="button">Segarkan Data</button></div>
     </div>
     <p class="info" id="wainfo">Memuat…</p>
@@ -2012,13 +2011,9 @@ function localToIntl(x,p){
   else if(TRUNK0[key]&&p.charAt(0)==="0")p=p.slice(1);
   var n=cc+p;return n.length>=9&&n.length<=15?n:null;
 }
-function waOf(x){
+function waOf(x){ // hanya WhatsApp yang ditemukan di website. Nomor telepon tidak dianggap WhatsApp karena belum tentu aktif.
   if(x.wa&&!waMismatch(x,x.wa))return{n:x.wa,src:"website"};
-  var p=firstPhone(x).replace(/[^\d+]/g,"");
-  if(p.indexOf("00")===0)p="+"+p.slice(2);
-  if(p.charAt(0)==="+")return p.length>8?{n:p.slice(1),src:"phone"}:null;
-  var n=localToIntl(x,p);
-  return n?{n:n,src:"phone"}:null;
+  return null;
 }
 function openD(x){curX=x;
   var ph=firstPhone(x),site=x.website?href(x.website):"",wa=waOf(x),em=emailsOf(x);
@@ -2027,7 +2022,7 @@ function openD(x){curX=x;
   $("dbody").innerHTML="<div class='dh'><div class='dt'>"+thumb(x,"lg")+"<div><h2>"+esc(x.name)+"</h2>"+(rate?"<p class='dr'>"+rate+"</p>":"")+"</div></div><button class='x' id='dx' type='button' aria-label='Tutup'>✕</button></div>"
     +"<dl class='dl'>"+item("Catatan","<textarea id='dnt' rows='3' maxlength='2000' placeholder='Siapa yang dihubungi, balasannya, jadwal follow-up…'>"+esc(noteOf(x))+"</textarea>")+item(IC.pin+"Alamat",x.address?esc(x.address):NA)
     +item(IC.tel+"Telepon",ph?"<a class='lk' data-act='tel' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":"Belum ada data")
-    +item(IC.wa+"WhatsApp",wa?"<a class='lk' data-act='wa' href='https://wa.me/"+wa.n+"' target='_blank' rel='noopener'>+"+wa.n+"</a>"+(wa.src==="phone"?"<span class='hint'>dari nomor telepon, belum tentu aktif</span>":"<span class='hint'>dari website</span>"):"Belum ada data")
+    +item(IC.wa+"WhatsApp",wa?"<a class='lk' data-act='wa' href='https://wa.me/"+wa.n+"' target='_blank' rel='noopener'>+"+wa.n+"</a>"+"<span class='hint'>dari website</span>":"Belum ada data")
     +item(IC.mail+"Email",em.length?em.map(function(e){return"<a class='lk' href='mailto:"+esc(e)+"'>"+esc(e)+"</a>"}).join("<br>"):"Belum ada data")
     +item(IC.web+"Website",site?"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":"Belum ada data")+"</dl>"
     +"<div class='acts dacts'>"+(wa?"<a class='btn' data-act='wa' href='https://wa.me/"+wa.n+"' target='_blank' rel='noopener'>"+IC.wa+"Chat WhatsApp</a>":"")
@@ -2096,7 +2091,7 @@ $("findall").onclick=async function(){
   }
   await Promise.all([worker(),worker(),worker(),worker()]);
   await Promise.all(pend);
-  if(got&&!stop)fillQueue();
+  if(!stop)fillQueue("intake"); // juga saat tidak ada yang ketemu: tempat tanpa email dan WA otomatis ditandai Tanpa kontak
   b.disabled=false;b.setAttribute("aria-busy","false");
   render();if($("emq"))renderMail();
   if(stop){$("aid").close();showLogin("Sesi habis, silakan masuk lagi.");return}
@@ -2729,9 +2724,9 @@ function waLoad(force){
   }).catch(function(e){WA.loading=false;if(e===0){showLogin("Sesi habis, silakan masuk lagi.");return}$("wainfo").textContent="Gagal memuat prospek. Silakan muat ulang halaman."});
 }
 function waRender(){
-  var q=$("waq").value.trim().toLowerCase(),st=$("wast").value,se=$("wase").value,ph=$("wapn").checked;
+  var q=$("waq").value.trim().toLowerCase(),st=$("wast").value,se=$("wase").value;
   var all=WA.rows.filter(function(x){
-    var w=waOf(x);if(!w||(!ph&&w.src==="phone"))return false;
+    var w=waOf(x);if(!w)return false;
     if(se&&x.sk!==se)return false;
     var s=waStOf(x);
     if(st!=="all"&&s!==(st==="baru"?"":st))return false;
@@ -2743,7 +2738,7 @@ function waRender(){
   var box=$("walist");box.hidden=!shown.length;
   box.innerHTML=shown.map(function(x,i){
     var w=waOf(x),s=stOf(x),sc=ruleScore(x);
-    return"<div class='mrow klk' tabindex='0' data-wr='"+i+"'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>+"+esc(w.n)+(w.src==="phone"?" \u00b7 dari telepon":"")+(x.address?" \u00b7 "+esc(x.address):"")+"</small></span><em class='mtag pl sc-"+aiCls(sc.s)+"'>skor "+sc.s+"</em>"+waSel(x,"  data-wi='"+i+"'")+"<button class='btn primary' type='button' data-i='"+i+"'>Buka WhatsApp</button></div>";
+    return"<div class='mrow klk' tabindex='0' data-wr='"+i+"'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>+"+esc(w.n)+(x.address?" \u00b7 "+esc(x.address):"")+"</small></span><em class='mtag pl sc-"+aiCls(sc.s)+"'>skor "+sc.s+"</em>"+waSel(x,"  data-wi='"+i+"'")+"<button class='btn primary' type='button' data-i='"+i+"'>Buka WhatsApp</button></div>";
   }).join("");
 }
 $("walist").addEventListener("click",function(e){
@@ -2770,7 +2765,7 @@ $("walist").addEventListener("change",function(e){
   setTimeout(waRender,450);
 });
 ["waq"].forEach(function(id){$(id).addEventListener("input",waRender)});
-["wast","wase","wapn"].forEach(function(id){$(id).addEventListener("change",waRender)});
+["wast","wase"].forEach(function(id){$(id).addEventListener("change",waRender)});
 $("warefresh").onclick=function(){waLoad(true)};
 
 // Klik baris di WhatsApp, Email, Riwayat kirim, Antrean persetujuan, dan Daftar berhenti membuka detail tempat yang sama seperti di Tersimpan

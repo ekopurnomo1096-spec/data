@@ -185,6 +185,21 @@ async function jobEnrich(cfg, ctx) {
   all.sort((a, b) => (a.retry || 0) - (b.retry || 0)); // yang belum pernah dicek didahulukan
   const todo = all.slice(0, cfg.enrich.max);
   let idx = 0, done = 0, found = 0, failed = 0, empty = 0;
+  // Tempat yang tidak perlu dicek website (tidak punya website, atau sudah pernah dicek) dan tidak punya kontak sama sekali ikut ditandai,
+  // termasuk data lama. Yang sudah punya status tidak disentuh. Maksimal 200 per jalan.
+  let swept = 0; // dijalankan sebelum cek website supaya tidak kehabisan waktu
+  for (const x of ctx.data.map.values()) {
+    if (swept >= 200 || Date.now() > ctx.softEnd) break; // swept = yang benar-benar ditandai, bukan yang sekadar diperiksa
+    if (!x.id || (x.website && !x.looked)) continue;
+    const rec0 = ctx.data.leads[x.id] || { s: "", n: "" };
+    if (rec0.s) continue;
+    if (!(await noContact(x, ctx.hardEnd))) continue;
+    swept++;
+    const rec = { s: "kosong", n: rec0.n || "", t: Date.now(), lead: sanitizeLead({ ...x, ...(rec0.lead || {}), id: x.id, looked: !!(x.looked || (rec0.lead && rec0.lead.looked)) }) };
+    await cmd(["HSET", LEADS, x.id, JSON.stringify(rec)]);
+    ctx.data.leads[x.id] = rec;
+    empty++;
+  }
   async function worker() {
     while (idx < todo.length && Date.now() < ctx.softEnd) {
       const x = todo[idx++];
@@ -210,21 +225,6 @@ async function jobEnrich(cfg, ctx) {
   }
   await Promise.all([worker(), worker(), worker(), worker(), worker()]);
   if (found) await M.stat("found", found);
-  // Tempat yang tidak perlu dicek website (tidak punya website, atau sudah pernah dicek) dan tidak punya kontak sama sekali ikut ditandai,
-  // termasuk data lama. Yang sudah punya status tidak disentuh. Maksimal 200 per jalan.
-  let swept = 0;
-  for (const x of ctx.data.map.values()) {
-    if (swept >= 200 || Date.now() > ctx.softEnd) break; // swept = yang benar-benar ditandai, bukan yang sekadar diperiksa
-    if (!x.id || (x.website && !x.looked)) continue;
-    const rec0 = ctx.data.leads[x.id] || { s: "", n: "" };
-    if (rec0.s) continue;
-    if (!(await noContact(x, ctx.hardEnd))) continue;
-    swept++;
-    const rec = { s: "kosong", n: rec0.n || "", t: Date.now(), lead: sanitizeLead({ ...x, ...(rec0.lead || {}), id: x.id, looked: !!(x.looked || (rec0.lead && rec0.lead.looked)) }) };
-    await cmd(["HSET", LEADS, x.id, JSON.stringify(rec)]);
-    ctx.data.leads[x.id] = rec;
-    empty++;
-  }
   const out = { done, found, left: Math.max(all.length - done, 0) };
   if (empty) out.empty = empty;
   if (failed) out.retry = failed;
