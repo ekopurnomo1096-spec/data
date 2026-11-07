@@ -1406,8 +1406,8 @@ function fillQueue(job){
     var q=o.j&&o.j.jobs&&o.j.jobs.queue;
     if(q&&(q.added||q.removed)){if(q.added)flash(q.added+" prospek masuk Antrean persetujuan");if(AU.st)auLoad(false)}
     var en=o.j&&o.j.jobs&&o.j.jobs.enrich;
-    if(en&&en.empty)return fetch("/api/leads?part=items").then(function(r){return r.json()}).then(function(j){ // yang baru ditandai Tanpa kontak langsung hilang dari tabel
-      if(!j.items)return;LS=j.items;hydrate(rows);if(!$("res").hidden)render();flash(en.empty+" tempat tanpa kontak disembunyikan");
+    if(en&&(en.empty||en.restored))return fetch("/api/leads?part=items").then(function(r){return r.json()}).then(function(j){ // yang baru ditandai Tanpa kontak langsung hilang dari tabel
+      if(!j.items)return;LS=j.items;hydrate(rows);if(!$("res").hidden)render();flash(en.empty?en.empty+" tempat tanpa kontak disembunyikan":en.restored+" tempat dikembalikan ke Belum dihubungi");
     });
   }).catch(function(){});
 }
@@ -2326,7 +2326,12 @@ function nameOf(id){
   return"";
 }
 var FREEMAIL=/@(gmail|googlemail|yahoo|ymail|rocketmail|outlook|hotmail|live|msn|icloud|me|aol|proton|protonmail|gmx|mail|zoho)\.[a-z.]+$/i;
-function freeMail(x){var l=emailsOf(x);for(var i=0;i<l.length;i++)if(FREEMAIL.test(String(l[i]).trim()))return l[i];return""}
+var CANONMAIL=/@(gmail\.com|googlemail\.com|yahoo\.com|ymail\.com|outlook\.com|hotmail\.com|live\.com|msn\.com|icloud\.com|me\.com|aol\.com|proton\.me|protonmail\.com|gmx\.com|mail\.com|zoho\.com)$/i;
+function freeMail(x){ // domain resmi (gmail.com dst.) didahulukan dari yang mirip salah ketik (gmail.om)
+  var l=emailsOf(x).map(function(e){return String(e).trim()}).filter(function(e){return FREEMAIL.test(e)});
+  for(var i=0;i<l.length;i++)if(CANONMAIL.test(l[i]))return l[i];
+  return l[0]||"";
+}
 function pickMail(x){var l=emailsOf(x);return freeMail(x)||l[0]}
 function mailPool(){
   var seen={},out=[];

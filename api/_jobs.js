@@ -154,11 +154,14 @@ const firstEmail = x => {
   return M.EMAIL.test(t) ? t : "";
 };
 // Alamat Gmail, Yahoo, dll pertama milik tempat itu (sama dengan filter "Hanya email Gmail, Yahoo, dll" di tab Email). Domain sendiri tidak dipakai.
-const freeEmail = x => {
-  const l = x.emails && x.emails.length ? x.emails : [x.email];
-  for (const e of l) { const t = tidyEmail(e); if (M.EMAIL.test(t) && FREE.test(t)) return t; }
-  return "";
+// Semua alamat Gmail, Yahoo, dll. milik tempat itu. Domain resmi (gmail.com, yahoo.com, dst.) didahulukan dari yang mirip salah ketik (gmail.om).
+const CANON = /@(gmail\.com|googlemail\.com|yahoo\.com|ymail\.com|outlook\.com|hotmail\.com|live\.com|msn\.com|icloud\.com|me\.com|aol\.com|proton\.me|protonmail\.com|gmx\.com|mail\.com|zoho\.com)$/i;
+const freeEmails = x => {
+  const l = x.emails && x.emails.length ? x.emails : [x.email], out = [];
+  for (const e of l) { const t = tidyEmail(e); if (M.EMAIL.test(t) && FREE.test(t) && !out.includes(t)) out.push(t); }
+  return out.filter(t => CANON.test(t)).concat(out.filter(t => !CANON.test(t)));
 };
+const freeEmail = x => freeEmails(x)[0] || "";
 const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 function shortDate() { // "3 Nov" dalam WIB, sama dengan catatan otomatis di halaman
   const d = new Date(Date.now() + 7 * 36e5);
@@ -170,10 +173,10 @@ function shortDate() { // "3 Nov" dalam WIB, sama dengan catatan otomatis di hal
 // MX yang belum bisa dipastikan (undefined) tidak dianggap gagal, jadi dicoba lagi di jalan berikutnya.
 async function noContact(l, deadline) {
   if (l.wa) return false;
-  const to = freeEmail(l); // sama persis dengan yang dipakai kirim email: email Gmail/Yahoo dkk pertama yang valid
-  if (!to) return true;
-  const mx = await M.mxCheck([M.domainOf(to)], deadline);
-  return mx.get(M.domainOf(to)) === false;
+  const list = freeEmails(l); // semua email Gmail/Yahoo dkk, bukan hanya yang pertama (yang pertama bisa saja salah ketik)
+  if (!list.length) return true;
+  const mx = await M.mxCheck(list.map(M.domainOf), deadline);
+  return list.every(e => mx.get(M.domainOf(e)) === false);
 }
 async function jobEnrich(cfg, ctx) {
   if (!cfg.enrich.on && !ctx.intake) return { skip: "nonaktif" }; // setelah cari manual (intake) tetap jalan walau dimatikan, supaya "Tanpa kontak" terisi
@@ -187,11 +190,19 @@ async function jobEnrich(cfg, ctx) {
   let idx = 0, done = 0, found = 0, failed = 0, empty = 0;
   // Tempat yang tidak perlu dicek website (tidak punya website, atau sudah pernah dicek) dan tidak punya kontak sama sekali ikut ditandai,
   // termasuk data lama. Yang sudah punya status tidak disentuh. Maksimal 200 per jalan.
-  let swept = 0; // dijalankan sebelum cek website supaya tidak kehabisan waktu
+  let swept = 0, restored = 0; // dijalankan sebelum cek website supaya tidak kehabisan waktu
   for (const x of ctx.data.map.values()) {
     if (swept >= 200 || Date.now() > ctx.softEnd) break; // swept = yang benar-benar ditandai, bukan yang sekadar diperiksa
     if (!x.id || (x.website && !x.looked)) continue;
     const rec0 = ctx.data.leads[x.id] || { s: "", n: "" };
+    if (rec0.s === "kosong" && restored < 50 && freeEmails(x).length && !(await noContact(x, ctx.hardEnd))) {
+      // ternyata punya email yang valid (mis. ditandai gara-gara alamat salah ketik): kembalikan ke Belum dihubungi
+      const back = { s: "", n: rec0.n || "", t: Date.now(), lead: rec0.lead || sanitizeLead({ ...x, id: x.id }) };
+      await cmd(["HSET", LEADS, x.id, JSON.stringify(back)]);
+      ctx.data.leads[x.id] = back;
+      restored++;
+      continue;
+    }
     if (rec0.s) continue;
     if (!(await noContact(x, ctx.hardEnd))) continue;
     swept++;
@@ -226,7 +237,8 @@ async function jobEnrich(cfg, ctx) {
   await Promise.all([worker(), worker(), worker(), worker(), worker()]);
   if (found) await M.stat("found", found);
   const out = { done, found, left: Math.max(all.length - done, 0) };
-  if (empty) out.empty = empty;
+  if (empty || restored) out.empty = empty;
+  if (restored) out.restored = restored;
   if (failed) out.retry = failed;
   if (waiting) out.waiting = waiting;
   return out;
