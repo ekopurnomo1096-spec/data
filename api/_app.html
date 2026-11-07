@@ -1073,9 +1073,9 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <div class="svh">Daftar Penerima Prospek</div>
     <div class="tools">
       <input type="search" class="q" id="emq" placeholder="Cari nama, alamat, atau email..." aria-label="Cari penerima">
-      <select id="emst" class="sortsel" aria-label="Filter status prospek"><option value="baru" selected>Belum Dihubungi</option><option value="all">Semua Status</option><option value="chat">Sudah Dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak Cocok</option></select>
-      <label class="chk"><input type="checkbox" id="emnq"> Hanya yang belum di antrean</label>
-      <div class="tbtns"><button class="ghost" id="emall" type="button">Pilih 20 Teratas</button><button class="ghost" id="emnone" type="button">Hapus Pilihan</button><button class="ghost" id="emenq" type="button" title="Tambahkan prospek terpilih ke Antrean Persetujuan">Tambahkan ke Antrean</button></div>
+      <select id="emst" class="sortsel" hidden style="display:none" aria-label="Filter status prospek"><option value="baru" selected>Belum Dihubungi</option><option value="all">Semua Status</option><option value="chat">Sudah Dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak Cocok</option></select>
+      <label class="chk" hidden style="display:none"><input type="checkbox" id="emnq"> Hanya yang belum di antrean</label>
+      <div class="tbtns"><button class="ghost" id="emall" type="button">Pilih 20 Teratas</button><button class="ghost" id="emnone" type="button">Hapus Pilihan</button><button class="ghost" id="emenq" type="button" hidden style="display:none" title="Tambahkan prospek terpilih ke Antrean Persetujuan">Tambahkan ke Antrean</button></div>
     </div>
     <p class="info" id="eminfo"></p>
     <div class="mlist" id="elist" hidden></div>
@@ -2352,12 +2352,7 @@ function mailView(){
   var q=$("emq").value.trim().toLowerCase(),fs=$("emst").value,hide=true,free=true; // aturan sama dengan antrean otomatis: hanya email publik (Gmail, Yahoo, dll.), yang sudah dikirimi atau duplikat disembunyikan
   return mailPool().filter(function(x){
     if(q&&((x.name||"")+" "+(x.address||"")+" "+emailsOf(x).join(" ")).toLowerCase().indexOf(q)<0)return false;
-    if(!QI[x.id]){ // yang sudah di Antrean Persetujuan selalu tampil (jumlahnya sama dengan menu); filter di bawah hanya untuk yang belum di antrean
-      if(fs!=="all"&&(stOf(x)||"baru")!==fs)return false;
-      if(hide&&EM.sent[x.id])return false;
-      if(free&&!freeMail(x))return false;
-      var bw=hide&&emBlockWhy(x);if(bw){EM.hidN++;EM.hidWhy[bw]=(EM.hidWhy[bw]||0)+1;return false}
-    }
+    if(!QI[x.id])return false; // daftar ini sama dengan Antrean Persetujuan: yang lolos aturan otomatis sudah ada di sana
     EM.allN++;
     if(QI[x.id])EM.qN++;
     if(onlyNQ&&QI[x.id])return false;
@@ -2428,15 +2423,12 @@ function renderMail(){
   Object.keys(EM.sel).forEach(function(k){if(!vis[k])delete EM.sel[k]});
   selIds().slice(emCap()).forEach(function(k){delete EM.sel[k]});
   if(!v.length){
-    info.textContent=mailPool().length?"Tidak ada tempat yang cocok dengan filter ini.":"Belum ada tempat yang memiliki email. Cari tempat terlebih dahulu, lalu tekan Cari Email & Whatsapp di atas tabel.";
+    info.textContent=!AU.st?"Memuat antrean…":($("emq").value.trim()?"Tidak ada prospek di antrean yang cocok dengan pencarian ini.":"Antrean masih kosong. Prospek yang lolos aturan otomatis akan masuk di sini.");
     info.hidden=false;list.hidden=true;
   }else{
     emWhyLoad();
     var QI=queuedIds(),nq=v.filter(function(x){return QI[x.id]}).length;
-    var nn=EM.allN-EM.qN,pt=[EM.allN+" tempat dengan email",EM.qN+" sudah di antrean"];
-    pt.push(nn?nn+" belum masuk antrean":"semua sudah masuk antrean");
-    if(EM.hidN)pt.push(EM.hidN+" tidak akan dikirim ("+Object.keys(EM.hidWhy).map(function(k){return EM.hidWhy[k]>1||Object.keys(EM.hidWhy).length>1?EM.hidWhy[k]+" "+k:k}).join(", ")+")");
-    if($("emnq").checked)pt.push("menampilkan yang belum masuk antrean saja");
+    var pt=[EM.allN+" prospek di antrean (sama dengan Antrean Persetujuan)"];
     info.textContent=pt.join(" · ");info.hidden=false;
     list.innerHTML=v.map(function(x){
       var s=EM.sent[x.id],sc=ruleScore(x),why=sc.neg.concat(sc.why).slice(0,4),stt=s?"chat":(stOf(x)||"baru");
@@ -2629,7 +2621,7 @@ function emManual(force){
 $("emmsend").onclick=function(){emManual(false)};
 $("emmt").onkeydown=$("emmn").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();emManual(false)}};
 $("emq").oninput=$("emst").onchange=$("emnq").onchange=renderMail;
-$("emall").onclick=function(){EM.sel={};var QI=queuedIds();mailView().filter(function(x){return!QI[x.id]}).slice(0,emCap()).forEach(function(x){EM.sel[x.id]=true});renderMail()}; // lewati yang sudah di antrean supaya tidak terkirim ganda
+$("emall").onclick=function(){EM.sel={};var QI=queuedIds();mailView().filter(function(x){return!EM.sent[x.id]}).slice(0,emCap()).forEach(function(x){EM.sel[x.id]=true});renderMail()}; // lewati yang sudah di antrean supaya tidak terkirim ganda
 $("emnone").onclick=function(){EM.sel={};renderMail()};
 $("emenq").onclick=function(){
   var QI=queuedIds(),ids=selIds().filter(function(id){return!QI[id]});
