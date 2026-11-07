@@ -2436,6 +2436,7 @@ function renderMail(){
     }).join("");
     list.hidden=false;
   }
+  (function(){var QJ=queuedIds(),b=$("emenq"),can=v.some(function(x){return!QJ[x.id]&&!EM.sent[x.id]});b.disabled=!can;b.title=can?"":"Semua yang tampil sudah di antrean"})();
   emCount();renderHist();
 }
 $("emaibtn").onclick=async function(){
