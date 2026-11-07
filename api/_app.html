@@ -2063,7 +2063,7 @@ $("aidx").onclick=function(){$("aid").close()};
 $("aids").onclick=function(){$("aid").close();openSet()};
 $("findall").onclick=async function(){
   var b=this,all=view(),list=all.filter(function(x){return x.id&&x.website&&!x.looked});
-  var T="Cari email semua";
+  var T="Cari Email & Whatsapp";
   if(!list.length){aidShow("info",T,all.length?"Semua tempat di tampilan ini sudah dicek emailnya, atau tidak punya website.":"Tidak ada tempat untuk dicek.",0);return}
   b.disabled=true;b.setAttribute("aria-busy","true");
   var tot=list.length,done=0,got=0,idx=0,stop=false,pend=[];
@@ -2413,7 +2413,7 @@ function renderMail(){
   Object.keys(EM.sel).forEach(function(k){if(!vis[k])delete EM.sel[k]});
   selIds().slice(emCap()).forEach(function(k){delete EM.sel[k]});
   if(!v.length){
-    info.textContent=mailPool().length?"Tidak ada tempat yang cocok dengan filter ini.":"Belum ada tempat yang memiliki email. Cari tempat terlebih dahulu, lalu tekan Cari email semua di atas tabel.";
+    info.textContent=mailPool().length?"Tidak ada tempat yang cocok dengan filter ini.":"Belum ada tempat yang memiliki email. Cari tempat terlebih dahulu, lalu tekan Cari Email & Whatsapp di atas tabel.";
     info.hidden=false;list.hidden=true;
   }else{
     emWhyLoad();
