@@ -2333,6 +2333,8 @@ function mailPool(){
   function add(x){if(!x||!x.id||seen[x.id])return;seen[x.id]=1;if(emailsOf(x).length)out.push(x)}
   rows.forEach(add);
   Object.keys(LS).forEach(function(k){var r=LS[k];if(r&&r.lead)add(r.lead)});
+  // Yang sudah ada di antrean tapi berasal dari pencarian lama (tidak termuat di sini) ikut ditampilkan, supaya jumlahnya sama dengan menu Antrean
+  ((AU.st&&AU.st.queue)||[]).forEach(function(q){if(q&&q.id&&q.to&&(q.st==="ok"||q.st==="pending"))add({id:q.id,name:q.name||q.to,email:q.to,emails:[q.to]})});
   return out;
 }
 function leadByMail(e){e=String(e||"").toLowerCase();
