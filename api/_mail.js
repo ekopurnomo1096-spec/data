@@ -255,10 +255,10 @@ async function notifyTarget() {
   }
   return { to, alerts: n.alerts !== false, digest: n.digest !== false };
 }
-async function sendNotice(to, subject, text) {
+async function sendNotice(to, subject, text, htmlBody) {
   const rc = await config();
   if (!rc.key || !/@/.test(rc.from)) throw new Error("Resend belum diisi (API key dan email pengirim)");
-  const html = '<div style="font-family:Consolas,Menlo,monospace;font-size:13px;line-height:1.55;color:#222;white-space:pre-wrap">' + escHtml(text) + "</div>";
+  const html = htmlBody || '<div style="font-family:Consolas,Menlo,monospace;font-size:13px;line-height:1.55;color:#222;white-space:pre-wrap">' + escHtml(text) + "</div>";
   const r = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: "Bearer " + rc.key, "Content-Type": "application/json" },

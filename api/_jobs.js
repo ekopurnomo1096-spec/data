@@ -652,7 +652,7 @@ async function jobMailSend(cfg, ctx) {
       if (c.fu) sentFu++; else sent++;
     }
   }
-  const out = { sent, followups: sentFu, cap: wi.eff };
+  const out = { sent, followups: sentFu, cap: Number.isFinite(cap) ? cap : null };
   if (err) out.err = err;
   return out;
 }
@@ -674,6 +674,45 @@ async function serpAccounts() {
     return got.filter(Boolean);
   } catch (e) { return []; }
 }
+const escH = x => String(x == null ? "" : x).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// Email HTML berbasis tabel (aman untuk Gmail/Outlook: semua gaya inline, tanpa CSS eksternal).
+// d = { brand, date, rows:[[label, hariIni, kemarin]], status:[[label, nilai, "ok"|"warn"|"bad"|""]], quota:[{label, text, pct, tone}], base }
+function renderDigestHtml(d) {
+  const G = "#0f6b57", TONE = { ok: ["#e6f4ef", "#0f6b57"], warn: ["#fff4d6", "#8a5a00"], bad: ["#fde8e8", "#b42318"], "": ["#f1f3f5", "#475467"] };
+  const bar = (pct, tone) => {
+    const w = Math.max(0, Math.min(100, Math.round(pct))), c = tone === "bad" ? "#d92d20" : tone === "warn" ? "#f59e0b" : G;
+    return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#e5e7eb;border-radius:4px"><tr>' +
+      (w > 0 ? '<td width="' + w + '%" style="background:' + c + ';height:8px;font-size:0;line-height:0;border-radius:4px">&nbsp;</td>' : "") +
+      '<td style="height:8px;font-size:0;line-height:0">&nbsp;</td></tr></table>';
+  };
+  const th = (t, a) => '<th align="' + a + '" style="padding:10px 12px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#667085;background:#f8fafb;border-bottom:1px solid #e4e7ec;font-weight:600">' + t + "</th>";
+  const metric = d.rows.map((r, i) => {
+    const z = r[1] === 0 || r[1] == null;
+    return '<tr><td style="padding:10px 12px;font-size:14px;color:#344054;border-bottom:1px solid #eef0f3' + (i === d.rows.length - 1 ? ";border-bottom:0" : "") + '">' + escH(r[0]) + "</td>" +
+      '<td align="right" style="padding:10px 12px;font-size:15px;font-weight:700;color:' + (z ? "#98a2b3" : "#101828") + ';border-bottom:1px solid #eef0f3' + (i === d.rows.length - 1 ? ";border-bottom:0" : "") + '">' + escH(r[1] == null ? 0 : r[1]) + "</td>" +
+      '<td align="right" style="padding:10px 12px;font-size:14px;color:#98a2b3;border-bottom:1px solid #eef0f3' + (i === d.rows.length - 1 ? ";border-bottom:0" : "") + '">' + escH(r[2] == null ? 0 : r[2]) + "</td></tr>";
+  }).join("");
+  const status = d.status.map(r => {
+    const t = TONE[r[2] || ""];
+    return '<tr><td style="padding:8px 0;font-size:14px;color:#344054">' + escH(r[0]) + '</td><td align="right" style="padding:8px 0"><span style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;background:' + t[0] + ";color:" + t[1] + '">' + escH(r[1]) + "</span></td></tr>";
+  }).join("");
+  const quota = d.quota.map(q =>
+    '<tr><td style="padding:8px 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="font-size:14px;color:#344054;padding-bottom:6px">' + escH(q.label) + '</td><td align="right" style="font-size:13px;color:#667085;padding-bottom:6px">' + escH(q.text) + "</td></tr>" +
+    (q.pct == null ? "" : '<tr><td colspan="2">' + bar(q.pct, q.tone) + "</td></tr>") + "</table></td></tr>").join("");
+  const sec = t => '<tr><td style="padding:22px 24px 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#667085;font-weight:700">' + t + "</td></tr>";
+  return '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f2f4f7">' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f4f7"><tr><td align="center" style="padding:24px 12px">' +
+    '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #e4e7ec;border-radius:12px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">' +
+    '<tr><td style="background:' + G + ';padding:22px 24px;border-radius:12px 12px 0 0"><div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#bfe3d8">Ringkasan harian</div>' +
+    '<div style="font-size:22px;font-weight:700;color:#ffffff;margin-top:4px">' + escH(d.brand) + '</div><div style="font-size:13px;color:#d6efe7;margin-top:2px">' + escH(d.date) + "</div></td></tr>" +
+    sec("Aktivitas") +
+    '<tr><td style="padding:6px 24px 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e4e7ec;border-radius:8px;border-collapse:separate;overflow:hidden"><tr>' + th("Metrik", "left") + th("Hari ini", "right") + th("Kemarin", "right") + "</tr>" + metric + "</table>" +
+    '<div style="font-size:12px;color:#98a2b3;padding-top:8px">Hari ini = sejak pukul 07.00 WIB (awal hari UTC), termasuk jalan otomatis ini.</div></td></tr>' +
+    sec("Status") + '<tr><td style="padding:0 24px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + status + "</table></td></tr>" +
+    sec("Kuota") + '<tr><td style="padding:0 24px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + quota + "</table></td></tr>" +
+    (d.base ? '<tr><td align="center" style="padding:24px"><a href="' + escH(d.base) + '" style="display:inline-block;background:' + G + ';color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:11px 22px;border-radius:8px">Buka dashboard</a></td></tr>' : '<tr><td style="padding:12px"></td></tr>') +
+    "</table></td></tr></table></body></html>";
+}
 async function buildDigest(cfg, base) {
   const st = await M.getStats(2), t = st[0] || {}, y = st[1] || {};
   const used = await M.usedToday(), pz = await M.getPause();
@@ -683,8 +722,9 @@ async function buildDigest(cfg, base) {
   Object.keys(seq).forEach(k => { const v = parse(seq[k]); if (v && v.n < steps) active++; });
   const acc = await serpAccounts();
   const row = (l, a, b) => l.padEnd(24) + String(a == null ? 0 : a).padStart(9) + String(b == null ? 0 : b).padStart(9);
+  const year = new Date(Date.now() + 7 * 36e5).getUTCFullYear(), dateStr = shortDate() + " " + year + " (WIB)";
   const L = [];
-  L.push("Ringkasan harian " + BRAND.name, shortDate() + " " + new Date(Date.now() + 7 * 36e5).getUTCFullYear() + " (WIB)", "");
+  L.push("Ringkasan harian " + BRAND.name, dateStr, "");
   L.push(row("", "Hari ini", "Kemarin"));
   L.push(row("Prospek baru", t.added, y.added), row("Punya kontak (hasil cek)", t.found, y.found));
   L.push(row("Email pertama terkirim", t.sent, y.sent), row("Follow-up terkirim", t.fu, y.fu));
@@ -698,7 +738,22 @@ async function buildDigest(cfg, base) {
   if (acc.length) acc.forEach(a => L.push("- SerpApi akun " + a.n + ": sisa " + a.left + " dari " + a.limit));
   else L.push("- SerpApi: tidak bisa dicek");
   if (base) L.push("", "Buka halaman: " + base);
-  return { subject: "Ringkasan harian " + BRAND.name + ", " + shortDate(), text: L.join("\n") };
+  // versi HTML (tabel)
+  const left = (a, b) => b > 0 ? a / b * 100 : 0, tone = p => p < 10 ? "bad" : p < 20 ? "warn" : "ok";
+  const quota = [];
+  if (M.DAILY > 0) { const p = used / M.DAILY * 100; quota.push({ label: "Resend hari ini", text: used + " dari " + M.DAILY + " (sisa " + Math.max(M.DAILY - used, 0) + ")", pct: p, tone: p > 90 ? "bad" : p > 80 ? "warn" : "ok" }); }
+  else quota.push({ label: "Resend hari ini", text: used + " (tanpa batas)", pct: null });
+  if (acc.length) acc.forEach(a => { const p = left(a.left, a.limit); quota.push({ label: "SerpApi akun " + a.n, text: "sisa " + a.left + " dari " + a.limit, pct: p, tone: tone(p) }); });
+  else quota.push({ label: "SerpApi", text: "tidak bisa dicek", pct: null });
+  const html = renderDigestHtml({
+    brand: BRAND.name, date: dateStr, base,
+    rows: [["Prospek baru", t.added, y.added], ["Punya kontak (hasil cek)", t.found, y.found], ["Email pertama terkirim", t.sent, y.sent], ["Follow-up terkirim", t.fu, y.fu],
+      ["Bounce", t.bounce, y.bounce], ["Lapor spam", t.spam, y.spam], ["Berhenti langganan", t.unsub, y.unsub]],
+    status: [["Kirim otomatis", cfg.mail.on ? (pz ? "Dijeda: " + pz.why : "Aktif") : "Nonaktif", pz ? "bad" : cfg.mail.on ? "ok" : "warn"],
+      ["Menunggu persetujuan", pending + " prospek", pending > 0 ? "warn" : ""], ["Follow-up berjalan", String(active), ""]],
+    quota
+  });
+  return { subject: "Ringkasan harian " + BRAND.name + ", " + shortDate(), text: L.join("\n"), html };
 }
 // force = kirim tes (abaikan batas sekali sehari dan pengaturan aktif/nonaktif)
 async function sendDigest(cfg, base, force) {
@@ -707,7 +762,7 @@ async function sendDigest(cfg, base, force) {
   if (!n.to) return { skip: "belum ada email penerima (isi di Pengaturan > Laporan, atau Reply-To di tab Email)" };
   if (!force) { try { if ((await cmd(["HGET", AUTO, "digest"])) === M.today()) return { skip: "sudah terkirim hari ini" }; } catch (e) { /* kirim saja */ } }
   const d = await buildDigest(cfg, base);
-  await M.sendNotice(n.to, d.subject, d.text);
+  await M.sendNotice(n.to, d.subject, d.text, d.html);
   try { await cmd(["HSET", AUTO, "digest", M.today()]); } catch (e) { /* abaikan */ }
   return { sent: true, to: n.to };
 }
@@ -789,4 +844,4 @@ async function runAuto(opts) {
   return out;
 }
 
-module.exports = { queueWhy, enqueue, scorePreview, rotInfo, nextCity, QUEUE, SEQ, AUTO, LOCK, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, notifyAfter };
+module.exports = { queueWhy, enqueue, scorePreview, rotInfo, nextCity, QUEUE, SEQ, AUTO, LOCK, defaultCfg, sanitizeCfg, getCfg, setCfg, getLog, runAuto, loadData, sendDigest, buildDigest, renderDigestHtml, notifyAfter };
