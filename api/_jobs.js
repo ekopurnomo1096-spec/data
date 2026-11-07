@@ -673,12 +673,21 @@ async function jobMailSend(cfg, ctx) {
     c.v = (vc[k] || 0) % total;
     vc[k] = (vc[k] || 0) + 1;
   }
-  let sent = 0, sentFu = 0, err = "";
+  let sent = 0, sentFu = 0, badTo = 0, err = "";
   for (let i = 0; i < list.length; i += M.MAX) {
-    const chunk = list.slice(i, i + M.MAX);
+    const all = list.slice(i, i + M.MAX);
+    let chunk = all, res;
     try {
-      await M.sendBatch(rc, chunk.map(c => { const v = variant(c.n, c.v); return { to: c.to, subject: v.subject, text: M.greet(v.text, c.name) }; }), ctx.base);
+      res = await M.sendBatch(rc, all.map(c => { const v = variant(c.n, c.v); return { to: c.to, subject: v.subject, text: M.greet(v.text, c.name), _c: c }; }), ctx.base);
     } catch (e) { err = e.message; break; }
+    chunk = res.ok.map(x => x._c);
+    // Alamat yang ditolak Resend dibuang supaya tidak menggagalkan putaran berikutnya
+    for (const x of res.bad) {
+      const c = x._c; badTo++;
+      try { await cmd(["HDEL", c.fu ? SEQ : QUEUE, c.id]); } catch (e) { /* abaikan */ }
+    }
+    if (res.err) err = res.err;
+    if (!chunk.length) { if (err) break; continue; }
     used = await M.recordSent(chunk, used);
     const bump = {};
     chunk.forEach(c => { bump["s" + c.n] = (bump["s" + c.n] || 0) + 1; });
@@ -695,8 +704,10 @@ async function jobMailSend(cfg, ctx) {
       } catch (e) { /* gagal mencatat tidak boleh menghentikan sisanya; email sudah terkirim */ }
       if (c.fu) sentFu++; else sent++;
     }
+    if (err) break;
   }
   const out = { sent, followups: sentFu, cap: Number.isFinite(cap) ? cap : null };
+  if (badTo) out.dibuang = badTo; // alamat tidak valid yang dibuang dari antrean
   if (err) out.err = err;
   return out;
 }

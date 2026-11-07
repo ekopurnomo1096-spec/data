@@ -2941,7 +2941,7 @@ function auJobText(k,j){
   if(!j)return"";
   if(j.skip)return AUN[k]+": dilewati ("+j.skip+")";
   var t="";
-  if(k==="mail")t="terkirim "+(j.sent||0)+" + "+(j.followups||0)+" follow-up"+(j.note?" ("+j.note+")":"");
+  if(k==="mail")t="terkirim "+(j.sent||0)+" + "+(j.followups||0)+" follow-up"+(j.dibuang?", "+j.dibuang+" alamat tidak valid dibuang":"")+(j.note?" ("+j.note+")":"");
   else if(k==="refresh")t=(j.searches||0)+" pencarian"+(j.pages?" (termasuk "+j.pages+" halaman tambahan)":"")+", "+(j.added||0)+" tempat baru"+(j.note?" ("+j.note+")":"")+(j.switched?", pindah akun: "+j.switched:"")+(j.disabled&&j.disabled.length?". Dinonaktifkan karena tidak ada tempat baru: "+j.disabled.join(", "):"");
   else if(k==="rotate")t=(j.searches||0)+" pencarian, "+(j.added||0)+" tempat baru"+(j.cities&&j.cities.length?" ("+j.cities.join(", ")+")":"")+(j.left!=null?", sisa "+j.left+" kota di daftar":"")+(j.note?" ("+j.note+")":"")+(j.switched?", pindah akun: "+j.switched:"");
   else if(k==="enrich")t=(j.done||0)+" website dicek, "+(j.found||0)+" punya kontak"+(j.empty?", "+j.empty+" ditandai Tanpa kontak":"")+(j.left?", sisa "+j.left:"")+(j.retry?", "+j.retry+" gagal dibuka (dicoba ulang besok)":"");

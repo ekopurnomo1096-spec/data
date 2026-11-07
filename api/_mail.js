@@ -13,7 +13,9 @@ const MAX = 20;
 // Ganti lewat RESEND_DAILY_LIMIT di Vercel. Isi 0 jika akun berbayar tanpa batas harian.
 const DAILY = (() => { const v = process.env.RESEND_DAILY_LIMIT; if (v === undefined || v === "") return 100; const n = parseInt(v, 10); return n >= 0 ? n : 100; })();
 const today = () => new Date().toISOString().slice(0, 10);
-const EMAIL = /^[^\s@<>"]+@[^\s@<>"]+\.[A-Za-z]{2,}$/;
+// Format alamat email yang diterima Resend: nama tanpa titik di awal/akhir/ganda, domain dengan label yang sah.
+const EMAIL_RE = /^[A-Za-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/;
+const EMAIL = { test: v => { v = String(v == null ? "" : v); return v.length <= 254 && v.indexOf("@") <= 64 && EMAIL_RE.test(v); } };
 const ID = /^[\w:./|-]{1,120}$/;
 const clean = (v, n) => String(v == null ? "" : v).replace(/[\r\n\t]+/g, " ").replace(/[<>]/g, "").trim().slice(0, n);
 const parse = v => { try { return JSON.parse(v); } catch (e) { return null; } };
@@ -147,7 +149,33 @@ async function config() {
   return { key, from, addr, srcn, replyTo: EMAIL.test(rt) || /<[^<>@\s]+@[^<>\s]+>$/.test(rt) ? rt : "" };
 }
 
-// Kirim satu batch (maksimal MAX) lewat Resend. items: [{to, subject, text}]. Melempar Error berpesan jelas jika gagal.
+// Kirim satu batch (maksimal MAX) lewat Resend. items: [{to, subject, text}].
+// Mengembalikan { ok: [item terkirim], bad: [item yang alamatnya ditolak Resend], err: pesan jika berhenti di tengah }.
+// Jika Resend menolak batch karena ada alamat tidak valid, batch dikirim ulang per alamat supaya satu alamat salah
+// tidak menggagalkan yang lain. Kegagalan lain (API key, domain, kuota) tetap dilempar sebagai Error berpesan jelas.
+const INVALID_TO = /invalid\s*.?to.?\s*field|email address needs to follow/i;
+async function postBatch(cfg, payload) {
+  const r = await fetch("https://api.resend.com/emails/batch", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + cfg.key, "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(25000)
+  });
+  const j = await r.json().catch(() => ({}));
+  if (r.ok) return;
+  const m = String(j.message || j.error || r.status);
+  const e = new Error(m);
+  e.status = r.status;
+  e.invalidTo = INVALID_TO.test(m);
+  throw e;
+}
+function friendly(e) {
+  const m = e.message;
+  if (e.status === 401 || e.status === 403 && /api key/i.test(m)) return new Error("API key Resend tidak valid. Periksa lagi di Pengaturan");
+  if (/domain|verif/i.test(m)) return new Error("Domain pengirim belum diverifikasi di Resend, atau alamat pengirim tidak sesuai domainnya. Cek di dashboard Resend (" + m + ")");
+  if (e.status === 429) return new Error("Terlalu cepat atau kuota Resend habis. Tunggu sebentar lalu coba lagi");
+  return new Error("Resend: " + m);
+}
 async function sendBatch(cfg, items, base) {
   const payload = items.map(i => {
     const u = unsubUrl(base, i.to);
@@ -159,20 +187,32 @@ async function sendBatch(cfg, items, base) {
       ...(u ? { headers: { "List-Unsubscribe": "<" + u + ">", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } } : {})
     };
   });
-  const r = await fetch("https://api.resend.com/emails/batch", {
-    method: "POST",
-    headers: { Authorization: "Bearer " + cfg.key, "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(25000)
-  });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) {
-    const m = String(j.message || j.error || r.status);
-    if (r.status === 401 || r.status === 403 && /api key/i.test(m)) throw new Error("API key Resend tidak valid. Periksa lagi di Pengaturan");
-    if (/domain|verif/i.test(m)) throw new Error("Domain pengirim belum diverifikasi di Resend, atau alamat pengirim tidak sesuai domainnya. Cek di dashboard Resend (" + m + ")");
-    if (r.status === 429) throw new Error("Terlalu cepat atau kuota Resend habis. Tunggu sebentar lalu coba lagi");
-    throw new Error("Resend: " + m);
+  // Alamat yang jelas tidak valid tidak pernah dikirim ke Resend
+  const ok = [], bad = [], idx = [];
+  items.forEach((i, k) => { if (EMAIL.test(i.to)) idx.push(k); else bad.push(i); });
+  if (!idx.length) return { ok, bad };
+  try {
+    await postBatch(cfg, idx.map(k => payload[k]));
+    idx.forEach(k => ok.push(items[k]));
+    return { ok, bad };
+  } catch (e) {
+    if (!e.invalidTo || idx.length === 1) {
+      if (e.invalidTo) { bad.push(items[idx[0]]); return { ok, bad }; }
+      throw friendly(e);
+    }
   }
+  // Ada alamat yang ditolak: kirim ulang satu per satu
+  for (let n = 0; n < idx.length; n++) {
+    const k = idx[n];
+    try {
+      await postBatch(cfg, [payload[k]]);
+      ok.push(items[k]);
+    } catch (e) {
+      if (e.invalidTo) { bad.push(items[k]); continue; }
+      return { ok, bad, err: friendly(e).message };
+    }
+  }
+  return { ok, bad };
 }
 
 // Catat riwayat kirim (hairleads:mail) dan tambah hitungan harian. Mengembalikan jumlah terpakai hari ini.

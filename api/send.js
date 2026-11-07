@@ -93,9 +93,11 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: "Sisa kuota pengiriman email hari ini " + left + " dari " + M.DAILY + ". Kurangi jumlah prospek terpilih atau tunggu reset kuota harian.", daily: { used, limit: M.DAILY } });
     }
 
-    await M.sendBatch({ key, from, replyTo, addr, srcn }, items, M.baseUrl(req));
-    used = await M.recordSent(items, used);
-    return res.status(200).json({ sent: items.map(i => i.id), skipped, bad, suppressed, daily: { used, limit: M.DAILY } });
+    const r = await M.sendBatch({ key, from, replyTo, addr, srcn }, items, M.baseUrl(req));
+    r.bad.forEach(i => bad.push(i.id)); // alamat yang ditolak Resend dilaporkan sebagai tidak valid
+    if (r.ok.length) used = await M.recordSent(r.ok, used);
+    if (r.err && !r.ok.length) return res.status(500).json({ error: r.err });
+    return res.status(200).json({ sent: r.ok.map(i => i.id), skipped, bad, suppressed, daily: { used, limit: M.DAILY }, ...(r.err ? { warning: r.err } : {}) });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
