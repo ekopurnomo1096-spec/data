@@ -2352,10 +2352,12 @@ function mailView(){
   var q=$("emq").value.trim().toLowerCase(),fs=$("emst").value,hide=true,free=true; // aturan sama dengan antrean otomatis: hanya email publik (Gmail, Yahoo, dll.), yang sudah dikirimi atau duplikat disembunyikan
   return mailPool().filter(function(x){
     if(q&&((x.name||"")+" "+(x.address||"")+" "+emailsOf(x).join(" ")).toLowerCase().indexOf(q)<0)return false;
-    if(fs!=="all"&&(stOf(x)||"baru")!==fs)return false;
-    if(hide&&EM.sent[x.id])return false;
-    if(free&&!freeMail(x))return false;
-    if(hide&&emBlocked(x)){EM.hidN++;return false}
+    if(!QI[x.id]){ // yang sudah di Antrean Persetujuan selalu tampil (jumlahnya sama dengan menu); filter di bawah hanya untuk yang belum di antrean
+      if(fs!=="all"&&(stOf(x)||"baru")!==fs)return false;
+      if(hide&&EM.sent[x.id])return false;
+      if(free&&!freeMail(x))return false;
+      if(hide&&emBlocked(x)){EM.hidN++;return false}
+    }
     EM.allN++;
     if(QI[x.id])EM.qN++;
     if(onlyNQ&&QI[x.id])return false;
