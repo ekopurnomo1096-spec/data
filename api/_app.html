@@ -1405,7 +1405,7 @@ function stSel(x,id,extra){var s=stOf(x);return"<select"+(id?" id='"+id+"'":"")+
 function fillQueue(job){
   return auApi({action:"run",job:job||"queue"}).then(function(o){
     var q=o.j&&o.j.jobs&&o.j.jobs.queue;
-    if(q&&q.added){flash(q.added+" prospek masuk Antrean persetujuan");if(AU.st)auLoad(false)}
+    if(q&&(q.added||q.removed)){if(q.added)flash(q.added+" prospek masuk Antrean persetujuan");if(AU.st)auLoad(false)}
     var en=o.j&&o.j.jobs&&o.j.jobs.enrich;
     if(en&&en.empty)return fetch("/api/leads?part=items").then(function(r){return r.json()}).then(function(j){ // yang baru ditandai Tanpa kontak langsung hilang dari tabel
       if(!j.items)return;LS=j.items;hydrate(rows);if(!$("res").hidden)render();flash(en.empty+" tempat tanpa kontak disembunyikan");

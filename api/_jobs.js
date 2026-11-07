@@ -412,6 +412,10 @@ async function jobQueue(cfg, ctx) {
   if (!cfg.mail.on && !ctx.force) return { skip: "nonaktif" };
   const qraw = await hgetall(QUEUE), queue = {};
   Object.keys(qraw).forEach(k => { const v = parse(qraw[k]); if (v) queue[k] = v; });
+  // Yang sudah berstatus (mis. Tanpa kontak, Sudah dihubungi) keluar dari antrean, sama seperti yang dilakukan saat kirim
+  const gone = Object.keys(queue).filter(k => { const r = ctx.data.leads[k]; return r && r.s; });
+  for (let i = 0; i < gone.length; i += 200) await cmd(["HDEL", QUEUE, ...gone.slice(i, i + 200)]);
+  gone.forEach(k => delete queue[k]);
   const mraw = await hgetall(M.MAIL), mailed = new Set(Object.keys(mraw)), mailedTo = new Set();
   Object.keys(mraw).forEach(k => { const v = parse(mraw[k]); if (v && v.to) mailedTo.add(String(v.to).toLowerCase()); });
   Object.keys(queue).forEach(k => mailedTo.add(String(queue[k].to || "").toLowerCase()));
@@ -461,6 +465,7 @@ async function jobQueue(cfg, ctx) {
   for (let i = 0; i < args.length; i += 200) await cmd(["HSET", QUEUE, ...args.slice(i, i + 200)]);
   if (take.length) await M.stat("queued", take.length);
   const res = { added: take.length, pending: pending + (cfg.mail.approve ? take.length : 0), waiting: Math.max(ok.length - take.length, 0) };
+  if (gone.length) res.removed = gone.length;
   if (badMx) res.noMx = badMx;
   if (dupDomain) res.dupDomain = dupDomain;
   if (pendingMx) res.mxLater = pendingMx;
