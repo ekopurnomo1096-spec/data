@@ -1075,7 +1075,6 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
       <input type="search" class="q" id="emq" placeholder="Cari nama, alamat, atau email..." aria-label="Cari penerima">
       <select id="emst" class="sortsel" aria-label="Filter status prospek"><option value="baru" selected>Belum Dihubungi</option><option value="all">Semua Status</option><option value="chat">Sudah Dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak Cocok</option></select>
       <label class="chk"><input type="checkbox" id="emhide" checked> Sembunyikan prospek yang sudah dikirimi atau duplikasi</label>
-      <label class="chk"><input type="checkbox" id="emfree" checked> Hanya alamat email publik (Gmail, Yahoo, dll.)</label>
       <label class="chk"><input type="checkbox" id="emnq"> Hanya yang belum di antrean</label>
       <div class="tbtns"><button class="ghost" id="emall" type="button">Pilih 20 Teratas</button><button class="ghost" id="emnone" type="button">Hapus Pilihan</button><button class="ghost" id="emenq" type="button" title="Tambahkan prospek terpilih ke Antrean Persetujuan">Tambahkan ke Antrean</button></div>
     </div>
@@ -2329,7 +2328,7 @@ function nameOf(id){
 }
 var FREEMAIL=/@(gmail|googlemail|yahoo|ymail|rocketmail|outlook|hotmail|live|msn|icloud|me|aol|proton|protonmail|gmx|mail|zoho)\.[a-z.]+$/i;
 function freeMail(x){var l=emailsOf(x);for(var i=0;i<l.length;i++)if(FREEMAIL.test(String(l[i]).trim()))return l[i];return""}
-function pickMail(x){var l=emailsOf(x);return $("emfree").checked?(freeMail(x)||l[0]):l[0]}
+function pickMail(x){var l=emailsOf(x);return freeMail(x)||l[0]}
 function mailPool(){
   var seen={},out=[];
   function add(x){if(!x||!x.id||seen[x.id])return;seen[x.id]=1;if(emailsOf(x).length)out.push(x)}
@@ -2344,7 +2343,7 @@ function leadByMail(e){e=String(e||"").toLowerCase();
 function mailView(){
   EM.hidN=0;EM.allN=0;EM.qN=0;
   var QI=queuedIds(),onlyNQ=$("emnq").checked;
-  var q=$("emq").value.trim().toLowerCase(),fs=$("emst").value,hide=$("emhide").checked,free=$("emfree").checked;
+  var q=$("emq").value.trim().toLowerCase(),fs=$("emst").value,hide=$("emhide").checked,free=true; // selalu hanya email publik (Gmail, Yahoo, dll.)
   return mailPool().filter(function(x){
     if(q&&((x.name||"")+" "+(x.address||"")+" "+emailsOf(x).join(" ")).toLowerCase().indexOf(q)<0)return false;
     if(fs!=="all"&&(stOf(x)||"baru")!==fs)return false;
@@ -2614,7 +2613,7 @@ function emManual(force){
 }
 $("emmsend").onclick=function(){emManual(false)};
 $("emmt").onkeydown=$("emmn").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();emManual(false)}};
-$("emq").oninput=$("emst").onchange=$("emhide").onchange=$("emfree").onchange=$("emnq").onchange=renderMail;
+$("emq").oninput=$("emst").onchange=$("emhide").onchange=$("emnq").onchange=renderMail;
 $("emall").onclick=function(){EM.sel={};var QI=queuedIds();mailView().filter(function(x){return!QI[x.id]}).slice(0,emCap()).forEach(function(x){EM.sel[x.id]=true});renderMail()}; // lewati yang sudah di antrean supaya tidak terkirim ganda
 $("emnone").onclick=function(){EM.sel={};renderMail()};
 $("emenq").onclick=function(){
