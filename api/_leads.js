@@ -1,7 +1,7 @@
 // Pembantu prospek: kunci unik (id), penghapus duplikat, dan pembersih data sebelum disimpan.
 const crypto = require("crypto");
 
-const STATUSES = ["", "chat", "balas", "deal", "tidak"]; // "" = belum dihubungi
+const STATUSES = ["", "chat", "balas", "deal", "tidak", "kosong"]; // "" = belum dihubungi, "kosong" = Tanpa kontak (diisi otomatis oleh job cek kontak)
 
 const norm = s => String(s || "").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
   .replace(/[^a-z0-9]+/g, " ").trim();

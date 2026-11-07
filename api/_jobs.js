@@ -166,6 +166,15 @@ function shortDate() { // "3 Nov" dalam WIB, sama dengan catatan otomatis di hal
 }
 
 // ---- Enrich -----------------------------------------------------------------------------------------------
+// "Tanpa kontak": tidak ada nomor WhatsApp/telepon, dan tidak ada email yang valid (format benar dan domainnya punya MX).
+// MX yang belum bisa dipastikan (undefined) tidak dianggap gagal, jadi dicoba lagi di jalan berikutnya.
+async function noContact(l, deadline) {
+  if (l.wa || String(l.phone || "").replace(/\D/g, "").length >= 8) return false;
+  const mails = [...(l.emails || []), l.email].map(tidyEmail).filter(e => M.EMAIL.test(e));
+  if (!mails.length) return true;
+  const mx = await M.mxCheck(mails.map(M.domainOf), deadline);
+  return mails.every(e => mx.get(M.domainOf(e)) === false);
+}
 async function jobEnrich(cfg, ctx) {
   if (!cfg.enrich.on) return { skip: "nonaktif" };
   // Yang gagal dijangkau dicoba ulang SEKALI, paling cepat 20 jam kemudian (retry=1). Setelah itu ditandai sudah dicek.
@@ -175,7 +184,7 @@ async function jobEnrich(cfg, ctx) {
   const waiting = pool.length - all.length;
   all.sort((a, b) => (a.retry || 0) - (b.retry || 0)); // yang belum pernah dicek didahulukan
   const todo = all.slice(0, cfg.enrich.max);
-  let idx = 0, done = 0, found = 0, failed = 0;
+  let idx = 0, done = 0, found = 0, failed = 0, empty = 0;
   async function worker() {
     while (idx < todo.length && Date.now() < ctx.softEnd) {
       const x = todo[idx++];
@@ -190,7 +199,9 @@ async function jobEnrich(cfg, ctx) {
       const retryLater = j.failed && !hit && tries < 1; // gagal dijangkau, belum pernah diulang
       const lead = sanitizeLead({ ...x, ...prevL, id: x.id, emails, email: emails[0] || x.email || "", wa,
         looked: !retryLater, found: hit, retry: j.failed && !hit ? tries + 1 : 0, rt: j.failed && !hit ? Date.now() : 0 });
-      const rec = { s: rec0.s || "", n: rec0.n || "", t: Date.now(), lead };
+      let st = rec0.s || "";
+      if (!st && lead.looked && await noContact(lead, ctx.hardEnd)) { st = "kosong"; empty++; } // otomatis: tidak ada kontak sama sekali
+      const rec = { s: st, n: rec0.n || "", t: Date.now(), lead };
       await cmd(["HSET", LEADS, x.id, JSON.stringify(rec)]);
       ctx.data.leads[x.id] = rec;
       x.looked = lead.looked; x.found = lead.found; x.retry = lead.retry; x.rt = lead.rt; x.emails = lead.emails; x.email = lead.email; x.wa = lead.wa;
@@ -199,7 +210,23 @@ async function jobEnrich(cfg, ctx) {
   }
   await Promise.all([worker(), worker(), worker(), worker(), worker()]);
   if (found) await M.stat("found", found);
+  // Tempat yang tidak perlu dicek website (tidak punya website, atau sudah pernah dicek) dan tidak punya kontak sama sekali ikut ditandai,
+  // termasuk data lama. Yang sudah punya status tidak disentuh. Maksimal 200 per jalan.
+  let swept = 0;
+  for (const x of ctx.data.map.values()) {
+    if (swept >= 200 || Date.now() > ctx.softEnd) break; // swept = yang benar-benar ditandai, bukan yang sekadar diperiksa
+    if (!x.id || (x.website && !x.looked)) continue;
+    const rec0 = ctx.data.leads[x.id] || { s: "", n: "" };
+    if (rec0.s) continue;
+    if (!(await noContact(x, ctx.hardEnd))) continue;
+    swept++;
+    const rec = { s: "kosong", n: rec0.n || "", t: Date.now(), lead: sanitizeLead({ ...x, ...(rec0.lead || {}), id: x.id, looked: !!(x.looked || (rec0.lead && rec0.lead.looked)) }) };
+    await cmd(["HSET", LEADS, x.id, JSON.stringify(rec)]);
+    ctx.data.leads[x.id] = rec;
+    empty++;
+  }
   const out = { done, found, left: Math.max(all.length - done, 0) };
+  if (empty) out.empty = empty;
   if (failed) out.retry = failed;
   if (waiting) out.waiting = waiting;
   return out;

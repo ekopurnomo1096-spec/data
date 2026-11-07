@@ -82,7 +82,7 @@ async function build(days) {
       seen.add(r.id);
       const x = data.map.get(r.id) || r, st = (data.leads[r.id] && data.leads[r.id].s) || "";
       const contact = !!(emailOf(x) || x.wa);
-      const emailed = !!(mail[r.id] || seq[r.id] || st);
+      const emailed = !!(mail[r.id] || seq[r.id] || (st && st !== "kosong"));
       const replied = !!(st === "balas" || st === "deal");
       const deal = st === "deal";
       [total, byCity[city] || (byCity[city] = blank()), byCountry[country] || (byCountry[country] = blank())].forEach(o => {
