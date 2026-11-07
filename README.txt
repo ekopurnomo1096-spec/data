@@ -1,11 +1,11 @@
 ================================================================================
-B2B LEAD GENERATION & AUTOMATED OUTREACH PLATFORM - DOKUMENTASI TEKNIS & PANDUAN
+B2B LEAD GENERATION & AUTOMATED EMAIL PLATFORM - DOKUMENTASI TEKNIS & PANDUAN
 ================================================================================
 
 Platform pencarian prospek bisnis B2B (salon, toko wig, toko kecantikan, dan distributor) 
 berbasis Google Maps dan OpenStreetMap, terintegrasi dengan mesin ekstraksi kontak otomatis 
 (email & WhatsApp), penilaian prospek cerdas (Scoring Engine AI & Rule-based), serta sistem 
-cold email outreach otomatis bertahap dengan pelacakan konversi dan kepatuhan anti-spam.
+cold email otomatis bertahap dengan pelacakan konversi dan kepatuhan anti-spam.
 
 Seluruh data transaksi dan status disimpan secara terpusat pada Upstash Redis 
 dengan namespace awalan "hairleads:".
@@ -17,7 +17,7 @@ DAFTAR ISI
   2. Konfigurasi Variabel Lingkungan (Environment Variables)
   3. Arsitektur Menu & Navigasi
   4. Manajemen & Eksplorasi Prospek
-  5. Pengiriman Email Outreach (Integrasi Resend)
+  5. Pengiriman Email (Integrasi Resend)
   6. Mesin Otomasi (Pengiriman, Follow-Up, Rotasi Kota, Ekstraksi Kontak)
   7. Standar Keamanan & Kepatuhan Regulasi (Compliance)
   8. Laporan Operasional Harian, Notifikasi Sistem & Pemeliharaan Data
@@ -83,7 +83,7 @@ Variabel Fitur Otomasi & Kepatuhan (Sangat Direkomendasikan):
   UNSUB_SECRET            Token acak panjang untuk tanda tangan digital HMAC tautan 
                           pembatalan langganan (Unsubscribe). Disimpan permanen agar 
                           tautan pada email yang telah terkirim tetap valid.
-  PUBLIC_URL (opsional)   URL domain produksi (contoh: https://outreach.domainanda.com) 
+  PUBLIC_URL (opsional)   URL domain produksi (contoh: https://app.domainanda.com) 
                           untuk memastikan keakuratan tautan unsubscribe dan webhook.
   RESEND_DAILY_LIMIT      Batas kuota pengiriman harian (default: 100 untuk tier gratis 
                           Resend). Masukkan nilai 0 untuk kuota tanpa batas.
@@ -98,9 +98,9 @@ Analisis
 Manajemen Prospek
   Cari Tempat              Eksplorasi prospek bisnis via Google Maps & OpenStreetMap.
   Prospek Tersimpan        Koleksi prospek terverifikasi dan riwayat pencarian.
-Penjangkauan (Outreach)
-  Email Outreach           Pusat penyusunan dan pengiriman email penawaran cold outreach.
-  WhatsApp Outreach        Daftar prospek dengan nomor WhatsApp terverifikasi.
+Penjangkauan
+  Email                    Pusat penyusunan dan pengiriman email penawaran.
+  WhatsApp                 Daftar prospek dengan nomor WhatsApp terverifikasi.
   Riwayat Pengiriman       Log audit seluruh email yang telah diproses oleh sistem.
 Otomasi Sistem
   Status & Antrean         Status operasional cron, eksekusi instan, dan antrean kurasi.
@@ -137,7 +137,7 @@ Otomasi Sistem
 
 
 --------------------------------------------------------------------------------
-5. PENGIRIMAN EMAIL OUTREACH (INTEGRASI RESEND)
+5. PENGIRIMAN EMAIL (INTEGRASI RESEND)
 --------------------------------------------------------------------------------
 Prasyarat:
   1. Pada akun Resend: Daftarkan dan verifikasi domain pengirim (Domains > Add Domain, 
@@ -149,7 +149,7 @@ Prasyarat:
 Metode Pengiriman:
   - Pengiriman Langsung (Per Entitas): Buka detail prospek > Kirim Email. Konten 
     dapat dipersonalisasi terlebih dahulu sebelum dikirim.
-  - Pengiriman Batch Terkurasi: Tombol "Kirim Email" pada tab Email Outreach. 
+  - Pengiriman Batch Terkurasi: Tombol "Kirim Email" pada tab Email. 
     Hanya menargetkan prospek berstatus Belum Dihubungi yang memiliki email valid.
   - Pengiriman Uji Coba: Fitur pengiriman manual untuk verifikasi tampilan ke email internal.
 
@@ -330,7 +330,7 @@ Seluruh data menggunakan awalan namespace "hairleads:":
 │   ├── leads.js          Endpoint manajemen status prospek dan pencarian
 │   ├── mailhook.js       Endpoint penanganan webhook Resend dan tautan unsubscribe
 │   ├── places.js         Endpoint pencarian data lokasi Google Maps & OpenStreetMap
-│   ├── send.js           Endpoint pemrosesan pengiriman email cold outreach
+│   ├── send.js           Endpoint pemrosesan pengiriman cold email
 │   ├── session.js        Endpoint otentikasi login, logout, dan proteksi brute-force
 │   └── usage.js          Endpoint pemantauan sisa kuota SerpApi & ekstraksi kontak
 ├── vercel.json           Konfigurasi routing Vercel, serverless function, & jadwal cron

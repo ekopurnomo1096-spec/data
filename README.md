@@ -1,6 +1,6 @@
-# B2B Lead Generation & Automated Outreach Platform
+# B2B Lead Generation & Automated Email Platform
 
-> **Solusi All-in-One Penemuan Prospek B2B, Ekstraksi Kontak Cerdas, Penilaian Kelayakan Berbasis AI, dan Sistem Cold Email Outreach Bertahap.**
+> **Solusi All-in-One Penemuan Prospek B2B, Ekstraksi Kontak Cerdas, Penilaian Kelayakan Berbasis AI, dan Sistem Cold Email Bertahap.**
 
 ---
 
@@ -17,7 +17,7 @@ Platform siap pakai (*production-ready*) berbasis arsitektur **Vercel Serverless
 - **Intelligent Lead Scoring Engine**:
   - Penilaian kelayakan otomatis (0–100) menggunakan aturan parameter terukur (*rule-based*).
   - Integrasi **Google Gemini AI** untuk analisis mendalam, perangkuman profil, dan copywriting draf email penawaran.
-- **Multi-Step Email Outreach & Follow-Up**:
+- **Multi-Step Email & Follow-Up**:
   - Pengiriman pesan bertahap terotomasi via **Resend**.
   - Siklus follow-up berkala yang otomatis berhenti saat prospek merespons.
   - Pengujian variasi pesan (**A/B/C Testing**) dilengkapi analisis signifikansi statistik (*z-test*).
@@ -68,7 +68,7 @@ Buka **Project Settings** > **Environment Variables**, dan tambahkan variabel be
 | `CRON_SECRET` | *Direkomendasikan* | Token pengaman endpoint Vercel Cron. |
 | `RESEND_WEBHOOK_SECRET` | *Direkomendasikan* | Kunci verifikasi webhook Resend (`whsec_...`). |
 | `UNSUB_SECRET` | *Direkomendasikan* | Kunci HMAC penandatanganan tautan unsubscribe. |
-| `PUBLIC_URL` | *Opsional* | Domain produksi (contoh: `https://outreach.domainanda.com`). |
+| `PUBLIC_URL` | *Opsional* | Domain produksi (contoh: `https://app.domainanda.com`). |
 | `RESEND_DAILY_LIMIT` | *Opsional* | Batas kuota email per hari (default: `100`). |
 
 > **Catatan Keamanan:** Pastikan memilih opsi *Production*, *Preview*, dan *Development* saat menyimpan variabel, lalu lakukan **Redeploy**.
@@ -99,7 +99,7 @@ Buka **Project Settings** > **Environment Variables**, dan tambahkan variabel be
 │   ├── _score.js         # Algoritma scoring prospek rule-based
 │   ├── _serp.js          # Konektor SerpApi & failover multi-akun
 │   ├── _store.js         # Abstraksi koneksi REST Upstash Redis & enkripsi simetris
-│   ├── _template.js      # Template cold outreach awal & metadata brand
+│   ├── _template.js      # Template cold email awal & metadata brand
 │   ├── ai.js             # Endpoint evaluasi & copywriting Google Gemini AI
 │   ├── app.js            # Gateway otentikasi & proteksi akses route
 │   ├── auto.js           # Endpoint otomasi, antrean, & handler cron
