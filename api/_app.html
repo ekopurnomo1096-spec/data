@@ -2347,7 +2347,7 @@ function leadByMail(e){e=String(e||"").toLowerCase();
   // Tempat yang tidak ada di pencarian aktif dan tidak punya status/catatan dicari juga di semua pencarian tersimpan (supaya foto & nama tetap muncul)
   return find(mailPool())||find(typeof WA!=="undefined"&&WA.all||[])}
 function mailView(){
-  EM.hidN=0;EM.allN=0;EM.qN=0;
+  EM.hidN=0;EM.hidWhy={};EM.allN=0;EM.qN=0;
   var QI=queuedIds(),onlyNQ=$("emnq").checked;
   var q=$("emq").value.trim().toLowerCase(),fs=$("emst").value,hide=true,free=true; // aturan sama dengan antrean otomatis: hanya email publik (Gmail, Yahoo, dll.), yang sudah dikirimi atau duplikat disembunyikan
   return mailPool().filter(function(x){
@@ -2356,7 +2356,7 @@ function mailView(){
       if(fs!=="all"&&(stOf(x)||"baru")!==fs)return false;
       if(hide&&EM.sent[x.id])return false;
       if(free&&!freeMail(x))return false;
-      if(hide&&emBlocked(x)){EM.hidN++;return false}
+      var bw=hide&&emBlockWhy(x);if(bw){EM.hidN++;EM.hidWhy[bw]=(EM.hidWhy[bw]||0)+1;return false}
     }
     EM.allN++;
     if(QI[x.id])EM.qN++;
@@ -2367,13 +2367,19 @@ function mailView(){
 // Sama ketatnya dengan Antrean persetujuan: alamat yang sudah pernah dikirimi (walau lewat listing lain), bisnis atau email duplikat,
 // Daftar berhenti, dan domain email tidak valid disembunyikan. Alasannya dari server (action "why", lihat api/_jobs.js queueWhy).
 var EMBLOCK=/sudah pernah dikirimi|sudah ada di antrean|^bisnis sama|^email sama|Daftar berhenti|tanpa MX/;
-function emBlocked(x){
+function emBlockWhy(x){ // alasan singkat kenapa tempat ini tidak akan dikirimi (kosong = tidak diblokir)
   var w=EM.why&&EM.why[x.id];
-  if(w&&EMBLOCK.test(w))return true;
+  if(w&&EMBLOCK.test(w)){
+    if(/sudah pernah dikirimi/.test(w))return"sudah pernah dikirimi";
+    if(/Daftar berhenti/.test(w))return"ada di Daftar berhenti";
+    if(/tanpa MX/.test(w))return"domain email tidak valid";
+    return"duplikat";
+  }
   var m=String(pickMail(x)||"").toLowerCase();
-  if(m){var k=Object.keys(EM.sent);for(var i=0;i<k.length;i++){var t=EM.sent[k[i]];if(t&&String(t.to||"").toLowerCase()===m)return true}}
-  return false;
+  if(m){var k=Object.keys(EM.sent);for(var i=0;i<k.length;i++){var t=EM.sent[k[i]];if(t&&String(t.to||"").toLowerCase()===m)return"sudah pernah dikirimi"}}
+  return"";
 }
+function emBlocked(x){return!!emBlockWhy(x)}
 function selIds(){return Object.keys(EM.sel).filter(function(k){return EM.sel[k]})}
 function emErr(t){var e=$("emerr");e.textContent=t||"";e.hidden=!t;if(t)$("emwrite").open=true}
 function emCount(){
@@ -2429,7 +2435,7 @@ function renderMail(){
     var QI=queuedIds(),nq=v.filter(function(x){return QI[x.id]}).length;
     var nn=EM.allN-EM.qN,pt=[EM.allN+" tempat dengan email",EM.qN+" sudah di antrean"];
     pt.push(nn?nn+" belum masuk antrean":"semua sudah masuk antrean");
-    if(EM.hidN)pt.push(EM.hidN+" disembunyikan (alamat sudah dikirimi atau duplikat)");
+    if(EM.hidN)pt.push(EM.hidN+" tidak akan dikirim ("+Object.keys(EM.hidWhy).map(function(k){return EM.hidWhy[k]>1||Object.keys(EM.hidWhy).length>1?EM.hidWhy[k]+" "+k:k}).join(", ")+")");
     if($("emnq").checked)pt.push("menampilkan yang belum masuk antrean saja");
     info.textContent=pt.join(" · ");info.hidden=false;
     list.innerHTML=v.map(function(x){
