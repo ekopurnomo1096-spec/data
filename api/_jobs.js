@@ -170,10 +170,10 @@ function shortDate() { // "3 Nov" dalam WIB, sama dengan catatan otomatis di hal
 // MX yang belum bisa dipastikan (undefined) tidak dianggap gagal, jadi dicoba lagi di jalan berikutnya.
 async function noContact(l, deadline) {
   if (l.wa) return false;
-  const mails = [...(l.emails || []), l.email].map(tidyEmail).filter(e => M.EMAIL.test(e) && FREE.test(e));
-  if (!mails.length) return true;
-  const mx = await M.mxCheck(mails.map(M.domainOf), deadline);
-  return mails.every(e => mx.get(M.domainOf(e)) === false);
+  const to = freeEmail(l); // sama persis dengan yang dipakai kirim email: email Gmail/Yahoo dkk pertama yang valid
+  if (!to) return true;
+  const mx = await M.mxCheck([M.domainOf(to)], deadline);
+  return mx.get(M.domainOf(to)) === false;
 }
 async function jobEnrich(cfg, ctx) {
   if (!cfg.enrich.on) return { skip: "nonaktif" };
