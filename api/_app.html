@@ -104,8 +104,7 @@ input::placeholder{color:var(--mute);opacity:.8}
 @media (min-width:761px){
   .tools:has(#emq) #emq{order:1}
   .tools:has(#emq) #emst{order:2;min-width:180px}
-  .tools:has(#emq)::after{content:"";order:3;flex-basis:100%;height:0}
-  .tools:has(#emq) .chk{order:4}
+  .tools:has(#emq)::after{display:none}
   .tools:has(#emq) .tbtns{order:5}
 }
 .dls{position:relative;display:inline-flex}
@@ -1072,7 +1071,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
   <div class="panel">
     <div class="svh">Daftar Penerima Prospek</div>
     <div class="tools">
-      <input type="search" class="q" id="emq" placeholder="Cari nama, alamat, atau email..." aria-label="Cari penerima">
+      <input type="search" class="q" id="emq" placeholder="Cari nama atau email..." aria-label="Cari penerima">
       <select id="emst" class="sortsel" hidden style="display:none" aria-label="Filter status prospek"><option value="baru" selected>Belum Dihubungi</option><option value="all">Semua Status</option><option value="chat">Sudah Dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak Cocok</option></select>
       <label class="chk" hidden style="display:none"><input type="checkbox" id="emnq"> Hanya yang belum di antrean</label>
       <div class="tbtns"><button class="ghost" id="emall" type="button">Pilih 20 Teratas</button><button class="ghost" id="emnone" type="button">Hapus Pilihan</button><button class="ghost" id="emenq" type="button" hidden style="display:none" title="Tambahkan prospek terpilih ke Antrean Persetujuan">Tambahkan ke Antrean</button></div>
@@ -2382,8 +2381,8 @@ function emCount(){
   var mine=EM.busy&&EM.who==="list";
   b.disabled=EM.busy||!n||!(EM.cfg&&EM.cfg.ready);b.setAttribute("aria-busy",mine?"true":"false");
   b.textContent=mine?"Mengirim…":"Kirim "+(n>1?n+" email":"email");
-  $("emsel").textContent=cap?n+" dipilih, maksimal "+cap+" sekali kirim.":"Kuota email hari ini habis. Reset jam 07.00 WIB.";
-  $("emall").textContent=cap?"Pilih "+cap+" pertama":"Pilih penerima";$("emall").disabled=!cap;
+  $("emsel").textContent=cap?n+" dipilih (maks. "+cap+")":"Kuota email hari ini habis. Reset jam 07.00 WIB.";
+  $("emall").textContent=cap?"Pilih "+cap+" teratas":"Pilih penerima";$("emall").disabled=!cap;
 }
 function shortDate(ms){return new Date(ms).toLocaleDateString("id-ID",{day:"numeric",month:"short"})}
 function renderHist(){
@@ -2423,12 +2422,12 @@ function renderMail(){
   Object.keys(EM.sel).forEach(function(k){if(!vis[k])delete EM.sel[k]});
   selIds().slice(emCap()).forEach(function(k){delete EM.sel[k]});
   if(!v.length){
-    info.textContent=!AU.st?"Memuat antrean…":($("emq").value.trim()?"Tidak ada prospek di antrean yang cocok dengan pencarian ini.":"Antrean masih kosong. Prospek yang lolos aturan otomatis akan masuk di sini.");
+    info.textContent=!AU.st?"Memuat antrean…":($("emq").value.trim()?"Tidak ada yang cocok.":"Antrean masih kosong.");
     info.hidden=false;list.hidden=true;
   }else{
     emWhyLoad();
     var QI=queuedIds(),nq=v.filter(function(x){return QI[x.id]}).length;
-    var pt=[EM.allN+" prospek di antrean (sama dengan Antrean Persetujuan)"];
+    var pt=[EM.allN+" prospek di antrean"];
     info.textContent=pt.join(" · ");info.hidden=false;
     list.innerHTML=v.map(function(x){
       var s=EM.sent[x.id],sc=ruleScore(x),why=sc.neg.concat(sc.why).slice(0,4),stt=s?"chat":(stOf(x)||"baru");
