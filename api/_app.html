@@ -988,7 +988,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
   </div>
   </div>
   <div id="slot1"><div id="resbox">
-  <div class="status" id="status" aria-live="polite"><p class="info">Pilih negara dan kota target, lalu klik Cari Prospek. Data dapat difilter dan diekspor.</p></div>
+  <div class="status" id="status" aria-live="polite"></div>
   <div id="res" hidden>
     <div class="stats" id="stats"></div>
     <p class="meta" id="cinfo" hidden></p>
@@ -2898,7 +2898,7 @@ function auSwitch(){
   var rb=$("aurun"),PZMSG="Dijeda. Lanjutkan terlebih dahulu dengan tombol geser di atas.";
   rb.disabled=pz||!!AU.busy;rb.title=pz?"Sedang dijeda":"";
   var rm=$("aurunmsg");if(pz&&!AU.busy)rm.textContent=PZMSG;else if(rm.textContent===PZMSG)rm.textContent="";
-  $("ausub").textContent=run?"Tugas otomatis sedang diproses, bisa sampai 1 menit.":(pz?"Kirim, follow-up, dan tugas otomatis berhenti, namun antrean tetap terisi dari pencarian manual. Geser ke kanan untuk melanjutkan.":"Berjalan otomatis setiap hari sekitar pukul 01.00 WIB. Geser ke kiri untuk menjeda semuanya.");
+  $("ausub").textContent=run?"Tugas otomatis sedang diproses, bisa sampai 1 menit.":(pz?"Kirim, follow-up, dan tugas otomatis berhenti, namun antrean tetap terisi dari pencarian manual. Geser ke kanan untuk melanjutkan.":"Berjalan otomatis setiap hari sekitar pukul 22.00 WIB. Geser ke kiri untuk menjeda semuanya.");
 }
 function auStatus(){
   var s=AU.st,f=s.flags||{},m=s.mail||{},c=s.counts||{},q=s.seq||{},t=[],b=[];

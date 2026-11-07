@@ -1,1 +1,1 @@
-{"functions":{"api/*.js":{"maxDuration":60}},"crons":[{"path":"/api/auto?a=cron","schedule":"0 18 * * *"}],"rewrites":[{"source":"/((?!api/).*)","destination":"/api/app"}]}
+{"functions":{"api/*.js":{"maxDuration":60}},"crons":[{"path":"/api/auto?a=cron","schedule":"0 15 * * *"}],"rewrites":[{"source":"/((?!api/).*)","destination":"/api/app"}]}

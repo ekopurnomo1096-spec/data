@@ -167,7 +167,7 @@ Arsitektur otomasi dirancang modular dan dieksekusi melalui endpoint /api/auto?a
 yang dijadwalkan via Vercel Cron.
 
 6.1 Penjadwalan:
-  - vercel.json mengeksekusi cron setiap hari pukul 18:00 UTC / 01:00 WIB ("0 18 * * *").
+  - vercel.json mengeksekusi cron setiap hari pukul 15:00 UTC / 22:00 WIB ("0 15 * * *").
   - Fitur "Jalankan Otomasi Sekarang" memungkinkan pemicuan seluruh tugas secara langsung 
     dengan batas waktu eksekusi hingga 60 detik.
 
