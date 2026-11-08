@@ -2,6 +2,9 @@
 const dns = require("dns").promises;
 const { isIP } = require("net");
 const BAD = /\.(png|jpe?g|gif|svg|webp|css|js|woff2?)$|^x{2,}@|@x{2,}\.|\.x{3,}$|@address\.[a-z]+$|sentry|wixpress|example\.|domain\.com|your(name|email)|@2x|noreply|no-reply|^(you|your|yours|name|yourname|youremail|email|user|username|test|tester|someone|johndoe|janedoe|nama|emailanda|anda)@|@(yoursite|yourdomain|mysite|mydomain|site|website|company|email|test)\.[a-z]+$/i;
+// Hanya email dari penyedia gratis (Gmail dkk.) yang diambil. Email berdomain sendiri (mis. info@salonku.de) sengaja dibuang.
+const FREE = /^(gmail\.com|googlemail\.com|ymail\.com|rocketmail\.com|icloud\.com|me\.com|mac\.com|aol\.com|proton\.me|protonmail\.com|pm\.me|web\.de|t-online\.de|freenet\.de|arcor\.de|mail\.com|zoho\.com|yandex\.(com|ru)|(yahoo|hotmail|outlook|live|msn|gmx)\.[a-z]{2,3}(\.[a-z]{2})?)$/i;
+const freeMail = e => FREE.test(String(e).split("@")[1] || "");
 const WA = /(?:wa\.me\/|(?:api|web)\.whatsapp\.com\/send\/?\?(?:[^"'\s>]*?&(?:amp;)?)?phone=)\+?(\d{8,15})/gi;
 const PATHS = ["/contact", "/contact-us", "/pages/contact", "/pages/contact-us", "/kontak", "/contacts", "/about", "/about-us"];
 const MAXPAGES = 6; // paling banyak halaman yang dicek per website
@@ -105,7 +108,6 @@ async function findContacts(url, deadline) {
   try { base = new URL(u); } catch (e) { throw fail("url tidak valid"); }
   if (blocked(base.hostname)) throw fail("alamat tidak diizinkan");
 
-  const root = base.hostname.replace(/^www\./, "");
   const found = new Set();
   const wa = new Set();
   let queue = [base.href], seen = new Set(), failed = false, n = 0;
@@ -125,10 +127,10 @@ async function findContacts(url, deadline) {
     (text.match(/mailto:([^"'?>\s]+)/gi) || []).forEach(m => addEmail(m.slice(7)));
     (text.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g) || []).forEach(addEmail);
     for (const m of text.matchAll(WA)) wa.add(m[1]);
-    if ([...found].some(e => !BAD.test(e)) && wa.size) break;
+    if ([...found].some(e => !BAD.test(e) && freeMail(e)) && wa.size) break;
   }
-  const score = e => (e.endsWith("@" + root) || e.endsWith("." + root) ? 0 : 2) + (/^(info|contact|hello|sales|enquiries|admin|cs)@/.test(e) ? 0 : 1);
-  const emails = [...found].filter(e => !BAD.test(e)).sort((a, b) => score(a) - score(b)).slice(0, 3);
+  const score = e => /^(info|contact|hello|sales|enquiries|admin|cs)@/.test(e) ? 0 : 1;
+  const emails = [...found].filter(e => !BAD.test(e) && freeMail(e)).sort((a, b) => score(a) - score(b)).slice(0, 3);
   return { emails, whatsapp: [...wa].slice(0, 2), failed };
 }
 

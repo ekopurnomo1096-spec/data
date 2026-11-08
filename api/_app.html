@@ -2147,7 +2147,10 @@ $("scdx").onclick=function(){$("scd").close()};
 $("scd").onclick=function(e){if(e.target===this)this.close()};
 $("aids").onclick=function(){$("aid").close();openSet()};
 $("findall").onclick=async function(){
-  var b=this,all=view(),list=all.filter(function(x){return x.id&&x.website&&!x.looked});
+  var b=this,all=view(),FREEM=/^(gmail\.com|googlemail\.com|ymail\.com|rocketmail\.com|icloud\.com|me\.com|mac\.com|aol\.com|proton\.me|protonmail\.com|pm\.me|web\.de|t-online\.de|freenet\.de|arcor\.de|mail\.com|zoho\.com|yandex\.(com|ru)|(yahoo|hotmail|outlook|live|msn|gmx)\.[a-z]{2,3}(\.[a-z]{2})?)$/i;
+  // email lama berdomain sendiri (hasil pencarian sebelum aturan "hanya Gmail dkk.") dicek ulang supaya terbuang
+  function ownMail(x){var a=(x.emails&&x.emails.length)?x.emails:(x.email?[x.email]:[]);return a.some(function(e){return !FREEM.test(String(e).split("@")[1]||"")})}
+  var list=all.filter(function(x){return x.id&&x.website&&(!x.looked||ownMail(x))});
   var T="Cari Email & Whatsapp";
   var nos=all.filter(function(x){return x.id&&!x.website&&!x.looked}); // tanpa website tidak ada yang dicek, langsung dianggap selesai supaya dapat skor
   var pl=all.filter(function(x){return x.id}),tp=pl.length,tw=pl.filter(function(x){return x.website}).length;
@@ -2187,15 +2190,15 @@ $("findall").onclick=async function(){
       var x=list[idx++],g={n:x.name||x.website,st:"run"};
       LG.push(g);if(!stop)upd();
       try{
-        var r=await fetch("/api/usage?a=email&url="+encodeURIComponent(x.website));
+        var r=await fetch("/api/usage?a=email&url="+encodeURIComponent(x.website),x.looked?{cache:"reload"}:undefined);
         if(r.status===401){stop=true;return}
         if(!r.ok)throw 0;
         var j=await r.json(),m=j.emails||[],w=(j.whatsapp||[])[0];
         x.looked=true;
-        if(m.length){x.emails=m;x.email=m[0]}
+        x.emails=m;x.email=m[0]||"";
         if(w)x.wa=w;
-        x.found=!!(m.length||w);
-        g.em=!!m.length;g.wa=!!w;
+        x.found=hasC(x);
+        g.em=!!m.length;g.wa=!!x.wa;
         if(x.found){got++;g.st="ok"}else{none++;g.st="none"}
         pend.push(saveLead(x,{},true)); // semua yang sudah dicek disimpan (juga yang kosong atau website yang tidak bisa dibuka), supaya tidak dicek ulang setelah reload
       }catch(e){if(g.st==="run"){g.st="fail";fail++}}
