@@ -2,9 +2,9 @@
 const dns = require("dns").promises;
 const { isIP } = require("net");
 const BAD = /\.(png|jpe?g|gif|svg|webp|css|js|woff2?)$|^x{2,}@|@x{2,}\.|\.x{3,}$|@address\.[a-z]+$|sentry|wixpress|example\.|domain\.com|your(name|email)|@2x|noreply|no-reply|^(you|your|yours|name|yourname|youremail|email|user|username|test|tester|someone|johndoe|janedoe|nama|emailanda|anda)@|@(yoursite|yourdomain|mysite|mydomain|site|website|company|email|test)\.[a-z]+$/i;
-// Hanya email dari penyedia gratis (Gmail dkk.) yang diambil. Email berdomain sendiri (mis. info@salonku.de) sengaja dibuang.
-const FREE = /^(gmail\.com|googlemail\.com|ymail\.com|rocketmail\.com|icloud\.com|me\.com|mac\.com|aol\.com|proton\.me|protonmail\.com|pm\.me|web\.de|t-online\.de|freenet\.de|arcor\.de|mail\.com|zoho\.com|yandex\.(com|ru)|(yahoo|hotmail|outlook|live|msn|gmx)\.[a-z]{2,3}(\.[a-z]{2})?)$/i;
-const freeMail = e => FREE.test(String(e).split("@")[1] || "");
+// Hanya email penyedia gratis (Gmail dkk.) yang diambil, memakai daftar FREE yang sama dengan tab Email dan antrean persetujuan (_score.js). Email berdomain sendiri dibuang.
+const { FREE } = require("./_score");
+const freeMail = e => FREE.test(String(e));
 const WA = /(?:wa\.me\/|(?:api|web)\.whatsapp\.com\/send\/?\?(?:[^"'\s>]*?&(?:amp;)?)?phone=)\+?(\d{8,15})/gi;
 const PATHS = ["/contact", "/contact-us", "/pages/contact", "/pages/contact-us", "/kontak", "/contacts", "/about", "/about-us"];
 const MAXPAGES = 6; // paling banyak halaman yang dicek per website

@@ -2147,9 +2147,9 @@ $("scdx").onclick=function(){$("scd").close()};
 $("scd").onclick=function(e){if(e.target===this)this.close()};
 $("aids").onclick=function(){$("aid").close();openSet()};
 $("findall").onclick=async function(){
-  var b=this,all=view(),FREEM=/^(gmail\.com|googlemail\.com|ymail\.com|rocketmail\.com|icloud\.com|me\.com|mac\.com|aol\.com|proton\.me|protonmail\.com|pm\.me|web\.de|t-online\.de|freenet\.de|arcor\.de|mail\.com|zoho\.com|yandex\.(com|ru)|(yahoo|hotmail|outlook|live|msn|gmx)\.[a-z]{2,3}(\.[a-z]{2})?)$/i;
+  var b=this,all=view(),FREEM=/@(gmail|googlemail|yahoo|ymail|rocketmail|outlook|hotmail|live|msn|icloud|me|aol|proton|protonmail|gmx|mail|zoho)\.[a-z.]+$/i;
   // email lama berdomain sendiri (hasil pencarian sebelum aturan "hanya Gmail dkk.") dicek ulang supaya terbuang
-  function ownMail(x){var a=(x.emails&&x.emails.length)?x.emails:(x.email?[x.email]:[]);return a.some(function(e){return !FREEM.test(String(e).split("@")[1]||"")})}
+  function ownMail(x){var a=(x.emails&&x.emails.length)?x.emails:(x.email?[x.email]:[]);return a.some(function(e){return !FREEM.test(String(e))})}
   var list=all.filter(function(x){return x.id&&x.website&&(!x.looked||ownMail(x))});
   var T="Cari Email & Whatsapp";
   var nos=all.filter(function(x){return x.id&&!x.website&&!x.looked}); // tanpa website tidak ada yang dicek, langsung dianggap selesai supaya dapat skor
