@@ -304,7 +304,7 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 .svc .sm .svd{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin-top:8px}
 .svc .svd i{font-style:normal}
 .svc .cx{color:var(--mute)}
-.aib{display:inline-block;vertical-align:1px;margin-left:6px;padding:0 7px;border-radius:99px;font-size:.72rem;font-weight:700;line-height:1.55;border:1px solid var(--err);color:var(--err);background:var(--errbg);cursor:help}
+.aib{display:inline-block;vertical-align:1px;margin-left:6px;padding:0 7px;border-radius:99px;font-size:.72rem;font-weight:700;line-height:1.55;border:1px solid var(--err);color:var(--err);background:var(--errbg);cursor:pointer}
 .aib.hi{background:var(--accsoft);border-color:var(--acc);color:var(--acc)}
 .aib.mid{background:transparent;border-color:var(--star);color:var(--star)}
 .aiwarn{color:var(--err);font-size:.86rem;margin:8px 0 0}
@@ -420,6 +420,20 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .aidx[hidden]{display:none}
 .aidx svg{width:18px;height:18px}
 #aid .dr{margin-top:6px}
+/* Jendela rincian skor */
+#scd{width:min(380px,calc(100vw - 24px))}
+#scdbody{padding:22px 48px 22px 22px}
+#scdbody h2{font:600 1.05rem/1.35 "Inter",system-ui,sans-serif;margin:0}
+#scdbody .scn{margin:2px 0 0;color:var(--mute);font-size:.86rem;overflow-wrap:anywhere}
+#scdbody h3{font:600 .78rem/1.4 "Inter",system-ui,sans-serif;margin:16px 0 4px;color:var(--mute)}
+#scdbody ul{margin:0;padding:0;list-style:none}
+#scdbody li{padding:6px 0;border-bottom:1px solid var(--soft);font-size:.9rem}
+#scdbody li:last-child{border-bottom:0}
+#scdbody li.neg{color:var(--err)}
+#scdbody .sch2{margin:14px 0 0;color:var(--mute);font-size:.8rem;line-height:1.5}
+.scb{cursor:pointer}
+.scb:hover,.aib[data-why]:hover{filter:brightness(.96)}
+.scb:focus-visible,.aib[data-why]:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 #aid.ai-run .acts{display:none}
 #aid.ai-run #aidbody{padding-bottom:24px}
 .aup input[type=number],.aup textarea{width:100%;font:inherit;font-size:.92rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:0 12px;height:42px}
@@ -1149,6 +1163,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
   <div class="aipb" id="aidpb"><i id="aidbar"></i></div>
   <div class="acts" id="aida"><button class="btn" id="aids" type="button" hidden>Buka Pengaturan</button></div>
 </div><button id="aidx" class="aidx" type="button" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></dialog>
+<dialog id="scd" aria-label="Rincian skor"><div id="scdbody"></div><button id="scdx" class="aidx" type="button" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></dialog>
 <dialog id="maild" aria-label="Kirim email"><div id="mbody">
   <div class="dh"><div><h2 id="mt">Kirim Email Penawaran</h2><p class="dr" id="msub"></p></div><button class="x" id="mx" type="button" aria-label="Tutup">✕</button></div>
   <div class="sf f"><label for="msj">Subjek Email</label><input type="text" id="msj" maxlength="200"></div>
@@ -2035,7 +2050,24 @@ function openD(x){curX=x;
 }
 var AI={};
 function aiCls(n){return n>=70?"hi":n>=40?"mid":"lo"}
-function aiBadge(x){var a=ruleScore(x);return"<span class='aib "+aiCls(a.s)+"' title='"+esc(a.why.join(", "))+"'>"+a.s+"</span>"}
+function aiBadge(x){var a=ruleScore(x);return"<span class='aib "+aiCls(a.s)+"' role='button' tabindex='0' data-sc='"+a.s+"' data-nm='"+esc(x.name||"")+"' data-why='"+esc(JSON.stringify(a.why))+"' title='"+esc(a.why.join(", "))+"'>"+a.s+"</span>"}
+// Pil skor yang bisa diklik. Alasannya dibuka di jendela kecil supaya baris email tetap bersih, juga di HP.
+function scPill(n,why,nm){return"<em class='mtag pl scb sc-"+aiCls(n)+"' role='button' tabindex='0' data-sc='"+n+"' data-nm='"+esc(nm||"")+"' data-why='"+esc(JSON.stringify(why||[]))+"' aria-label='Lihat rincian skor "+n+"'>skor "+n+"</em>"}
+var SCNEG=/^(jaringan|bukan bisnis|email tidak|rating rendah|hampir tanpa|website hanya)/;
+function scOpen(el){
+  var n=el.getAttribute("data-sc"),nm=el.getAttribute("data-nm")||"",w=[];
+  try{w=JSON.parse(el.getAttribute("data-why")||"[]")}catch(e){}
+  function up(t){t=String(t);return t.charAt(0).toUpperCase()+t.slice(1)}
+  function ul(a,c){return"<ul>"+a.map(function(t){return"<li"+(c?" class='"+c+"'":"")+">"+esc(up(t))+"</li>"}).join("")+"</ul>"}
+  var pos=w.filter(function(t){return!SCNEG.test(t)}),neg=w.filter(function(t){return SCNEG.test(t)});
+  var h="<h2>Skor "+esc(n)+" dari 100</h2>"+(nm?"<p class='scn'>"+esc(nm)+"</p>":"");
+  if(pos.length)h+="<h3>Menambah skor</h3>"+ul(pos);
+  if(neg.length)h+="<h3>Mengurangi skor</h3>"+ul(neg,"neg");
+  if(!pos.length&&!neg.length)h+="<p class='sch2'>Belum ada alasan yang tercatat untuk skor ini.</p>";
+  h+="<p class='sch2'>Skor naik kalau email atau WhatsApp ditemukan. Bobotnya bisa diubah di pengaturan Skor Prospek.</p>";
+  $("scdbody").innerHTML=h;
+  if(!$("scd").open)$("scd").showModal();
+}
 function loadAI(){fetch("/api/ai").then(function(r){if(r.status===401)throw 0;return r.json()}).then(function(j){AI=j.items||{};if(!$("res").hidden)render()}).catch(function(){})}
 function aiPost(body){
   return fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){
@@ -2056,6 +2088,11 @@ function aidShow(st,title,msg,pct){
 }
 $("aid").addEventListener("cancel",function(e){if(this.classList.contains("ai-run"))e.preventDefault()});
 $("aidx").onclick=function(){$("aid").close()};
+// Klik skor membuka rincian alasan. Fase capture supaya tidak ikut mencentang baris atau membuka detail tempat.
+document.addEventListener("click",function(e){var t=e.target.closest&&e.target.closest(".scb,.aib[data-why]");if(!t)return;e.preventDefault();e.stopPropagation();scOpen(t)},true);
+document.addEventListener("keydown",function(e){if(e.key!=="Enter"&&e.key!==" ")return;var t=e.target;if(!t||!t.matches||!t.matches(".scb,.aib[data-why]"))return;e.preventDefault();e.stopPropagation();scOpen(t)},true);
+$("scdx").onclick=function(){$("scd").close()};
+$("scd").onclick=function(e){if(e.target===this)this.close()};
 $("aids").onclick=function(){$("aid").close();openSet()};
 $("findall").onclick=async function(){
   var b=this,all=view(),list=all.filter(function(x){return x.id&&x.website&&!x.looked});
@@ -2427,8 +2464,8 @@ function renderMail(){
     var pt=[EM.allN+" prospek di antrean"];
     info.textContent=pt.join(" · ");info.hidden=false;
     list.innerHTML=v.map(function(x){
-      var s=EM.sent[x.id],sc=ruleScore(x),why=sc.neg.concat(sc.why).slice(0,4),stt=s?"chat":(stOf(x)||"baru");
-      return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+(why.length?" · "+esc(why.join(", ")):"")+(!QI[x.id]&&!s&&EM.why&&EM.why[x.id]?"<br><span style='color:#b45309'>Belum masuk antrean: "+esc(EM.why[x.id])+"</span>":"")+"</small></span><em class='mtag pl sc-"+aiCls(sc.s)+"'>skor "+sc.s+"</em>"+(QI[x.id]&&!s?"<em class='mtag pl'>Di antrean</em>":"")+(stt==="baru"?"":"<em class='mtag pl st-"+stt+"'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em>")+"</label>";
+      var s=EM.sent[x.id],sc=ruleScore(x),stt=s?"chat":(stOf(x)||"baru");
+      return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"'"+(EM.sel[x.id]?" checked":"")+">"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>"+esc(pickMail(x))+(!QI[x.id]&&!s&&EM.why&&EM.why[x.id]?"<br><span style='color:#b45309'>Belum masuk antrean: "+esc(EM.why[x.id])+"</span>":"")+"</small></span>"+scPill(sc.s,sc.why,x.name)+(QI[x.id]&&!s?"<em class='mtag pl'>Di antrean</em>":"")+(stt==="baru"?"":"<em class='mtag pl st-"+stt+"'>"+(s?"Terkirim "+esc(shortDate(s.t)):esc(stLabel(stOf(x))))+"</em>")+"</label>";
     }).join("");
     list.hidden=false;
   }
@@ -2740,7 +2777,7 @@ function waRender(){
   var box=$("walist");box.hidden=!shown.length;
   box.innerHTML=shown.map(function(x,i){
     var w=waOf(x),s=stOf(x),sc=ruleScore(x);
-    return"<div class='mrow klk' tabindex='0' data-wr='"+i+"'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>+"+esc(w.n)+(x.address?" \u00b7 "+esc(x.address):"")+"</small></span><em class='mtag pl sc-"+aiCls(sc.s)+"'>skor "+sc.s+"</em>"+waSel(x,"  data-wi='"+i+"'")+"<button class='btn primary' type='button' data-i='"+i+"'>Buka WhatsApp</button></div>";
+    return"<div class='mrow klk' tabindex='0' data-wr='"+i+"'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>+"+esc(w.n)+(x.address?" \u00b7 "+esc(x.address):"")+"</small></span>"+scPill(sc.s,sc.why,x.name)+waSel(x,"  data-wi='"+i+"'")+"<button class='btn primary' type='button' data-i='"+i+"'>Buka WhatsApp</button></div>";
   }).join("");
 }
 $("walist").addEventListener("click",function(e){
@@ -2972,14 +3009,14 @@ function auQueue(){
     h+="<p class='info'>"+(cfg.mail.on?"Tidak ada prospek yang menunggu persetujuan. Antrean terisi setiap kali pekerjaan otomatis berjalan.":"Kirim otomatis belum aktif. Aktifkan di Pengaturan otomatis di bawah.")+"</p>";
   }else{
     h+="<div class='mlist aulist'>"+pend.map(function(x){
-      return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"' checked>"+thumb({name:x.name||x.to,thumbnail:x.thumbnail})+"<span><b>"+esc(x.name||x.to)+"</b><small>"+esc(x.to)+(x.why&&x.why.length?" · "+esc(x.why.join(", ")):"")+"</small></span><em class='mtag pl sc-"+aiCls(x.sc||0)+"'>skor "+(x.sc||0)+"</em></label>";
+      return"<label class='mrow klk' data-lid='"+esc(x.id)+"'><input type='checkbox' data-id='"+esc(x.id)+"' checked>"+thumb({name:x.name||x.to,thumbnail:x.thumbnail})+"<span><b>"+esc(x.name||x.to)+"</b><small>"+esc(x.to)+"</small></span>"+scPill(x.sc||0,x.why,x.name||x.to)+"</label>";
     }).join("")+"</div>";
     h+="<div class='eacts'><button class='ghost' id='auqall' type='button'>Pilih semua</button><button class='ghost' id='auqnone' type='button'>Kosongkan</button><span class='sp'></span><button class='ghost' id='auqno' type='button'>Tolak terpilih</button><button class='btn primary' id='auqok' type='button'>Setujui terpilih</button></div>";
   }
   if(ok.length){
     h+="<p class='hint2'>"+ok.length+" prospek sudah disetujui dan menunggu giliran kirim (sesuai batas harian dan sisa kuota Resend). Urut dari skor tertinggi.</p>";
     h+="<div class='mlist aulist rd'>"+ok.map(function(x){
-      return"<div class='mrow klk' tabindex='0' data-lid='"+esc(x.id)+"'>"+thumb({name:x.name||x.to,thumbnail:x.thumbnail})+"<span><b>"+esc(x.name||x.to)+"</b><small>"+esc(x.to)+(x.why&&x.why.length?" · "+esc(x.why.join(", ")):"")+"</small></span><em class='mtag pl sc-"+aiCls(x.sc||0)+"'>skor "+(x.sc||0)+"</em></div>";
+      return"<div class='mrow klk' tabindex='0' data-lid='"+esc(x.id)+"'>"+thumb({name:x.name||x.to,thumbnail:x.thumbnail})+"<span><b>"+esc(x.name||x.to)+"</b><small>"+esc(x.to)+"</small></span>"+scPill(x.sc||0,x.why,x.name||x.to)+"</div>";
     }).join("")+"</div>";
   }
   $("auq").innerHTML=h;$("auqn").textContent=pend.length?"("+pend.length+" menunggu)":"";
