@@ -2181,7 +2181,9 @@ $("findall").onclick=async function(){
   function rowsAll(){var a=LG.filter(function(g){return !flt||g.st===flt});return a.length?a.slice().reverse().map(rowH).join(""):flt?"<div class='r e'>Belum ada tempat di kategori ini</div>":""}
   function stx(){return[["Punya kontak",got,1,"ok",flt==="ok"],["Tanpa kontak",none,0,"none",flt==="none"],["Tidak terbuka",fail,0,"fail",flt==="fail"]]}
   function upd(){var t=top;top=false;aidShow("run",T,"Mengecek "+done+" dari "+tot+" website…",done/tot*100,{sub:sub,stats:stx(),list:rowsAll(),top:t})}
-  function endMsg(){return"Dari "+tp+" tempat, "+tw+" punya website."+(tot<tw?" "+tot+" website dicek sekarang.":"")+" "+got+" tempat punya email atau WhatsApp."+(got?" Tempat itu sudah tersimpan ke Prospek Saya.":"")}
+  function endMsg(){ // angka di bawah (Punya kontak / Tanpa kontak / Tidak terbuka) hanya untuk website yang dicek sekarang; total semua tempat dijelaskan terpisah
+    var all=pl.filter(function(x){return x.website&&hasC(x)}).length;
+    return"Dari "+tp+" tempat, "+tw+" punya website. "+tot+" website dicek sekarang"+(tot<tw?" ("+(tw-tot)+" lainnya sudah dicek sebelumnya)":"")+". Hasil pengecekan ini: "+got+" punya email atau WhatsApp"+(got?", sudah tersimpan ke Prospek Saya":"")+". Total dari semua "+tp+" tempat di tampilan ini: "+all+" punya kontak."}
   function endDraw(){aidShow("ok","Selesai",endMsg(),100,{stats:stx(),list:rowsAll(),top:true})}
   $("aidst").onclick=function(e){var k=e.target.closest&&e.target.closest("button[data-k]");if(!k)return;touched=true;flt=flt===k.getAttribute("data-k")?null:k.getAttribute("data-k");if(fin)endDraw();else{top=true;upd()}};
   upd();
