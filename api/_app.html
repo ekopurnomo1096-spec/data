@@ -145,6 +145,7 @@ svg{flex:none;width:15px;height:15px;vertical-align:-2px;margin-right:6px;color:
 .pt{white-space:nowrap}
 .hint{color:var(--mute);font-size:.78rem;margin-left:4px}
 .nmw{display:flex;gap:12px;align-items:flex-start}
+.nmw>.no{flex:none;min-width:1.6em;padding-top:3px;text-align:right;color:var(--mute);font-size:.78rem;font-weight:600;font-variant-numeric:tabular-nums}
 .th{position:relative;flex:none;width:44px;height:44px;border-radius:8px;background:var(--accsoft);color:var(--acc);display:grid;place-items:center;font-weight:600;overflow:hidden}
 .th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .th.zoom{cursor:zoom-in;transition:transform .12s,box-shadow .12s}
@@ -203,6 +204,7 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
  td[data-l]::before{content:attr(data-l);flex:none;width:64px;color:var(--mute);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
  td.nm{display:block}
  td.nm::before{display:none}
+ td.nn{display:none}
  .num{text-align:left}
  .clip{max-width:none;white-space:normal}
  td[data-l]{position:relative;padding-left:36px;align-items:center}
@@ -312,13 +314,16 @@ dialog::backdrop{background:rgba(20,25,22,.5)}
 @media (min-width:761px){
  table{min-width:0}
  th,td{padding-left:8px;padding-right:8px}
- th:nth-child(1),td:nth-child(1){width:27%;min-width:210px}
- th:nth-child(2),td:nth-child(2){width:134px;white-space:nowrap}
- th:nth-child(3),td:nth-child(3),th:nth-child(4),td:nth-child(4){width:56px}
+ th:nth-child(1),td:nth-child(1){width:44px;min-width:0}
+ th:nth-child(2),td:nth-child(2){width:27%;min-width:210px}
+ th:nth-child(3),td:nth-child(3){width:134px;white-space:nowrap}
+ th:nth-child(4),td:nth-child(4),th:nth-child(5),td:nth-child(5){width:56px}
+ th.nn,td.nn{text-align:right;color:var(--mute);font-size:.82rem;font-weight:600;font-variant-numeric:tabular-nums}
+ .nmw>.no{display:none}
  .stsel{min-width:124px}
  td.clip{max-width:135px}
  td{vertical-align:middle}
- th:nth-child(3),td:nth-child(3){width:66px}
+ th:nth-child(4),td:nth-child(4){width:66px}
  th.num,td.num{text-align:left}
  td[data-l='Status']>svg,td[data-l='Ulasan']>svg{display:none}
 }
@@ -1063,6 +1068,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
     <p class="meta" id="shown"></p>
     <div class="tw"><table>
       <thead><tr>
+        <th class="nn">No</th>
         <th data-k="name" aria-sort="none"><button type="button">Nama Bisnis</button></th>
         <th data-k="status" aria-sort="none"><button type="button">Status</button></th>
         <th class="num" data-k="rating" aria-sort="none"><button type="button">Rating</button></th>
@@ -1647,11 +1653,11 @@ function render(){
     if(!grouped)return"";
     var g=x.grp||"Lainnya";if(g===lastG)return"";
     lastG=g;
-    return"<tr class='grp'><td colspan='8'><b>"+esc(g)+"</b><span>"+gm[g].length+" tempat</span></td></tr>";
+    return"<tr class='grp'><td colspan='9'><b>"+esc(g)+"</b><span>"+gm[g].length+" tempat</span></td></tr>";
   }
-  $("tb").innerHTML=r.length?r.map(function(x){
+  $("tb").innerHTML=r.length?r.map(function(x,ix){
     var ph=x.phone?x.phone.split(/[;,]/)[0].trim():"",site=x.website?href(x.website):"",sc=score(x);
-    return gHead(x)+"<tr class='clk' tabindex='0' data-i='"+rows.indexOf(x)+"'><td class='nm'><div class='nmw'>"+thumb(x)+"<div><b>"+esc(x.name)+aiBadge(x)+"</b><small>"+(x.address?esc(x.address):"Alamat belum diisi")+"</small>"+noteLine(x)+"</div></div></td>"
+    return gHead(x)+"<tr class='clk' tabindex='0' data-i='"+rows.indexOf(x)+"'><td class='nn'>"+(ix+1)+"</td><td class='nm'><div class='nmw'><span class='no' aria-label='Nomor "+(ix+1)+"'>"+(ix+1)+"</span>"+thumb(x)+"<div><b>"+esc(x.name)+aiBadge(x)+"</b><small>"+(x.address?esc(x.address):"Alamat belum diisi")+"</small>"+noteLine(x)+"</div></div></td>"
       +stCell(x)
       +"<td class='num' data-l='Rating'>"+(x.rating?IC.star+esc(x.rating):IC.star+NA)+"</td>"
       +"<td class='num' data-l='Ulasan'>"+(x.reviews?IC.rev+esc(x.reviews):IC.rev+NA)+"</td>"
@@ -1659,7 +1665,7 @@ function render(){
       +"<td class='clip' data-l='Email'>"+(x.email?IC.mail+"<a class='lk' href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>":IC.mail+NA)+"</td>"
       +"<td class='clip' data-l='Website'>"+(site?IC.web+"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":IC.web+NA)+"</td>"
       +"<td class='pt' data-l='Peta'>"+(x.osm?IC.pin+"<a class='lk' href='"+esc(mapUrl(x.osm,x.name,x.address))+"' target='_blank' rel='noopener'>Buka</a>":IC.pin+NA)+"</td></tr>";
-  }).join(""):"<tr><td colspan='8'><p class='info'>Tidak ada tempat yang cocok dengan filter. Ubah atau matikan filter untuk melihat semuanya.</p></td></tr>";
+  }).join(""):"<tr><td colspan='9'><p class='info'>Tidak ada tempat yang cocok dengan filter. Ubah atau matikan filter untuk melihat semuanya.</p></td></tr>";
   syncSort();
   $("morebox").hidden=!(MORE&&lastQ!=="Prospek saya");
   $("res").hidden=false;
