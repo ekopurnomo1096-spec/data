@@ -818,7 +818,7 @@ async function sendDigest(cfg, base, force) {
   if (!force) { try { if ((await cmd(["HGET", AUTO, "digest"])) === M.today()) return { skip: "sudah terkirim hari ini" }; } catch (e) { /* kirim saja */ } }
   const d = await buildDigest(cfg, base);
   await M.sendNotice(n.to, d.subject, d.text, d.html);
-  try { await cmd(["HSET", AUTO, "digest", M.today()]); } catch (e) { /* abaikan */ }
+  if (!force) { try { await cmd(["HSET", AUTO, "digest", M.today()]); } catch (e) { /* abaikan */ } } // tes manual tidak boleh menandai "sudah terkirim", supaya laporan cron malam tetap jalan
   return { sent: true, to: n.to };
 }
 const JN = { mail: "Kirim", refresh: "Cari ulang", rotate: "Putaran kota", enrich: "Cari email", queue: "Antrean", clean: "Pembersihan" };
