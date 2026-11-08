@@ -1200,6 +1200,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
 <script>
 (function(){
 var $=function(i){return document.getElementById(i)};
+function mapUrl(u,name,addr){u=String(u||"");var m=u.match(/[?&]q=place_id:([^&\s]+)/);if(!m)return u;return "https://www.google.com/maps/search/?api=1&query_place_id="+m[1]+"&query="+encodeURIComponent(((name||"")+" "+(addr||"")).trim().slice(0,90));}
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function ic(p){return"<svg viewBox='0 0 24 24' width='19' height='19' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'>"+p+"</svg>"}
 var IC={tel:ic("<path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z'/>"),
@@ -1625,7 +1626,7 @@ function render(){
       +"<td class='clip' data-l='Telepon'>"+(ph?IC.tel+"<a class='lk' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+esc(ph)+"</a>":IC.tel+NA)+"</td>"
       +"<td class='clip' data-l='Email'>"+(x.email?IC.mail+"<a class='lk' href='mailto:"+esc(x.email)+"'>"+esc(x.email)+"</a>":IC.mail+NA)+"</td>"
       +"<td class='clip' data-l='Website'>"+(site?IC.web+"<a class='lk' href='"+esc(site)+"' target='_blank' rel='noopener'>"+esc(site.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""))+"</a>":IC.web+NA)+"</td>"
-      +"<td class='pt' data-l='Peta'>"+(x.osm?IC.pin+"<a class='lk' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>Buka</a>":IC.pin+NA)+"</td></tr>";
+      +"<td class='pt' data-l='Peta'>"+(x.osm?IC.pin+"<a class='lk' href='"+esc(mapUrl(x.osm,x.name,x.address))+"' target='_blank' rel='noopener'>Buka</a>":IC.pin+NA)+"</td></tr>";
   }).join(""):"<tr><td colspan='8'><p class='info'>Tidak ada tempat yang cocok dengan filter. Ubah atau matikan filter untuk melihat semuanya.</p></td></tr>";
   syncSort();
   $("morebox").hidden=!(MORE&&lastQ!=="Prospek saya");
@@ -2040,7 +2041,7 @@ function openD(x){curX=x;
     +(ph?"<a class='btn' data-act='tel' href='tel:"+esc(ph.replace(/[^\d+]/g,""))+"'>"+IC.tel+"Telepon</a>":"")
     +(em.length?"<button class='btn' id='dsend' type='button'>"+IC.mail+"Kirim email</button>":"")
     +(site?"<a class='btn' href='"+esc(site)+"' target='_blank' rel='noopener'>"+IC.web+"Buka website</a>":"")
-    +(x.osm?"<a class='btn' href='"+esc(x.osm)+"' target='_blank' rel='noopener'>"+IC.pin+"Lihat di peta</a>":"")
+    +(x.osm?"<a class='btn' href='"+esc(mapUrl(x.osm,x.name,x.address))+"' target='_blank' rel='noopener'>"+IC.pin+"Lihat di peta</a>":"")
     +"</div>"
     +(x.looked&&!x.found?"<p class='dr' style='margin-top:12px'>Sudah dicek di website, namun tidak ada email atau WhatsApp yang ditemukan.</p>":"");
   $("dx").onclick=function(){$("dlg").close()};

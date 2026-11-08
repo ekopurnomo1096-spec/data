@@ -9,7 +9,7 @@ const alnum = s => norm(s).replace(/ /g, "");
 
 function placeKey(osm) {
   const u = String(osm || "");
-  let m = u.match(/place_id:([^&\s]+)/);
+  let m = u.match(/(?:place_id:|query_place_id=)([^&\s]+)/);
   if (m) return "g:" + m[1];
   m = u.match(/openstreetmap\.org\/(node|way|relation)\/(\d+)/);
   if (m) return "o:" + m[1] + "/" + m[2];

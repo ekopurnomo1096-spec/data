@@ -150,7 +150,8 @@ async function serpSearch(city, kind, key, start, ll) {
     thumbnail: r.thumbnail || "",
     rating: r.rating || null,
     reviews: r.reviews || null,
-    osm: r.place_id ? "https://www.google.com/maps/place/?q=place_id:" + r.place_id : ""
+    osm: r.place_id ? "https://www.google.com/maps/search/?api=1&query_place_id=" + encodeURIComponent(r.place_id) +
+      "&query=" + encodeURIComponent(((r.title || "") + " " + (r.address || "")).trim().slice(0, 90)) : ""
   })).filter(r => r.name);
   return { list, more, ll: llOut };
 }
