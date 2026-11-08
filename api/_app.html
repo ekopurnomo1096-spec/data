@@ -418,6 +418,28 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .aidx:focus{outline:none}
 .aidx:focus-visible{outline:2px solid var(--acc);outline-offset:0}
 .aidx[hidden]{display:none}
+#aid.ai-x{width:min(420px,calc(100vw - 24px))}
+#aid.ai-x #aidbody{padding:28px 24px 22px}
+.aisub{margin-top:4px;font-size:.8rem;color:var(--mute)}
+.aist{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:12px;font-size:.8rem}
+.aist span{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;background:var(--soft);color:var(--mute)}
+.aist b{font-weight:600;color:var(--ink)}
+.aist svg{width:14px;height:14px;color:var(--acc)}
+.aihint{margin-top:14px;font-size:.8rem;color:var(--mute)}
+.ail{margin-top:14px;border-top:1px solid var(--line);text-align:left}
+.ail.fx{height:222px;overflow:hidden}
+.ail .r{display:flex;align-items:center;gap:10px;height:37px;border-bottom:1px solid var(--line);font-size:.8rem}
+.ail .ic{flex:none;width:16px;display:flex;justify-content:center;color:var(--mute)}
+.ail .ic.ok{color:var(--acc)}
+.ail .ic svg{width:15px;height:15px}
+.ail .spin{width:14px;height:14px;border-width:2px}
+.ail .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.ail .nm.run{color:var(--mute)}
+.ail .tg{flex:none;display:flex;gap:4px;font-size:.72rem}
+.ail .tg>span{padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--mute)}
+.ail .tg>span.w{color:var(--warm)}
+.ail .tg>span.f{display:inline-flex;align-items:center;justify-content:center;width:26px;height:22px;padding:0;background:var(--accsoft);color:var(--acc)}
+.ail .tg>span.f svg{width:14px;height:14px}
 .aidx svg{width:18px;height:18px}
 #aid .dr{margin-top:6px}
 /* Jendela rincian skor */
@@ -1163,8 +1185,12 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
 <dialog id="dlg" aria-label="Detail tempat"><div id="dbody"></div></dialog>
 <dialog id="aid" aria-label="Penilaian AI"><div id="aidbody" tabindex="-1" autofocus>
   <div class="aidh"><span id="aidi" class="aidi"></span><h2 id="aidt">Kualifikasi Prospek dengan AI</h2></div>
+  <p class="aisub" id="aidsub" hidden></p>
   <p class="dr" id="aidm" aria-live="polite"></p>
   <div class="aipb" id="aidpb"><i id="aidbar"></i></div>
+  <div class="aist" id="aidst" hidden></div>
+  <div class="ail" id="aidls" hidden></div>
+  <p class="aihint" id="aidhint" hidden></p>
   <div class="acts" id="aida"><button class="btn" id="aids" type="button" hidden>Buka Pengaturan</button></div>
 </div><button id="aidx" class="aidx" type="button" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></dialog>
 <dialog id="scd" aria-label="Rincian skor"><div id="scdbody"></div><button id="scdx" class="aidx" type="button" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></dialog>
@@ -2090,10 +2116,15 @@ function aiPost(body){
 }
 var AIW='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>';
 var AIOK='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.5l3.5 3.5L17 9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-function aidShow(st,title,msg,pct){
-  var d=$("aid");d.className="ai-"+st;d.setAttribute("aria-label",title);
+function aidShow(st,title,msg,pct,x){
+  x=x||{};
+  var d=$("aid");d.className="ai-"+st+((x.stats||x.list)?" ai-x":"");d.setAttribute("aria-label",title);
   $("aidt").textContent=title;$("aidm").textContent=msg;$("aidbar").style.width=pct+"%";
-  $("aidi").innerHTML=st==="run"?"<div class='spin'></div>":st==="ok"?AIOK:st==="err"?AIW:"";
+  $("aidi").innerHTML=st==="run"?"<div class='spin'></div>":(st==="ok"||(st==="info"&&x.stats))?AIOK:st==="err"?AIW:"";
+  $("aidsub").textContent=x.sub||"";$("aidsub").hidden=!x.sub;
+  $("aidst").innerHTML=x.stats?x.stats.map(function(z){return"<span>"+(z[2]?IC.ok:"")+z[0]+" <b>"+z[1]+"</b></span>"}).join(""):"";$("aidst").hidden=!x.stats;
+  $("aidls").innerHTML=x.list||"";$("aidls").hidden=!x.list;$("aidls").classList.toggle("fx",st==="run");
+  $("aidhint").textContent=x.hint||"";$("aidhint").hidden=!x.hint;
   $("aidpb").hidden=st==="info";
   $("aidx").hidden=st==="run";$("aids").hidden=true;
   if(!d.open)d.showModal();
@@ -2111,7 +2142,13 @@ $("findall").onclick=async function(){
   var b=this,all=view(),list=all.filter(function(x){return x.id&&x.website&&!x.looked});
   var T="Cari Email & Whatsapp";
   var nos=all.filter(function(x){return x.id&&!x.website&&!x.looked}); // tanpa website tidak ada yang dicek, langsung dianggap selesai supaya dapat skor
-  if(!list.length&&!nos.length){aidShow("info",T,all.length?"Semua tempat di tampilan ini sudah dicek emailnya, atau tidak punya website.":"Tidak ada tempat untuk dicek.",0);return}
+  var pl=all.filter(function(x){return x.id}),tp=pl.length,tw=pl.filter(function(x){return x.website}).length;
+  function hasC(x){return !!(x.email||(x.emails&&x.emails.length)||x.wa)}
+  if(!list.length&&!nos.length){
+    if(!tp){aidShow("info",T,all.length?"Semua tempat di tampilan ini sudah dicek emailnya, atau tidak punya website.":"Tidak ada tempat untuk dicek.",0);return}
+    var wc=pl.filter(function(x){return x.website&&hasC(x)}).length,wn=pl.filter(function(x){return x.website&&!hasC(x)}).length;
+    aidShow("info",T,"Semua "+tp+" tempat di tampilan ini sudah diproses. Tidak ada yang perlu dicek lagi.",0,{stats:[["Punya kontak",wc,1],["Tanpa kontak",wn],["Tanpa website",tp-tw]],hint:"Ingin mengecek tempat lain? Ubah filter atau tekan Cari ulang."});
+    return}
   if(!list.length){
     b.disabled=true;b.setAttribute("aria-busy","true");
     nos.forEach(function(x){x.looked=true});
@@ -2123,12 +2160,21 @@ $("findall").onclick=async function(){
     return;
   }
   b.disabled=true;b.setAttribute("aria-busy","true");
-  var tot=list.length,done=0,got=0,idx=0,stop=false,pend=[];
-  function upd(){aidShow("run",T,"Mengecek "+done+" dari "+tot+" website…",done/tot*100)}
+  var tot=list.length,done=0,got=0,none=0,fail=0,idx=0,stop=false,pend=[],LG=[];
+  var sub=tp+" tempat di tampilan ini, "+tw+" punya website";
+  function rowH(g){
+    var ic=g.st==="run"?"<span class='spin'></span>":g.st==="ok"?IC.ok:g.st==="fail"?"!":"–";
+    var tg=g.st==="run"?"<span>mengecek…</span>":g.st==="ok"?(g.em?"<span class='f' title='Email ditemukan' aria-label='Email ditemukan'>"+IC.mail+"</span>":"")+(g.wa?"<span class='f' title='WhatsApp ditemukan' aria-label='WhatsApp ditemukan'>"+IC.wa+"</span>":""):g.st==="fail"?"<span class='w'>Tidak terbuka</span>":"<span>Tanpa kontak</span>";
+    return"<div class='r'><span class='ic"+(g.st==="ok"?" ok":"")+"'>"+ic+"</span><span class='nm"+(g.st==="run"?" run":"")+"'>"+esc(g.n)+"</span><span class='tg'>"+tg+"</span></div>";
+  }
+  function rows6(fin){return(fin?LG.filter(function(g){return g.st==="ok"}):LG).slice(-6).reverse().map(rowH).join("")}
+  function stx(){return[["Punya kontak",got,1],["Tanpa kontak",none],["Tidak terbuka",fail]]}
+  function upd(){aidShow("run",T,"Mengecek "+done+" dari "+tot+" website…",done/tot*100,{sub:sub,stats:stx(),list:rows6(false)})}
   upd();
   async function worker(){
     while(!stop&&idx<tot){
-      var x=list[idx++];
+      var x=list[idx++],g={n:x.name||x.website,st:"run"};
+      LG.push(g);if(!stop)upd();
       try{
         var r=await fetch("/api/usage?a=email&url="+encodeURIComponent(x.website));
         if(r.status===401){stop=true;return}
@@ -2138,9 +2184,10 @@ $("findall").onclick=async function(){
         if(m.length){x.emails=m;x.email=m[0]}
         if(w)x.wa=w;
         x.found=!!(m.length||w);
-        if(x.found)got++;
+        g.em=!!m.length;g.wa=!!w;
+        if(x.found){got++;g.st="ok"}else{none++;g.st="none"}
         pend.push(saveLead(x,{},true)); // semua yang sudah dicek disimpan (juga yang kosong atau website yang tidak bisa dibuka), supaya tidak dicek ulang setelah reload
-      }catch(e){}
+      }catch(e){if(g.st==="run"){g.st="fail";fail++}}
       done++;if(!stop)upd();
     }
   }
@@ -2151,7 +2198,7 @@ $("findall").onclick=async function(){
   b.disabled=false;b.setAttribute("aria-busy","false");
   render();if($("emq"))renderMail();
   if(stop){$("aid").close();showLogin("Sesi habis, silakan masuk lagi.");return}
-  aidShow("ok","Selesai","Dari "+tot+" website, "+got+" tempat punya email atau WhatsApp."+(got?" Tempat itu sudah tersimpan ke Prospek Saya.":""),100);
+  aidShow("ok","Selesai","Dari "+tp+" tempat, "+tw+" punya website."+(tot<tw?" "+tot+" website dicek sekarang.":"")+" "+got+" tempat punya email atau WhatsApp."+(got?" Tempat itu sudah tersimpan ke Prospek Saya.":""),100,{stats:stx(),list:got?rows6(true):""});
 };
 function tickBtn(b){
   clearTimeout(b._t);b.innerHTML=IC.ok;b.classList.add("done");
