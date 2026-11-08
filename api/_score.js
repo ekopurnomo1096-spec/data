@@ -13,7 +13,6 @@ const SOCIAL = /(^|\.)(facebook|instagram|linktr|linktree|tiktok|youtube|twitter
 // key: [nilai bawaan, label, kelompok]. Kelompok "neg" = sinyal negatif (bawaan minus).
 const DEFS = {
   email:    [30,  "Ada email", "pos"],
-  own:      [5,   "Email domain sendiri (bukan Gmail dkk)", "pos"],
   website:  [10,  "Ada website", "pos"],
   wa:       [5,   "Ada WhatsApp", "pos"],
   phone:    [5,   "Ada telepon", "pos"],
@@ -70,7 +69,6 @@ function scoreLead(l, w) {
   const em = String((Array.isArray(l.emails) && l.emails.length ? l.emails[0] : l.email) || "").trim().toLowerCase();
   if (em) {
     add("email", "ada email");
-    if (!FREE.test(em)) add("own", "email domain sendiri");
     if (ROLEMAIL.test(em.split("@")[0])) add("roleMail", "email tidak dibaca orang (" + em.split("@")[0] + ")");
   }
   if (l.website) {
