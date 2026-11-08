@@ -1545,7 +1545,7 @@ function syncSort(){
   $("sortsel").value=v&&$("sortsel").querySelector("option[value='"+v+"']")?v:"";
 }
 function score(x){return(x.phone?1:0)+(x.email?1:0)+(x.website?1:0)}
-var SORTS={name:function(x){return x.name.toLowerCase()},rating:function(x){return parseFloat(x.rating)||0},reviews:function(x){return parseInt(String(x.reviews||"").replace(/\D/g,""),10)||0},score:score,ai:function(x){return ruleScore(x).s},status:function(x){return STORD[stOf(x)]||0},changed:function(x){var r=LS[x.id];return r&&r.t||0}};
+var SORTS={name:function(x){return x.name.toLowerCase()},rating:function(x){return parseFloat(x.rating)||0},reviews:function(x){return parseInt(String(x.reviews||"").replace(/\D/g,""),10)||0},score:score,ai:function(x){return scDone(x)?ruleScore(x).s:-1},status:function(x){return STORD[stOf(x)]||0},changed:function(x){var r=LS[x.id];return r&&r.t||0}};
 var STEPS=["Mencari lokasi kota…","Mengambil data tempat…","Hampir selesai. Kota besar butuh waktu lebih lama…"];
 var NA="<span class='na'>–</span>";
 function loading(on){
@@ -2054,7 +2054,9 @@ function openD(x){curX=x;
 }
 var AI={};
 function aiCls(n){return n>=70?"hi":n>=40?"mid":"lo"}
-function aiBadge(x){var a=ruleScore(x);return"<span class='aib "+aiCls(a.s)+"' role='button' tabindex='0' data-sc='"+a.s+"' data-nm='"+esc(x.name||"")+"' data-th='"+esc(x.thumbnail||"")+"' data-why='"+esc(JSON.stringify(a.det))+"' title='"+esc(a.why.join(", "))+"'>"+a.s+"</span>"}
+// Skor baru dihitung setelah tempatnya dicek lewat Cari Email & Whatsapp (atau sudah punya email atau WhatsApp). Sebelum itu angkanya belum lengkap.
+function scDone(x){return!!(x.looked||x.email||(x.emails&&x.emails.length)||x.wa)}
+function aiBadge(x){if(!scDone(x))return"";var a=ruleScore(x);return"<span class='aib "+aiCls(a.s)+"' role='button' tabindex='0' data-sc='"+a.s+"' data-nm='"+esc(x.name||"")+"' data-th='"+esc(x.thumbnail||"")+"' data-why='"+esc(JSON.stringify(a.det))+"' title='"+esc(a.why.join(", "))+"'>"+a.s+"</span>"}
 // Pil skor yang bisa diklik. Alasannya dibuka di jendela kecil supaya baris email tetap bersih, juga di HP.
 function scPill(n,why,nm,id,th){return"<em class='mtag pl scb sc-"+aiCls(n)+"' role='button' tabindex='0' data-sc='"+n+"' data-id='"+esc(id||"")+"' data-th='"+esc(th||"")+"' data-nm='"+esc(nm||"")+"' data-why='"+esc(JSON.stringify(why||[]))+"' aria-label='Lihat rincian skor "+n+"'>skor "+n+"</em>"}
 var SCNEG=/^(jaringan|bukan bisnis|email tidak|rating rendah|hampir tanpa|website hanya)/;
@@ -2109,7 +2111,18 @@ $("aids").onclick=function(){$("aid").close();openSet()};
 $("findall").onclick=async function(){
   var b=this,all=view(),list=all.filter(function(x){return x.id&&x.website&&!x.looked});
   var T="Cari Email & Whatsapp";
-  if(!list.length){aidShow("info",T,all.length?"Semua tempat di tampilan ini sudah dicek emailnya, atau tidak punya website.":"Tidak ada tempat untuk dicek.",0);return}
+  var nos=all.filter(function(x){return x.id&&!x.website&&!x.looked}); // tanpa website tidak ada yang dicek, langsung dianggap selesai supaya dapat skor
+  if(!list.length&&!nos.length){aidShow("info",T,all.length?"Semua tempat di tampilan ini sudah dicek emailnya, atau tidak punya website.":"Tidak ada tempat untuk dicek.",0);return}
+  if(!list.length){
+    b.disabled=true;b.setAttribute("aria-busy","true");
+    nos.forEach(function(x){x.looked=true});
+    await Promise.all(nos.map(function(x){return saveLead(x,{},true)}));
+    fillQueue("intake");
+    b.disabled=false;b.setAttribute("aria-busy","false");
+    render();if($("emq"))renderMail();
+    aidShow("ok","Selesai","Semua tempat di tampilan ini tidak punya website, jadi tidak ada email atau WhatsApp yang bisa dicari.",100);
+    return;
+  }
   b.disabled=true;b.setAttribute("aria-busy","true");
   var tot=list.length,done=0,got=0,idx=0,stop=false,pend=[];
   function upd(){aidShow("run",T,"Mengecek "+done+" dari "+tot+" website…",done/tot*100)}
@@ -2132,6 +2145,7 @@ $("findall").onclick=async function(){
       done++;if(!stop)upd();
     }
   }
+  nos.forEach(function(x){x.looked=true;pend.push(saveLead(x,{},true))});
   await Promise.all([worker(),worker(),worker(),worker()]);
   await Promise.all(pend);
   if(!stop)fillQueue("intake"); // juga saat tidak ada yang ketemu: tempat tanpa email dan WA otomatis ditandai Tanpa kontak
