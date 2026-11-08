@@ -423,7 +423,11 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .aisub{margin-top:4px;font-size:.8rem;color:var(--mute)}
 .aist{display:flex;justify-content:center;flex-wrap:nowrap;gap:6px;margin-top:12px;font-size:.8rem;white-space:nowrap}
 @media (max-width:460px){.aist{flex-wrap:wrap}}
-.aist span{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;background:var(--soft);color:var(--mute)}
+.aist span,.aist button{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;background:var(--soft);color:var(--mute);border:1px solid transparent;font:inherit}
+.aist button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.aist button:hover{border-color:var(--line)}
+.aist button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.aist button[aria-pressed="true"]{background:var(--accsoft);border-color:var(--acc);color:var(--acc)}
 .aist b{font-weight:600;color:var(--ink)}
 .aist svg{width:14px;height:14px;color:var(--acc)}
 .aihint{margin-top:14px;font-size:.8rem;color:var(--mute)}
@@ -436,6 +440,7 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .ail .spin{width:14px;height:14px;border-width:2px}
 .ail .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
 .ail .nm.run{color:var(--mute)}
+.ail .e{justify-content:center;color:var(--mute)}
 .ail .tg{flex:none;display:flex;gap:4px;font-size:.72rem}
 .ail .tg>span{padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--mute)}
 .ail .tg>span.w{color:var(--warm)}
@@ -2123,10 +2128,10 @@ function aidShow(st,title,msg,pct,x){
   $("aidt").textContent=title;$("aidm").textContent=msg;$("aidbar").style.width=pct+"%";
   $("aidi").innerHTML=st==="run"?"<div class='spin'></div>":(st==="ok"||(st==="info"&&x.stats))?AIOK:st==="err"?AIW:"";
   $("aidsub").textContent=x.sub||"";$("aidsub").hidden=!x.sub;
-  $("aidst").innerHTML=x.stats?x.stats.map(function(z){return"<span>"+(z[2]?IC.ok:"")+z[0]+" <b>"+z[1]+"</b></span>"}).join(""):"";$("aidst").hidden=!x.stats;
+  $("aidst").innerHTML=x.stats?x.stats.map(function(z){var c=(z[2]?IC.ok:"")+z[0]+" <b>"+z[1]+"</b>";return z[3]?"<button type='button' data-k='"+z[3]+"' aria-pressed='"+(z[4]?"true":"false")+"'>"+c+"</button>":"<span>"+c+"</span>"}).join(""):"";$("aidst").hidden=!x.stats;
   var ls=$("aidls"),sc=ls.scrollTop,sh=ls.scrollHeight;
   ls.innerHTML=x.list||"";ls.hidden=!x.list;ls.classList.toggle("fx",st==="run");
-  ls.scrollTop=(st==="run"&&sc>0)?sc+ls.scrollHeight-sh:0; // baris baru masuk di atas: jaga posisi gulir supaya tidak loncat
+  ls.scrollTop=(!x.top&&st==="run"&&sc>0)?sc+ls.scrollHeight-sh:0; // baris baru masuk di atas: jaga posisi gulir supaya tidak loncat
   $("aidhint").textContent=x.hint||"";$("aidhint").hidden=!x.hint;
   $("aidpb").hidden=st==="info";
   $("aidx").hidden=st==="run";$("aids").hidden=true;
@@ -2163,16 +2168,19 @@ $("findall").onclick=async function(){
     return;
   }
   b.disabled=true;b.setAttribute("aria-busy","true");
-  var tot=list.length,done=0,got=0,none=0,fail=0,idx=0,stop=false,pend=[],LG=[];
+  var tot=list.length,done=0,got=0,none=0,fail=0,idx=0,stop=false,pend=[],LG=[],flt=null,touched=false,fin=false,top=false;
   var sub=tp+" tempat di tampilan ini, "+tw+" punya website";
   function rowH(g){
     var ic=g.st==="run"?"<span class='spin'></span>":g.st==="ok"?IC.ok:g.st==="fail"?"!":"–";
     var tg=g.st==="run"?"<span>mengecek…</span>":g.st==="ok"?(g.em?"<span class='f' title='Email ditemukan' aria-label='Email ditemukan'>"+IC.mail+"</span>":"")+(g.wa?"<span class='f' title='WhatsApp ditemukan' aria-label='WhatsApp ditemukan'>"+IC.wa+"</span>":""):g.st==="fail"?"<span class='w'>Tidak terbuka</span>":"<span>Tanpa kontak</span>";
     return"<div class='r'><span class='ic"+(g.st==="ok"?" ok":"")+"'>"+ic+"</span><span class='nm"+(g.st==="run"?" run":"")+"'>"+esc(g.n)+"</span><span class='tg'>"+tg+"</span></div>";
   }
-  function rowsAll(fin){return(fin?LG.filter(function(g){return g.st==="ok"}):LG).slice().reverse().map(rowH).join("")}
-  function stx(){return[["Punya kontak",got,1],["Tanpa kontak",none],["Tidak terbuka",fail]]}
-  function upd(){aidShow("run",T,"Mengecek "+done+" dari "+tot+" website…",done/tot*100,{sub:sub,stats:stx(),list:rowsAll(false)})}
+  function rowsAll(){var a=LG.filter(function(g){return !flt||g.st===flt});return a.length?a.slice().reverse().map(rowH).join(""):flt?"<div class='r e'>Belum ada tempat di kategori ini</div>":""}
+  function stx(){return[["Punya kontak",got,1,"ok",flt==="ok"],["Tanpa kontak",none,0,"none",flt==="none"],["Tidak terbuka",fail,0,"fail",flt==="fail"]]}
+  function upd(){var t=top;top=false;aidShow("run",T,"Mengecek "+done+" dari "+tot+" website…",done/tot*100,{sub:sub,stats:stx(),list:rowsAll(),top:t})}
+  function endMsg(){return"Dari "+tp+" tempat, "+tw+" punya website."+(tot<tw?" "+tot+" website dicek sekarang.":"")+" "+got+" tempat punya email atau WhatsApp."+(got?" Tempat itu sudah tersimpan ke Prospek Saya.":"")}
+  function endDraw(){aidShow("ok","Selesai",endMsg(),100,{stats:stx(),list:rowsAll(),top:true})}
+  $("aidst").onclick=function(e){var k=e.target.closest&&e.target.closest("button[data-k]");if(!k)return;touched=true;flt=flt===k.getAttribute("data-k")?null:k.getAttribute("data-k");if(fin)endDraw();else{top=true;upd()}};
   upd();
   async function worker(){
     while(!stop&&idx<tot){
@@ -2201,7 +2209,8 @@ $("findall").onclick=async function(){
   b.disabled=false;b.setAttribute("aria-busy","false");
   render();if($("emq"))renderMail();
   if(stop){$("aid").close();showLogin("Sesi habis, silakan masuk lagi.");return}
-  aidShow("ok","Selesai","Dari "+tp+" tempat, "+tw+" punya website."+(tot<tw?" "+tot+" website dicek sekarang.":"")+" "+got+" tempat punya email atau WhatsApp."+(got?" Tempat itu sudah tersimpan ke Prospek Saya.":""),100,{stats:stx(),list:got?rowsAll(true):""});
+  fin=true;if(!touched&&got)flt="ok"; // setelah selesai tampil yang punya kontak dulu; klik penghitung untuk melihat yang lain
+  endDraw();
 };
 function tickBtn(b){
   clearTimeout(b._t);b.innerHTML=IC.ok;b.classList.add("done");
