@@ -418,16 +418,17 @@ textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .aidx:focus{outline:none}
 .aidx:focus-visible{outline:2px solid var(--acc);outline-offset:0}
 .aidx[hidden]{display:none}
-#aid.ai-x{width:min(420px,calc(100vw - 24px))}
+#aid.ai-x{width:min(440px,calc(100vw - 24px))}
 #aid.ai-x #aidbody{padding:28px 24px 22px}
 .aisub{margin-top:4px;font-size:.8rem;color:var(--mute)}
-.aist{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:12px;font-size:.8rem}
-.aist span{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;background:var(--soft);color:var(--mute)}
+.aist{display:flex;justify-content:center;flex-wrap:nowrap;gap:6px;margin-top:12px;font-size:.8rem;white-space:nowrap}
+@media (max-width:460px){.aist{flex-wrap:wrap}}
+.aist span{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;background:var(--soft);color:var(--mute)}
 .aist b{font-weight:600;color:var(--ink)}
 .aist svg{width:14px;height:14px;color:var(--acc)}
 .aihint{margin-top:14px;font-size:.8rem;color:var(--mute)}
-.ail{margin-top:14px;border-top:1px solid var(--line);text-align:left}
-.ail.fx{height:222px;overflow:hidden}
+.ail{margin-top:14px;border-top:1px solid var(--line);text-align:left;max-height:223px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.ail.fx{height:223px}
 .ail .r{display:flex;align-items:center;gap:10px;height:37px;border-bottom:1px solid var(--line);font-size:.8rem}
 .ail .ic{flex:none;width:16px;display:flex;justify-content:center;color:var(--mute)}
 .ail .ic.ok{color:var(--acc)}
@@ -2123,7 +2124,9 @@ function aidShow(st,title,msg,pct,x){
   $("aidi").innerHTML=st==="run"?"<div class='spin'></div>":(st==="ok"||(st==="info"&&x.stats))?AIOK:st==="err"?AIW:"";
   $("aidsub").textContent=x.sub||"";$("aidsub").hidden=!x.sub;
   $("aidst").innerHTML=x.stats?x.stats.map(function(z){return"<span>"+(z[2]?IC.ok:"")+z[0]+" <b>"+z[1]+"</b></span>"}).join(""):"";$("aidst").hidden=!x.stats;
-  $("aidls").innerHTML=x.list||"";$("aidls").hidden=!x.list;$("aidls").classList.toggle("fx",st==="run");
+  var ls=$("aidls"),sc=ls.scrollTop,sh=ls.scrollHeight;
+  ls.innerHTML=x.list||"";ls.hidden=!x.list;ls.classList.toggle("fx",st==="run");
+  ls.scrollTop=(st==="run"&&sc>0)?sc+ls.scrollHeight-sh:0; // baris baru masuk di atas: jaga posisi gulir supaya tidak loncat
   $("aidhint").textContent=x.hint||"";$("aidhint").hidden=!x.hint;
   $("aidpb").hidden=st==="info";
   $("aidx").hidden=st==="run";$("aids").hidden=true;
@@ -2167,9 +2170,9 @@ $("findall").onclick=async function(){
     var tg=g.st==="run"?"<span>mengecek…</span>":g.st==="ok"?(g.em?"<span class='f' title='Email ditemukan' aria-label='Email ditemukan'>"+IC.mail+"</span>":"")+(g.wa?"<span class='f' title='WhatsApp ditemukan' aria-label='WhatsApp ditemukan'>"+IC.wa+"</span>":""):g.st==="fail"?"<span class='w'>Tidak terbuka</span>":"<span>Tanpa kontak</span>";
     return"<div class='r'><span class='ic"+(g.st==="ok"?" ok":"")+"'>"+ic+"</span><span class='nm"+(g.st==="run"?" run":"")+"'>"+esc(g.n)+"</span><span class='tg'>"+tg+"</span></div>";
   }
-  function rows6(fin){return(fin?LG.filter(function(g){return g.st==="ok"}):LG).slice(-6).reverse().map(rowH).join("")}
+  function rowsAll(fin){return(fin?LG.filter(function(g){return g.st==="ok"}):LG).slice().reverse().map(rowH).join("")}
   function stx(){return[["Punya kontak",got,1],["Tanpa kontak",none],["Tidak terbuka",fail]]}
-  function upd(){aidShow("run",T,"Mengecek "+done+" dari "+tot+" website…",done/tot*100,{sub:sub,stats:stx(),list:rows6(false)})}
+  function upd(){aidShow("run",T,"Mengecek "+done+" dari "+tot+" website…",done/tot*100,{sub:sub,stats:stx(),list:rowsAll(false)})}
   upd();
   async function worker(){
     while(!stop&&idx<tot){
@@ -2198,7 +2201,7 @@ $("findall").onclick=async function(){
   b.disabled=false;b.setAttribute("aria-busy","false");
   render();if($("emq"))renderMail();
   if(stop){$("aid").close();showLogin("Sesi habis, silakan masuk lagi.");return}
-  aidShow("ok","Selesai","Dari "+tp+" tempat, "+tw+" punya website."+(tot<tw?" "+tot+" website dicek sekarang.":"")+" "+got+" tempat punya email atau WhatsApp."+(got?" Tempat itu sudah tersimpan ke Prospek Saya.":""),100,{stats:stx(),list:got?rows6(true):""});
+  aidShow("ok","Selesai","Dari "+tp+" tempat, "+tw+" punya website."+(tot<tw?" "+tot+" website dicek sekarang.":"")+" "+got+" tempat punya email atau WhatsApp."+(got?" Tempat itu sudah tersimpan ke Prospek Saya.":""),100,{stats:stx(),list:got?rowsAll(true):""});
 };
 function tickBtn(b){
   clearTimeout(b._t);b.innerHTML=IC.ok;b.classList.add("done");
