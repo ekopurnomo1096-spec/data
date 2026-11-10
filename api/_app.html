@@ -1142,7 +1142,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
       <input type="search" class="q" id="waq" placeholder="Cari berdasarkan nama atau alamat..." aria-label="Cari prospek">
       <select id="wast" class="sortsel" aria-label="Filter status prospek"><option value="baru" selected>Belum Dihubungi</option><option value="all">Semua Status</option><option value="chat">Sudah Dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak Cocok</option></select>
       <select id="wase" class="sortsel" aria-label="Filter pencarian"><option value="">Semua Pencarian</option></select>
-      <div class="tbtns"><button class="ghost" id="warefresh" type="button">Segarkan Data</button></div>
+      <div class="tbtns"><button class="ghost" id="warefresh" type="button">Segarkan Data</button><button class="ghost" id="wadl" type="button" disabled>Unduh Kontak WA</button></div>
     </div>
     <p class="info" id="wainfo">Memuat…</p>
     <div class="mlist rd" id="walist" hidden></div>
@@ -2868,14 +2868,31 @@ function waRender(){
     if(q&&(x.name+" "+(x.address||"")).toLowerCase().indexOf(q)<0)return false;
     return true;
   }).sort(function(a,b){return(b.rating||0)-(a.rating||0)||(b.reviews||0)-(a.reviews||0)});
-  var shown=all.slice(0,100);WA.shown=shown;
+  var shown=all.slice(0,100);WA.shown=shown;WA.filtered=all;
   $("wainfo").textContent=all.length?("Menampilkan "+shown.length+" dari "+all.length+" prospek dengan WhatsApp."):"Tidak ada prospek yang cocok. Cari tempat lalu cari email/WhatsApp-nya, atau longgarkan filter.";
   var box=$("walist");box.hidden=!shown.length;
   box.innerHTML=shown.map(function(x,i){
     var w=waOf(x),s=stOf(x),sc=ruleScore(x);
     return"<div class='mrow klk' tabindex='0' data-wr='"+i+"'>"+thumb(x)+"<span><b>"+esc(x.name)+"</b><small>+"+esc(w.n)+(x.address?" \u00b7 "+esc(x.address):"")+"</small></span>"+scPill(sc.s,sc.det,x.name,x.id,x.thumbnail)+waSel(x,"  data-wi='"+i+"'")+"<button class='btn primary' type='button' data-i='"+i+"'>Buka WhatsApp</button></div>";
   }).join("");
+  $("wadl").disabled=!all.length;
 }
+// Unduh daftar kontak WA sesuai filter yang sedang aktif di tab WhatsApp (bukan cuma 100 yang tampil)
+function waContactsCsv(){
+  var list=WA.filtered||[];
+  return"nama,whatsapp,alamat,status,catatan\n"+list.map(function(x){
+    var w=waOf(x);
+    return[x.name,"+"+w.n,x.address||"",stLabel(waStOf(x)),noteOf(x)].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(",");
+  }).join("\n");
+}
+$("wadl").onclick=function(){
+  var list=WA.filtered||[];
+  if(!list.length){flash("Tidak ada kontak WhatsApp pada tampilan ini.");return}
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob(["\ufeff"+waContactsCsv()],{type:"text/csv;charset=utf-8"}));
+  a.download="kontak-whatsapp.csv";document.body.appendChild(a);a.click();a.remove();
+  flash("Diunduh: "+list.length+" kontak WhatsApp.");
+};
 $("walist").addEventListener("click",function(e){
   var b=e.target.closest("button[data-i]");if(!b)return;
   var x=(WA.shown||[])[+b.getAttribute("data-i")],w=x&&waOf(x);if(!w)return;
