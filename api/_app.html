@@ -1142,7 +1142,7 @@ dialog::backdrop{background:rgba(10,18,15,.5);backdrop-filter:blur(3px)}
       <input type="search" class="q" id="waq" placeholder="Cari berdasarkan nama atau alamat..." aria-label="Cari prospek">
       <select id="wast" class="sortsel" aria-label="Filter status prospek"><option value="baru" selected>Belum Dihubungi</option><option value="all">Semua Status</option><option value="chat">Sudah Dihubungi</option><option value="balas">Dibalas</option><option value="deal">Deal</option><option value="tidak">Tidak Cocok</option></select>
       <select id="wase" class="sortsel" aria-label="Filter pencarian"><option value="">Semua Pencarian</option></select>
-      <div class="tbtns"><button class="ghost" id="warefresh" type="button">Segarkan Data</button><button class="ghost" id="wadl" type="button" disabled>Unduh Kontak WA</button></div>
+      <div class="tbtns"><button class="ghost" id="warefresh" type="button">Segarkan Data</button><button class="ghost" id="wadl" type="button" disabled>Unduh Kontak WA</button><button class="ghost" id="waimp" type="button" title="Impor CSV Export dari Blastify: yang Berhasil otomatis ditandai Sudah dihubungi">Impor Hasil Blast</button><input type="file" id="waimpf" accept=".csv,text/csv" hidden></div>
     </div>
     <p class="info" id="wainfo">Memuat…</p>
     <div class="mlist rd" id="walist" hidden></div>
@@ -2892,6 +2892,62 @@ $("wadl").onclick=function(){
   a.href=URL.createObjectURL(new Blob(["\ufeff"+waContactsCsv()],{type:"text/csv;charset=utf-8"}));
   a.download="kontak-whatsapp.csv";document.body.appendChild(a);a.click();a.remove();
   flash("Diunduh: "+list.length+" kontak WhatsApp.");
+};
+// Impor hasil blast (CSV Export dari Blastify): baris berstatus Berhasil/terkirim otomatis ditandai "Sudah dihubungi" + catatan "WA, 11 Nov".
+// Status Dibalas/Deal/dll tidak diturunkan; yang sudah punya catatan WA hari itu dilewati.
+function csvRows(t){
+  t=t.replace(/^\ufeff/,"");var out=[],row=[],f="",q=false;
+  for(var i=0;i<t.length;i++){var c=t[i];
+    if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;
+    else if(c===","){row.push(f);f=""}
+    else if(c==="\n"||c==="\r"){if(c==="\r"&&t[i+1]==="\n")i++;row.push(f);f="";if(row.length>1||row[0]!=="")out.push(row);row=[]}
+    else f+=c}
+  if(f!==""||row.length){row.push(f);out.push(row)}
+  return out;
+}
+function waImport(text){
+  var R=csvRows(text);if(R.length<2){flash("File CSV kosong.");return}
+  var H=R[0].map(function(h){return h.trim().toLowerCase()});
+  var iN=H.indexOf("nomor"),iS=H.indexOf("status");
+  if(iN<0||iS<0){flash("Format tidak dikenali. Pakai file Export CSV dari Rincian Pengiriman Blastify.");return}
+  var ok={};
+  R.slice(1).forEach(function(r){
+    var st=(r[iS]||"").trim().toLowerCase();
+    if(st!=="berhasil"&&st!=="terkirim")return;
+    var d=(r[iN]||"").replace(/\D/g,"");if(d.length>=8)ok[d]=1;
+  });
+  var nums=Object.keys(ok);
+  if(!nums.length){flash("Tidak ada baris berstatus Berhasil di file ini.");return}
+  var byFull={},bySuf={};
+  nums.forEach(function(d){byFull[d]=1;bySuf[d.slice(-9)]=1});
+  var line="WA, "+new Date().toLocaleDateString("id-ID",{day:"numeric",month:"short"});
+  var hit=0,skip=0,todo=[];
+  WA.rows.forEach(function(x){
+    var w=waOf(x);if(!w)return;
+    var n=String(w.n).replace(/\D/g,"");
+    if(!(byFull[n]||bySuf[n.slice(-9)]))return;
+    hit++;
+    if(waContacted(x)){skip++;return}
+    todo.push(x);
+  });
+  if(!todo.length){flash(hit?("Semua "+hit+" prospek yang cocok sudah ditandai."):"Tidak ada nomor di file yang cocok dengan prospek WhatsApp.");return}
+  var i=0;
+  (function next(){
+    var batch=todo.slice(i,i+5);i+=5;
+    if(!batch.length){flash("Selesai: "+todo.length+" prospek ditandai Sudah dihubungi"+(skip?(", "+skip+" sudah ditandai sebelumnya"):"")+". "+(nums.length-hit)+" nomor di file tidak ada di daftar ini.");waRender();return}
+    flash("Menandai "+Math.min(i,todo.length)+" / "+todo.length+"…");
+    Promise.all(batch.map(function(x){
+      var cur=noteOf(x),p={n:cur?cur+"\n"+line:line};
+      if(!stOf(x))p.s="chat";
+      return saveLead(x,p,true);
+    })).then(next);
+  })();
+}
+$("waimp").onclick=function(){$("waimpf").value="";$("waimpf").click()};
+$("waimpf").onchange=function(){
+  var f=this.files&&this.files[0];if(!f)return;
+  var fr=new FileReader();fr.onload=function(){waImport(String(fr.result))};fr.readAsText(f);
 };
 $("walist").addEventListener("click",function(e){
   var b=e.target.closest("button[data-i]");if(!b)return;
