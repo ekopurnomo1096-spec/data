@@ -124,12 +124,14 @@ async function overpassSearch(pt, kind) {
 }
 
 // ---- Google Maps lewat SerpApi (data paling lengkap; butuh SERPAPI_KEY) ----
+const SERP_ZOOM = 12; // ~20 km radius. 13 = ~10 km (lebih sempit), 11 = ~40 km (lebih luas)
 const SERP_TERM = { salon: "hair extension salon", wig: "wig shop", beauty: "beauty supply store" };
 
 async function serpSearch(city, kind, key, start, ll) {
   let url = "https://serpapi.com/search.json?engine=google_maps&type=search&q=" +
     encodeURIComponent(SERP_TERM[kind] + " in " + city) + "&api_key=" + encodeURIComponent(key);
-  if (start > 0) url += "&start=" + start + (ll ? "&ll=" + encodeURIComponent(ll) : "");
+  if (ll) url += "&ll=" + encodeURIComponent(ll);
+  if (start > 0) url += "&start=" + start;
   const j = await getJSON(url, { headers: UA }, 25000);
   if (j.error) {
     if (/hasn't returned any results/i.test(j.error)) return { list: [], more: false, ll: ll || "" };
@@ -241,6 +243,10 @@ async function searchCore(q, opts) {
     if (!sp) throw fail("API key SerpApi belum dikonfigurasi. Silakan lengkapi pada menu Pengaturan.");
     const two = !!sp.other || !!sp.switched;
     acct = sp.n; switched = sp.switched;
+    // Kunci area pencarian: titik pusat kota + zoom 12z (kira-kira radius 20 km). Gagal geocode: biarkan Google menentukan sendiri.
+    if (!ll) {
+      try { const pt = await geocode(city); if (pt) ll = "@" + pt.lat + "," + pt.lon + "," + SERP_ZOOM + "z"; } catch (e) { /* tanpa ll */ }
+    }
     try {
       const sr = await serpSearch(city, kind, sp.key, start, ll);
       results = sr.list; more = sr.more; ll = sr.ll; pageMore = sr.more;
